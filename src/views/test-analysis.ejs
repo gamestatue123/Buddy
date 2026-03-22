@@ -623,6 +623,8 @@ function saveTest() {
     const name=document.getElementById('mName').value.trim(),date=document.getElementById('mDate').value;
     if(!name||!date){showToast('Name and date required');return;}
     const payload={id:Date.now().toString(),testName:name,date,totalQuestions:+(document.getElementById('mTotalQ').value)||0,maxMarks:+(document.getElementById('mMaxMarks').value)||300,physics:+(document.getElementById('mPhy').value)||0,physicsMax:+(document.getElementById('mPhyMax').value)||100,chemistry:+(document.getElementById('mChem').value)||0,chemistryMax:+(document.getElementById('mChemMax').value)||100,maths:+(document.getElementById('mMath').value)||0,mathsMax:+(document.getElementById('mMathMax').value)||100,rank:document.getElementById('mRank').value,questions:[...stagedQs],prep:{examDate:document.getElementById('mExamDate').value,revisionTarget:+(document.getElementById('mRevisionTarget').value)||0,notes:document.getElementById('mPrepNotes').value.trim()}};
+    tests.push(payload);
+    saveTests();closeModal('addModal');showToast('✓ Test logged');
     tests=[payload];
     localStorage.setItem('active_test_plan',JSON.stringify({examName:payload.testName,examDate:payload.prep.examDate,revisionTarget:payload.prep.revisionTarget,notes:payload.prep.notes}));
     saveTests();closeModal('addModal');showToast('✓ Focus test saved (single test mode)');
@@ -679,6 +681,10 @@ function importData(e) {
     const reader=new FileReader();
     reader.onload=function(ev){
         try{
+            const parsed=JSON.parse(ev.target.result);
+            const data=Array.isArray(parsed)?parsed:(Array.isArray(parsed.tests)?parsed.tests:(Array.isArray(parsed.data)?parsed.data:[]));
+            if(!Array.isArray(data)||!data.length)throw new Error('Expected array');
+            const existingIds=new Set(tests.map(t=>t.id));let added=0;
             const data=JSON.parse(ev.target.result);
             if(!Array.isArray(data))throw new Error('Expected array');
             let added=0;const imported=[];

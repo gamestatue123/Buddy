@@ -513,6 +513,12 @@
         </div>
       </a>
 
+            <!-- UPCOMING TEST col-8 -->
+      <div class="dc col-8">
+        <div class="ch"><div class="ch-title">UPCOMING TEST</div><div class="ch-badge" id="upcomingBadge">LOCK IN</div></div>
+        <div class="cb">
+          <div id="upcomingWidget" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;"></div>
+          <div id="upcomingChecklist" style="margin-top:10px;display:flex;flex-direction:column;gap:6px;"></div>
             <!-- PREP MOMENTUM col-8 -->
       <div class="dc col-8">
         <div class="ch"><div class="ch-title">PREP MOMENTUM</div><div class="ch-badge" id="momentumBadge">LOCK IN</div></div>
@@ -586,7 +592,7 @@ window.addEventListener('DOMContentLoaded',()=>{
 
 function selectStorage(mode){
     _sm=mode; localStorage.setItem('buddy_storage_mode',mode);
-    if(mode==='local'){closeOverlay();loadLocalData();}
+    if(mode==='local'){let p={};try{p=JSON.parse(localStorage.getItem('buddy_profile')||'{}');}catch(e){};if(!p.targetYear){const y=prompt('Enter your target JEE year (e.g. 2027):','2027');if(!y){showToastMsg('Target year is required for setup.');return;}p.targetYear=Number(y)||2027;localStorage.setItem('buddy_profile',JSON.stringify(p));}closeOverlay();loadLocalData();}
     else{ensureAuthListener();if(!firebase.auth().currentUser)showScreen('screenLogin');}
 }
 
@@ -700,6 +706,7 @@ async function syncToCloud(){
     }catch(e){document.getElementById('syncStatusText').textContent='⚠ FAILED';}
     finally{_si=false;}
 }
+function loadLocalData(){showLocalSignInButton();document.getElementById('syncStatusText').textContent='LOCAL';applyProfile();loadPageData();}
 function loadLocalData(){showLocalSignInButton();document.getElementById('syncStatusText').textContent='LOCAL';loadPageData();}
 
 // ══ PAGE DATA ══
@@ -716,6 +723,7 @@ function applyProfile(override={}){
     const hn=document.getElementById('heroName');
     if(name&&hn){hn.textContent=name.split(' ')[0].toUpperCase()+',';hn.style.display='block';}
 }
+function loadPageData(){applyProfile();loadDPPStats();loadSyllabusProgress();loadUpcomingWidget();loadTasks();loadSchedule();loadStreak();loadTestWidget();}
 function loadPageData(){applyProfile();loadDPPStats();loadSyllabusProgress();loadMomentumWidget();loadTasks();loadSchedule();loadStreak();loadTestWidget();}
 
 // Clock
@@ -759,6 +767,24 @@ function esc(s){if(!s)return'';return s.replace(/[&<>"']/g,m=>({'&':'&amp;','<':
 function showToastMsg(m){const t=document.getElementById('ttToast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2600);}
 window.showComingSoon=(e)=>{if(e)e.preventDefault();showToastMsg('✨ Feature coming soon!');};
 
+// Upcoming test widget (from timetable single-test plan)
+function loadUpcomingWidget(){
+    const box=document.getElementById('upcomingWidget');
+    const list=document.getElementById('upcomingChecklist');
+    if(!box||!list)return;
+    let plan={};
+    try{plan=JSON.parse(localStorage.getItem('active_test_plan')||'{}');}catch(e){}
+    const profile=JSON.parse(localStorage.getItem('buddy_profile')||'{}');
+    const fallbackYear=profile.targetYear||2027;
+    const fallbackDate=`${fallbackYear}-01-20`;
+    const examName=plan.examName||`JEE MAINS ${fallbackYear}`;
+    const examDate=plan.examDate||fallbackDate;
+    const rem=Math.ceil((new Date(examDate+'T09:00:00')-new Date())/86400000);
+    const revision=plan.revisionTarget||0;
+    box.innerHTML=`<div class="mini-card"><div class="mini-card-n" style="color:var(--amber)">${rem>0?rem:'GO'}</div><div class="mini-card-l">Days to ${esc(examName)}</div></div><div class="mini-card"><div class="mini-card-n" style="color:var(--vio)">${revision}%</div><div class="mini-card-l">Revision Target</div></div><div class="mini-card"><div class="mini-card-n" style="color:var(--grn)">${examDate}</div><div class="mini-card-l">Exam Date</div></div>`;
+    const notes=plan.notes?plan.notes.split('.').map(x=>x.trim()).filter(Boolean).slice(0,3):[];
+    list.innerHTML=notes.length?notes.map(n=>`<div class="task-row"><div class="task-cb"></div><div class="task-text">${esc(n)}</div></div>`).join(''):'<div class="empty-card"><div class="empty-ico">📝</div><div class="empty-t">Add strategy notes from Timetable → Tests tab.</div></div>';
+    document.getElementById('upcomingBadge').textContent=plan.examName?'FROM TIMETABLE':'DEFAULT JEE PLAN';
 // Momentum widget
 function loadMomentumWidget(){
     const box=document.getElementById('momentumWidget');

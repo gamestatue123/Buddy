@@ -351,6 +351,10 @@
     function loadQ(){
         const r=localStorage.getItem('dpp_q2');
         if(r){ try{ const p=JSON.parse(r); if(p['11']) QS['11']=p['11']; if(p['12']) QS['12']=p['12']; }catch(e){} }
+        ensurePreload11();
+    }
+    function ensurePreload11(){
+        const seen=new Set((QS['11']||[]).map(x=>`${x.chapter}::${x.dppNumber}::${x.questionNumber}`));
 
     }
     function loadPreload(){ return;
@@ -361,7 +365,10 @@
                 if(!m) continue;
                 const dnum=m[1].trim();
                 for(const q of parseR(m[2])){
-                    QS['11'].push({id:`${Date.now()}_${Math.random()}`,chapter:ch.n,dppNumber:dnum,questionNumber:q.toString(),status:'good',createdAt:new Date().toISOString()});
+                    const key=`${ch.n}::${dnum}::${q}`;
+                    if(seen.has(key)) continue;
+                    seen.add(key);
+                    QS['11'].push({id:`${Date.now()}_${Math.random()}`,subject:subjectOf({chapter:ch.n})||'',chapter:ch.n,dppNumber:dnum,questionNumber:q.toString(),status:'good',createdAt:new Date().toISOString(),preloaded:true});
                 }
             }
         }
@@ -389,6 +396,13 @@
         const subject=document.getElementById('subjectSelect').value;
         const dl=document.getElementById('chapterSuggestions');
         const input=document.getElementById('chapterInput');
+        const defaults=((SMAP[CLS]||{})[subject]||[]);
+        const custom=(getUserChapters()[`${CLS}:${subject}`]||[]);
+        const fromLogged=QS[CLS].filter(q=>(q.subject||subjectOf(q))===subject).map(q=>q.chapter);
+        const seen=new Set();
+        let options=[...defaults,...custom,...fromLogged].filter(ch=>{const key=String(ch||'').toLowerCase();if(!key||seen.has(key))return false;seen.add(key);return true;});
+        dl.innerHTML=options.map(c=>`<option value="${esc(c)}"></option>`).join('');
+        if(!options.includes(input.value)) input.value=options[0]||'';
         const custom=(getUserChapters()[`${CLS}:${subject}`]||[]);
         const fromLogged=QS[CLS].filter(q=>q.subject===subject).map(q=>q.chapter);
         const seen=new Set();
