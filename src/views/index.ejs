@@ -210,6 +210,7 @@
     .storage-card:hover{border-color:var(--sc,var(--acc));transform:translateY(-2px);box-shadow:0 10px 28px rgba(0,0,0,0.4);}
     .storage-card:hover::after{opacity:0.08;}
     .sc-icon{font-size:1.5rem;margin-bottom:9px;display:block;position:relative;z-index:1;}
+    .sc-logo{width:26px;height:26px;border-radius:8px;object-fit:cover;display:block;margin-bottom:9px;position:relative;z-index:1;box-shadow:0 6px 14px rgba(0,0,0,0.35);}
     .sc-name{font-family:var(--fd);font-size:1rem;letter-spacing:0.07em;color:var(--fg1);margin-bottom:4px;position:relative;z-index:1;}
     .sc-desc{font-family:var(--fm);font-size:0.58rem;color:var(--fg3);line-height:1.6;position:relative;z-index:1;}
     .sc-badge{display:inline-block;margin-top:8px;padding:2px 7px;border-radius:50px;font-family:var(--fm);font-size:0.52rem;letter-spacing:0.06em;background:rgba(255,255,255,0.06);color:var(--fg3);position:relative;z-index:1;}
@@ -275,13 +276,13 @@
       <div class="auth-sub">How should Buddy store your progress, DPPs and test history?</div>
       <div class="storage-grid">
         <div class="storage-card" style="--sc:var(--amber)" onclick="selectStorage('local')">
-          <span class="sc-icon">💾</span>
+          <img src="/logo.png" class="sc-logo" alt="Buddy logo">
           <div class="sc-name">LOCAL ONLY</div>
           <div class="sc-desc">Stored on this device. Fast, private, no account required.</div>
           <span class="sc-badge">NO LOGIN</span>
         </div>
         <div class="storage-card" style="--sc:var(--acc)" onclick="selectStorage('cloud')">
-          <span class="sc-icon">☁️</span>
+          <img src="/logo.png" class="sc-logo" alt="Buddy logo">
           <div class="sc-name">CLOUD SYNC</div>
           <div class="sc-desc">Access from any device. Auto backed-up, always in sync.</div>
           <span class="sc-badge">LOGIN REQUIRED</span>
@@ -512,12 +513,12 @@
         </div>
       </a>
 
-            <!-- FOCUS BOARD col-8 -->
+            <!-- PREP MOMENTUM col-8 -->
       <div class="dc col-8">
-        <div class="ch"><div class="ch-title">FOCUS BOARD</div><div class="ch-badge" id="focusBadge">LOCK IN</div></div>
+        <div class="ch"><div class="ch-title">PREP MOMENTUM</div><div class="ch-badge" id="momentumBadge">LOCK IN</div></div>
         <div class="cb">
-          <div id="focusWidget" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;"></div>
-          <div id="focusChecklist" style="margin-top:10px;display:flex;flex-direction:column;gap:6px;"></div>
+          <div id="momentumWidget" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;"></div>
+          <div id="momentumChecklist" style="margin-top:10px;display:flex;flex-direction:column;gap:6px;"></div>
         </div>
       </div>
 
@@ -661,6 +662,12 @@ function showLocalSignInButton(){
     if(pill) pill.style.display='none';
     if(localBtn) localBtn.style.display='flex';
 }
+function showLocalSignInButton(){
+    const pill=document.getElementById('userMenuPill');
+    const localBtn=document.getElementById('localSignInBtn');
+    if(pill) pill.style.display='none';
+    if(localBtn) localBtn.style.display='flex';
+}
 function toggleUserDropdown(){document.getElementById('userDropdown').classList.toggle('show');}
 document.addEventListener('click',e=>{if(!e.target.closest('#userMenuPill'))document.getElementById('userDropdown')?.classList.remove('show');});
 function showAuthErr(el,msg){el.textContent=msg;el.classList.add('show');}
@@ -693,7 +700,7 @@ async function syncToCloud(){
     }catch(e){document.getElementById('syncStatusText').textContent='⚠ FAILED';}
     finally{_si=false;}
 }
-function loadLocalData(){showLocalSignInButton();document.getElementById('syncStatusText').textContent='LOCAL';applyProfile();loadPageData();}
+function loadLocalData(){showLocalSignInButton();document.getElementById('syncStatusText').textContent='LOCAL';loadPageData();}
 
 // ══ PAGE DATA ══
 function applyProfile(override={}){
@@ -709,7 +716,7 @@ function applyProfile(override={}){
     const hn=document.getElementById('heroName');
     if(name&&hn){hn.textContent=name.split(' ')[0].toUpperCase()+',';hn.style.display='block';}
 }
-function loadPageData(){applyProfile();loadDPPStats();loadSyllabusProgress();loadFocusBoard();loadTasks();loadSchedule();loadStreak();loadTestWidget();}
+function loadPageData(){applyProfile();loadDPPStats();loadSyllabusProgress();loadMomentumWidget();loadTasks();loadSchedule();loadStreak();loadTestWidget();}
 
 // Clock
 function updateClock(){
@@ -752,24 +759,28 @@ function esc(s){if(!s)return'';return s.replace(/[&<>"']/g,m=>({'&':'&amp;','<':
 function showToastMsg(m){const t=document.getElementById('ttToast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2600);}
 window.showComingSoon=(e)=>{if(e)e.preventDefault();showToastMsg('✨ Feature coming soon!');};
 
-// Focus board
-function loadFocusBoard(){
-    const box=document.getElementById('focusWidget');
-    const list=document.getElementById('focusChecklist');
+// Momentum widget
+function loadMomentumWidget(){
+    const box=document.getElementById('momentumWidget');
+    const list=document.getElementById('momentumChecklist');
     if(!box||!list)return;
     let q=[];try{const p=JSON.parse(localStorage.getItem('dpp_q2')||localStorage.getItem('dpp_questions')||'{}');q=[...(p['11']||[]),...(p['12']||[])];}catch(e){}
     let tests=[];try{tests=JSON.parse(localStorage.getItem('test_analysis_data')||'[]');}catch(e){}
-    const weak={};q.filter(x=>x.status==='tough'||x.status==='tricky').forEach(x=>{weak[x.chapter]=(weak[x.chapter]||0)+1;});
-    const topWeak=Object.entries(weak).sort((a,b)=>b[1]-a[1]).slice(0,3);
     const today=new Date().toISOString().slice(0,10);
     const todayQs=q.filter(x=>(x.createdAt||'').slice(0,10)===today).length;
-    const pending=Math.max(30-todayQs,0);
-    const last=[...tests].sort((a,b)=>new Date(b.date||0)-new Date(a.date||0))[0];
-    const score=last?((last.total??last.totalMarks??((last.physics||0)+(last.chemistry||0)+(last.maths||0)))):0;
-    box.innerHTML=`<div class="mini-card"><div class="mini-card-n" style="color:var(--amber)">${pending}</div><div class="mini-card-l">Questions Left Today</div></div><div class="mini-card"><div class="mini-card-n" style="color:var(--vio)">${topWeak.length}</div><div class="mini-card-l">Weak Chapters Tracked</div></div><div class="mini-card"><div class="mini-card-n" style="color:var(--grn)">${score}</div><div class="mini-card-l">Latest Mock Score</div></div>`;
-    list.innerHTML=(topWeak.length?topWeak.map(([ch,n])=>`<div class="task-row"><div class="task-cb"></div><div class="task-text">${esc(ch)} · ${n} flagged questions</div></div>`).join(''):'<div class="empty-card"><div class="empty-ico">🎯</div><div class="empty-t">No weak chapters yet — great momentum.</div></div>');
-    const done=[pending===0,topWeak.length>0,tests.length>0].filter(Boolean).length;
-    document.getElementById('focusBadge').textContent=`${done}/3 PRIORITIES`;
+    const lastTest=[...tests].sort((a,b)=>new Date(b.date||0)-new Date(a.date||0))[0];
+    const testScore=lastTest?((lastTest.total ?? lastTest.totalMarks ?? ((lastTest.physics||0)+(lastTest.chemistry||0)+(lastTest.maths||0)))):0;
+    box.innerHTML=`<div class="mini-card"><div class="mini-card-n" style="color:var(--amber)">${todayQs}</div><div class="mini-card-l">Questions Today</div></div><div class="mini-card"><div class="mini-card-n" style="color:var(--vio)">${tests.length}</div><div class="mini-card-l">Mocks Logged</div></div><div class="mini-card"><div class="mini-card-n" style="color:var(--grn)">${testScore}</div><div class="mini-card-l">Latest Test Score</div></div>`;
+    const plan=JSON.parse(localStorage.getItem('active_test_plan')||'{}');
+    const todo=[
+      {ok:todayQs>=30,t:'Solve 30+ questions today'},
+      {ok:tests.length>0,t:'Review latest mock mistakes'},
+      {ok:(plan.revisionTarget||0)>=70,t:'Revision target set to 70%+'},
+      {ok:!!(plan.examDate),t:'Exam countdown configured'}
+    ];
+    list.innerHTML=todo.map(i=>`<div class="task-row"><div class="task-cb" style="border-color:${i.ok?'var(--grn)':'var(--fg3)'};background:${i.ok?'var(--grn)':'transparent'}"></div><div class="task-text">${i.t}</div></div>`).join('');
+    const done=todo.filter(i=>i.ok).length;
+    document.getElementById('momentumBadge').textContent=`${done}/${todo.length} READY`;
 }
 
 // DPP
