@@ -1,504 +1,252 @@
-// ========== AUTH STATE MANAGEMENT ==========
+// ========== BUDDY AUTH.JS — REWRITTEN ==========
+// Replaces the old version that forced a modal on every page load.
+// Strategy: pages work immediately with localStorage data.
+// Firebase auth enriches the experience but is never a gate.
+
 let currentUser = null;
-let syncMode = null;
 let syncInProgress = false;
 
-// Detect if running in Capacitor/WebView
 const isCapacitor = !!window.Capacitor;
 const isAndroidWebView = /wv|android.*(?:; wv)/i.test(navigator.userAgent) || isCapacitor;
 
-// ========== AUTH FUNCTIONS ==========
-async function login() {
-    const email = document.getElementById('loginEmail').value;
-    const password = document.getElementById('loginPassword').value;
-    
-    if (!email || !password) {
-        showToast('Please enter email and password');
-        return;
+// ── Called once Firebase auth state is known ──
+firebase.auth().onAuthStateChanged(async (user) => {
+    currentUser = user || null;
+    _updateSidebarPill(user);
+    if (user) {
+        localStorage.setItem('buddy_storage_mode', 'cloud');
+        // Background sync — don't block page data
+        _syncFromCloud(user).catch(e => console.warn('sync err', e));
     }
-    
-    showLoading(true);
-    
+    // Handle redirect result for WebView
+    if (isAndroidWebView || isCapacitor) {
+        try {
+            const result = await firebase.auth().getRedirectResult();
+            if (result.user) {
+                _updateSidebarPill(result.user);
+                location.reload();
+            }
+        } catch (e) {}
+    }
+});
+
+// ── Email login (called from index.ejs overlay) ──
+async function doLogin() {
+    const e = document.getElementById('loginEmail')?.value?.trim();
+    const p = document.getElementById('loginPassword')?.value;
+    const err = document.getElementById('loginError');
+    const btn = document.getElementById('loginBtn');
+    if (!e || !p) { _showAuthErr(err, 'Enter your email and password.'); return; }
+    err?.classList.remove('show');
+    if (btn) { btn.innerHTML = '<span class="auth-spinner"></span>SIGNING IN...'; btn.disabled = true; }
     try {
-        const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
-        console.log('Login successful:', userCredential.user.email);
-        showToast('Logged in successfully!');
-        closeModal('authModal');
-    } catch (error) {
-        console.error('Login error:', error);
-        let errorMessage = 'Login failed. ';
-        switch (error.code) {
-            case 'auth/user-not-found':
-                errorMessage += 'User not found. Please sign up first.';
-                break;
-            case 'auth/wrong-password':
-                errorMessage += 'Wrong password.';
-                break;
-            case 'auth/invalid-email':
-                errorMessage += 'Invalid email format.';
-                break;
-            case 'auth/too-many-requests':
-                errorMessage += 'Too many attempts. Try again later.';
-                break;
-            default:
-                errorMessage += error.message;
-        }
-        showToast(errorMessage);
-    } finally {
-        showLoading(false);
+        await firebase.auth().signInWithEmailAndPassword(e, p);
+    } catch (ex) {
+        _showAuthErr(err, _friendlyErr(ex.code));
+        if (btn) { btn.innerHTML = 'SIGN IN'; btn.disabled = false; }
     }
 }
 
-async function signup() {
-    const name = document.getElementById('signupName').value;
-    const email = document.getElementById('signupEmail').value;
-    const password = document.getElementById('signupPassword').value;
-    const confirm = document.getElementById('signupConfirmPassword').value;
-    
-    if (!name || !email || !password) {
-        showToast('Please fill all fields');
-        return;
-    }
-    
-    if (password !== confirm) {
-        showToast('Passwords do not match');
-        return;
-    }
-    
-    if (password.length < 6) {
-        showToast('Password must be at least 6 characters');
-        return;
-    }
-    
-    showLoading(true);
-    
-    try {
-        const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, password);
-        console.log('Signup successful:', userCredential.user.email);
-        
-        await userCredential.user.updateProfile({ displayName: name });
-        
-        await firebase.firestore().collection('users').doc(userCredential.user.uid).set({
-            name: name,
-            email: email,
-            createdAt: new Date().toISOString(),
-            lastLogin: new Date().toISOString()
-        });
-        
-        showToast('Account created successfully!');
-        closeModal('authModal');
-    } catch (error) {
-        console.error('Signup error:', error);
-        let errorMessage = 'Signup failed. ';
-        switch (error.code) {
-            case 'auth/email-already-in-use':
-                errorMessage += 'Email already in use. Please login.';
-                break;
-            case 'auth/invalid-email':
-                errorMessage += 'Invalid email format.';
-                break;
-            case 'auth/weak-password':
-                errorMessage += 'Password is too weak. Use at least 6 characters.';
-                break;
-            default:
-                errorMessage += error.message;
-        }
-        showToast(errorMessage);
-    } finally {
-        showLoading(false);
-    }
-}
-
-// FIXED: Google Sign-In for WebView/Capacitor
+// ── Google / Microsoft ──
 async function signInWithGoogle() {
-    showLoading(true);
-    
     try {
         const provider = new firebase.auth.GoogleAuthProvider();
         provider.setCustomParameters({ prompt: 'select_account' });
-        
         if (isAndroidWebView || isCapacitor) {
-            // For WebView/Capacitor - Use redirect instead of popup
-            console.log('Using redirect auth for WebView');
             await firebase.auth().signInWithRedirect(provider);
-            // The page will redirect, no need to do anything else
-            return;
         } else {
-            // For normal web browsers - Use popup
-            console.log('Using popup auth for browser');
-            const result = await firebase.auth().signInWithPopup(provider);
-            console.log('Google Sign-In success:', result.user.email);
-            showToast('Signed in with Google!');
-            closeModal('authModal');
+            await firebase.auth().signInWithPopup(provider);
+            localStorage.setItem('buddy_storage_mode', 'cloud');
         }
-    } catch (error) {
-        console.error('Google Sign-In error:', error);
-        if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
-            showToast('Google Sign-In failed: ' + (error.message || 'Please try again'));
+    } catch (e) {
+        if (e.code !== 'auth/popup-closed-by-user' && e.code !== 'auth/cancelled-popup-request') {
+            _showToast(_friendlyErr(e.code));
         }
-    } finally {
-        showLoading(false);
     }
 }
 
 async function signInWithMicrosoft() {
-    showLoading(true);
-    
     try {
         const provider = new firebase.auth.OAuthProvider('microsoft.com');
         provider.setCustomParameters({ prompt: 'select_account' });
-        
         if (isAndroidWebView || isCapacitor) {
-            // For WebView/Capacitor - Use redirect
-            console.log('Using redirect auth for WebView');
             await firebase.auth().signInWithRedirect(provider);
-            return;
         } else {
-            // For normal web browsers - Use popup
-            const result = await firebase.auth().signInWithPopup(provider);
-            console.log('Microsoft Sign-In success:', result.user.email);
-            showToast('Signed in with Microsoft!');
-            closeModal('authModal');
+            await firebase.auth().signInWithPopup(provider);
+            localStorage.setItem('buddy_storage_mode', 'cloud');
         }
-    } catch (error) {
-        console.error('Microsoft Sign-In error:', error);
-        if (error.code !== 'auth/popup-closed-by-user') {
-            showToast('Microsoft Sign-In failed: ' + (error.message || 'Please try again'));
-        }
+    } catch (e) {
+        if (e.code !== 'auth/popup-closed-by-user') _showToast(_friendlyErr(e.code));
+    }
+}
+
+// ── Signup (called from index.ejs overlay) ──
+async function doSignup() {
+    const n = document.getElementById('signupName')?.value?.trim();
+    const cls = document.getElementById('signupClass')?.value;
+    const targetYear = document.getElementById('signupTargetYear')?.value?.trim();
+    const batch = document.getElementById('signupBatch')?.value?.trim();
+    const e = document.getElementById('signupEmail')?.value?.trim();
+    const p = document.getElementById('signupPassword')?.value;
+    const c = document.getElementById('signupConfirm')?.value;
+    const err = document.getElementById('signupError');
+    const btn = document.getElementById('signupBtn');
+    if (!n || !e || !p || !targetYear) { _showAuthErr(err, 'Name, target year, email and password are required.'); return; }
+    if (p !== c) { _showAuthErr(err, 'Passwords do not match.'); return; }
+    if (p.length < 6) { _showAuthErr(err, 'Password must be at least 6 characters.'); return; }
+    err?.classList.remove('show');
+    if (btn) { btn.innerHTML = '<span class="auth-spinner"></span>CREATING...'; btn.disabled = true; }
+    try {
+        const cred = await firebase.auth().createUserWithEmailAndPassword(e, p);
+        await cred.user.updateProfile({ displayName: n });
+        const profile = { name: n, classLevel: cls, targetYear: Number(targetYear), batch: batch || 'Self-study', email: e, createdAt: new Date().toISOString() };
+        localStorage.setItem('buddy_profile', JSON.stringify(profile));
+        firebase.firestore().collection('users').doc(cred.user.uid).set(profile).catch(() => {});
+        await cred.user.sendEmailVerification();
+        const vd = document.getElementById('verifyEmailDisplay');
+        if (vd) vd.textContent = e;
+        if (typeof showScreen === 'function') showScreen('screenVerify');
+    } catch (ex) {
+        _showAuthErr(err, _friendlyErr(ex.code));
     } finally {
-        showLoading(false);
+        if (btn) { btn.innerHTML = 'CREATE ACCOUNT'; btn.disabled = false; }
     }
 }
 
-async function logout() {
-    try {
-        await firebase.auth().signOut();
-        showToast('Logged out successfully');
-        setTimeout(() => {
-            location.reload();
-        }, 1000);
-    } catch (error) {
-        console.error('Logout error:', error);
-        showToast('Logout failed: ' + error.message);
-    }
-}
-
-function setSyncMode(mode) {
-    syncMode = mode;
-    if (currentUser) {
-        localStorage.setItem(`${currentUser.uid}_sync_mode`, mode);
-    }
-    document.getElementById('syncModeForm').style.display = 'none';
-    closeModal('authModal');
-    loadAllData();
-}
-
-function switchToSignup() {
-    document.getElementById('loginForm').style.display = 'none';
-    document.getElementById('signupForm').style.display = 'block';
-}
-
-function switchToLogin() {
-    document.getElementById('signupForm').style.display = 'none';
-    document.getElementById('loginForm').style.display = 'block';
-}
-
-// Handle redirect result (for WebView/Capacitor)
-async function handleRedirectResult() {
-    try {
-        const result = await firebase.auth().getRedirectResult();
-        if (result.user) {
-            console.log('Redirect sign-in successful:', result.user.email);
-            showToast('Signed in successfully!');
-            closeModal('authModal');
-            // Reload to update UI
-            setTimeout(() => location.reload(), 500);
-        }
-    } catch (error) {
-        console.error('Redirect sign-in error:', error);
-        showToast('Sign-in failed: ' + (error.message || 'Please try again'));
-    }
-}
-
-// ========== INITIALIZE ==========
-document.addEventListener('DOMContentLoaded', () => {
-    // Handle redirect result on page load (important for WebView)
-    if (isAndroidWebView || isCapacitor) {
-        handleRedirectResult();
-    }
-    
-    // Set up auth state listener
-    firebase.auth().onAuthStateChanged(async (user) => {
-        console.log('Auth state changed:', user ? 'Logged in' : 'Logged out');
-        
-        if (user) {
-            currentUser = user;
-            showUserMenu(user);
-            
-            const syncPref = localStorage.getItem(`${user.uid}_sync_mode`);
-            if (syncPref) {
-                syncMode = syncPref;
-                await loadAllData();
-                closeModal('authModal');
-            } else {
-                document.getElementById('authModal').classList.add('show');
-                document.getElementById('loginForm').style.display = 'none';
-                document.getElementById('signupForm').style.display = 'none';
-                document.getElementById('syncModeForm').style.display = 'block';
-            }
-        } else {
-            currentUser = null;
-            hideUserMenu();
-            document.getElementById('authModal').classList.add('show');
-            document.getElementById('loginForm').style.display = 'block';
-            document.getElementById('signupForm').style.display = 'none';
-            document.getElementById('syncModeForm').style.display = 'none';
-        }
-    });
-});
-
-// ========== DATA SYNC (keep existing) ==========
-async function loadAllData() {
-    if (!currentUser) return;
-    
-    if (syncMode === 'online') {
-        await syncFromCloud();
+async function checkVerification() {
+    const btn = document.getElementById('verifyBtn');
+    if (btn) { btn.innerHTML = '<span class="auth-spinner"></span>CHECKING...'; btn.disabled = true; }
+    await firebase.auth().currentUser?.reload();
+    if (firebase.auth().currentUser?.emailVerified) {
+        if (typeof closeOverlay === 'function') closeOverlay();
+        if (typeof loadPageData === 'function') loadPageData();
     } else {
-        loadFromLocal();
+        if (btn) { btn.innerHTML = "I'VE VERIFIED — CONTINUE"; btn.disabled = false; }
+        _showToast('⚠️ Not verified yet. Check your inbox.');
     }
 }
 
-async function syncFromCloud() {
-    showLoading(true);
-    const userId = currentUser.uid;
-    
+async function resendVerification() {
     try {
-        console.log('Syncing from cloud...');
-        
-        // Sync Tasks
-        const tasksRef = firebase.firestore().collection('users').doc(userId).collection('tasks');
-        const tasksSnapshot = await tasksRef.get();
-        const tasksData = [];
-        tasksSnapshot.forEach(doc => tasksData.push({ id: doc.id, ...doc.data() }));
-        if (tasksData.length > 0) {
-            localStorage.setItem('dpp_questions', JSON.stringify({ '11': tasksData, '12': [] }));
+        await firebase.auth().currentUser?.sendEmailVerification();
+        _showToast('📬 Verification email resent!');
+    } catch (e) { _showToast('Too many requests — wait a minute.'); }
+}
+
+async function doLogout() {
+    try { await firebase.auth().signOut(); } catch (e) {}
+    localStorage.removeItem('buddy_storage_mode');
+    location.reload();
+}
+
+// ── Storage mode selection (from index overlay) ──
+function selectStorage(mode) {
+    localStorage.setItem('buddy_storage_mode', mode);
+    if (mode === 'local') {
+        let p = {};
+        try { p = JSON.parse(localStorage.getItem('buddy_profile') || '{}'); } catch (e) {}
+        if (!p.targetYear) {
+            const y = prompt('Enter your target JEE year (e.g. 2027):', '2027');
+            if (!y) { _showToast('Target year is required.'); return; }
+            p.targetYear = Number(y) || 2027;
+            localStorage.setItem('buddy_profile', JSON.stringify(p));
         }
-        
-        // Sync Schedule
-        const scheduleRef = firebase.firestore().collection('users').doc(userId).collection('schedule');
-        const scheduleSnapshot = await scheduleRef.get();
-        const scheduleData = {};
-        scheduleSnapshot.forEach(doc => scheduleData[doc.id] = doc.data());
-        if (Object.keys(scheduleData).length > 0) {
-            localStorage.setItem('schedule_data', JSON.stringify(scheduleData));
-        }
-        
-        // Sync Tests
-        const testsRef = firebase.firestore().collection('users').doc(userId).collection('tests');
-        const testsSnapshot = await testsRef.get();
-        const testsData = [];
-        testsSnapshot.forEach(doc => testsData.push({ id: doc.id, ...doc.data() }));
-        if (testsData.length > 0) {
-            localStorage.setItem('test_analysis_data', JSON.stringify(testsData));
-        }
-        
-        // Sync Syllabus
-        const syllabusRef = firebase.firestore().collection('users').doc(userId).collection('syllabus');
-        const syllabusSnapshot = await syllabusRef.get();
-        const syllabusData = {};
-        syllabusSnapshot.forEach(doc => syllabusData[doc.id] = doc.data());
-        if (Object.keys(syllabusData).length > 0) {
-            localStorage.setItem('syllabus_progress', JSON.stringify(syllabusData));
-        }
-        
-        console.log('Sync complete');
-        showToast('Data synced from cloud');
-        
-        if (typeof loadTasks === 'function') loadTasks();
-        if (typeof loadSchedule === 'function') loadSchedule();
-        if (typeof loadTests === 'function') loadTests();
-        if (typeof loadSyllabusProgress === 'function') loadSyllabusProgress();
-        
-    } catch (error) {
-        console.error('Sync error:', error);
-        showToast('Sync failed: ' + error.message);
-    } finally {
-        showLoading(false);
+        if (typeof closeOverlay === 'function') closeOverlay();
+        if (typeof loadPageData === 'function') loadPageData();
+    } else {
+        if (!firebase.auth().currentUser && typeof showScreen === 'function') showScreen('screenLogin');
     }
 }
 
+// ── Cloud sync ──
 async function syncToCloud() {
-    if (!currentUser || syncMode !== 'online' || syncInProgress) return;
-    
+    if (!currentUser || syncInProgress) return;
     syncInProgress = true;
-    const userId = currentUser.uid;
-    const syncStatus = document.getElementById('syncStatus');
-    if (syncStatus) syncStatus.innerHTML = '<span>🔄 Syncing...</span>';
-    
+    const uid = currentUser.uid;
+    const el = document.getElementById('syncStatusText');
+    if (el) el.textContent = '⟳ SYNCING';
     try {
-        console.log('Syncing to cloud...');
-        
-        // Sync Tasks
-        const tasksData = localStorage.getItem('dpp_questions');
-        if (tasksData) {
-            const tasks = JSON.parse(tasksData);
-            const tasksRef = firebase.firestore().collection('users').doc(userId).collection('tasks');
-            
-            const oldTasks = await tasksRef.get();
-            const batch = firebase.firestore().batch();
-            oldTasks.forEach(doc => batch.delete(doc.ref));
-            await batch.commit();
-            
-            if (tasks['11']) {
-                for (const task of tasks['11']) {
-                    await tasksRef.add(task);
-                }
-            }
+        const raw = localStorage.getItem('test_analysis_data');
+        if (raw) {
+            const tests = JSON.parse(raw);
+            const ref = firebase.firestore().collection('users').doc(uid).collection('tests');
+            const old = await ref.get();
+            old.forEach(d => d.ref.delete());
+            for (const t of tests) await ref.add(t);
         }
-        
-        // Sync Schedule
-        const scheduleData = localStorage.getItem('schedule_data');
-        if (scheduleData) {
-            const schedule = JSON.parse(scheduleData);
-            const scheduleRef = firebase.firestore().collection('users').doc(userId).collection('schedule');
-            
-            const oldSchedule = await scheduleRef.get();
-            const batch = firebase.firestore().batch();
-            oldSchedule.forEach(doc => batch.delete(doc.ref));
-            await batch.commit();
-            
-            for (const [day, classes] of Object.entries(schedule)) {
-                await scheduleRef.doc(day).set(classes);
-            }
-        }
-        
-        // Sync Tests
-        const testsData = localStorage.getItem('test_analysis_data');
-        if (testsData) {
-            const tests = JSON.parse(testsData);
-            const testsRef = firebase.firestore().collection('users').doc(userId).collection('tests');
-            
-            const oldTests = await testsRef.get();
-            const batch = firebase.firestore().batch();
-            oldTests.forEach(doc => batch.delete(doc.ref));
-            await batch.commit();
-            
-            for (const test of tests) {
-                await testsRef.add(test);
-            }
-        }
-        
-        // Sync Syllabus
-        const syllabusData = localStorage.getItem('syllabus_progress');
-        if (syllabusData) {
-            const syllabus = JSON.parse(syllabusData);
-            const syllabusRef = firebase.firestore().collection('users').doc(userId).collection('syllabus');
-            
-            const oldSyllabus = await syllabusRef.get();
-            const batch = firebase.firestore().batch();
-            oldSyllabus.forEach(doc => batch.delete(doc.ref));
-            await batch.commit();
-            
-            for (const [chapterId, progress] of Object.entries(syllabus)) {
-                await syllabusRef.doc(chapterId).set(progress);
-            }
-        }
-        
-        console.log('Sync to cloud complete');
-        if (syncStatus) {
-            syncStatus.innerHTML = '<span>✅ Synced</span>';
-            setTimeout(() => {
-                if (syncStatus) syncStatus.innerHTML = '<span>🔄 Synced</span>';
-            }, 2000);
-        }
-        
-    } catch (error) {
-        console.error('Sync error:', error);
-        if (syncStatus) syncStatus.innerHTML = '<span>⚠️ Sync failed</span>';
-    } finally {
-        syncInProgress = false;
-    }
+        if (el) el.textContent = 'CLOUD ✓';
+    } catch (e) {
+        if (el) el.textContent = '⚠ FAILED';
+    } finally { syncInProgress = false; }
 }
 
-function loadFromLocal() {
-    console.log('Using local data');
-    showToast('Using local data (offline mode)');
-    
-    if (typeof loadTasks === 'function') loadTasks();
-    if (typeof loadSchedule === 'function') loadSchedule();
-    if (typeof loadTests === 'function') loadTests();
-    if (typeof loadSyllabusProgress === 'function') loadSyllabusProgress();
+async function _syncFromCloud(user) {
+    if (!user) return;
+    const uid = user.uid;
+    try {
+        const snap = await firebase.firestore().collection('users').doc(uid).collection('tests').get();
+        const tests = []; snap.forEach(d => tests.push(d.data()));
+        if (tests.length) localStorage.setItem('test_analysis_data', JSON.stringify(tests));
+        const sylSnap = await firebase.firestore().collection('users').doc(uid).collection('syllabus').get();
+        const syl = {}; sylSnap.forEach(d => syl[d.id] = d.data());
+        if (Object.keys(syl).length) localStorage.setItem('syllabus_progress', JSON.stringify(syl));
+    } catch (e) { console.warn('syncFromCloud', e); }
 }
 
-// Auto-sync every 30 seconds
-setInterval(() => {
-    if (currentUser && syncMode === 'online' && navigator.onLine) {
-        syncToCloud();
-    }
-}, 30000);
-
-// ========== UI HELPERS ==========
-function showUserMenu(user) {
-    const menu = document.getElementById('userMenu');
-    if (!menu) return;
-    
-    const name = user.displayName || user.email.split('@')[0];
-    const avatar = name.charAt(0).toUpperCase();
-    
-    const userNameEl = document.getElementById('userName');
-    const userEmailEl = document.getElementById('userEmail');
-    const userAvatarEl = document.getElementById('userAvatar');
-    
-    if (userNameEl) userNameEl.textContent = name;
-    if (userEmailEl) userEmailEl.textContent = user.email;
-    if (userAvatarEl) userAvatarEl.textContent = avatar;
-    
-    menu.style.display = 'flex';
-}
-
-function hideUserMenu() {
-    const menu = document.getElementById('userMenu');
-    if (menu) menu.style.display = 'none';
-}
-
-function showLoading(show) {
-    const loadingDiv = document.getElementById('loadingState');
-    if (!loadingDiv) return;
-    
-    if (show) {
-        loadingDiv.style.display = 'block';
-        const forms = ['loginForm', 'signupForm', 'syncModeForm'];
-        forms.forEach(form => {
-            const el = document.getElementById(form);
-            if (el) el.style.display = 'none';
+// ── Sidebar pill (used by non-index pages) ──
+function _updateSidebarPill(user) {
+    const slot = document.getElementById('sidebarUserSlot');
+    if (!slot) return;
+    if (user) {
+        const name = user.displayName || user.email.split('@')[0];
+        const av = name.charAt(0).toUpperCase();
+        slot.innerHTML =
+            '<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:14px;cursor:pointer;position:relative;" id="_sbPill">' +
+                '<div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#5b6ef5,#a78bfa);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.9rem;color:#fff;flex-shrink:0;">' + av + '</div>' +
+                '<div style="flex:1;min-width:0;">' +
+                    '<div style="font-size:0.78rem;font-weight:600;color:#e8ebf8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + name + '</div>' +
+                    '<div style="font-size:0.54rem;color:rgba(255,255,255,0.3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + user.email + '</div>' +
+                '</div>' +
+                '<div id="_sbDrop" style="display:none;position:absolute;bottom:calc(100%+6px);left:0;right:0;background:#121520;border:1px solid rgba(255,255,255,0.12);border-radius:14px;padding:6px;z-index:500;box-shadow:0 -12px 32px rgba(0,0,0,.6);">' +
+                    '<div onclick="firebase.auth().signOut().then(function(){localStorage.removeItem(\'buddy_storage_mode\');location.reload();})" style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;font-size:0.68rem;color:#f04444;cursor:pointer;">' +
+                        '<svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Sign Out' +
+                    '</div>' +
+                '</div>' +
+            '</div>';
+        const pill = document.getElementById('_sbPill'), drop = document.getElementById('_sbDrop');
+        pill.addEventListener('click', function(e) {
+            if (e.target.closest('#_sbDrop')) return;
+            drop.style.display = drop.style.display === 'none' ? 'block' : 'none';
         });
+        document.addEventListener('click', function(e) { if (!e.target.closest('#_sbPill')) drop.style.display = 'none'; });
     } else {
-        loadingDiv.style.display = 'none';
+        slot.innerHTML = '<a href="/" style="display:block;width:100%;padding:8px 10px;border-radius:12px;background:rgba(91,110,245,0.12);border:1px solid rgba(91,110,245,0.3);color:#7c8ff8;font-family:\'JetBrains Mono\',monospace;font-size:0.62rem;letter-spacing:0.08em;cursor:pointer;text-align:center;text-decoration:none;text-transform:uppercase;">Sign In</a>';
     }
 }
 
-function closeModal(modalId) {
-    const modal = document.getElementById(modalId);
-    if (modal) modal.classList.remove('show');
+// ── Helpers ──
+function _showAuthErr(el, msg) { if (el) { el.textContent = msg; el.classList.add('show'); } }
+function _showToast(msg) {
+    const t = document.getElementById('ttToast') || document.getElementById('toast');
+    if (!t) return;
+    t.textContent = msg; t.classList.add('show');
+    clearTimeout(t._at); t._at = setTimeout(() => t.classList.remove('show'), 2800);
+}
+function _friendlyErr(c) {
+    return ({'auth/user-not-found':'No account found.','auth/wrong-password':'Wrong password.','auth/invalid-email':'Invalid email.','auth/email-already-in-use':'Email already registered.','auth/too-many-requests':'Too many attempts — wait a moment.','auth/invalid-credential':'Invalid email or password.','auth/popup-blocked':'Allow popups for this site.'})[c] || 'Something went wrong.';
 }
 
-function showToast(message) {
-    const toast = document.getElementById('toast');
-    if (!toast) return;
-    
-    toast.textContent = message;
-    toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 3000);
-}
-
-// Make functions global
-window.login = login;
-window.signup = signup;
-window.logout = logout;
+// ── Expose globals ──
+window.doLogin = doLogin;
+window.doSignup = doSignup;
+window.doLogout = doLogout;
 window.signInWithGoogle = signInWithGoogle;
 window.signInWithMicrosoft = signInWithMicrosoft;
-window.setSyncMode = setSyncMode;
-window.switchToSignup = switchToSignup;
-window.switchToLogin = switchToLogin;
-window.closeModal = closeModal;
+window.selectStorage = selectStorage;
 window.syncToCloud = syncToCloud;
+window.checkVerification = checkVerification;
+window.resendVerification = resendVerification;
+// Legacy aliases (used in old auth.js consumers)
+window.login = doLogin;
+window.logout = doLogout;
+window.signup = doSignup;
