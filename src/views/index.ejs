@@ -667,7 +667,77 @@ function toggleUserDropdown(){document.getElementById('userDropdown').classList.
 document.addEventListener('click',e=>{if(!e.target.closest('#userMenuPill'))document.getElementById('userDropdown')?.classList.remove('show');});
 function showAuthErr(el,msg){el.textContent=msg;el.classList.add('show');}
 function friendlyErr(c){return({'auth/user-not-found':'No account found.','auth/wrong-password':'Wrong password.','auth/invalid-email':'Invalid email address.','auth/email-already-in-use':'Email already registered.','auth/too-many-requests':'Too many attempts — wait a moment.','auth/invalid-credential':'Invalid email or password.','auth/popup-blocked':'Allow popups for this site.'})[c]||'Something went wrong.';}
+// ========== WIDGET DATA LOADER ==========
+window.refreshWidgets = function() {
+    loadSyllabusStats();
+    loadRecentTests();
+    loadUpcomingTasks();
+};
 
+function loadSyllabusStats() {
+    // Try cloud data first, fallback to localStorage
+    const syllabusData = JSON.parse(localStorage.getItem('buddy_syllabus') || '{}');
+    const totalTopics = Object.keys(syllabusData).length;
+    const completed = Object.values(syllabusData).filter(t => t.completed === true).length;
+    const progress = totalTopics ? Math.round((completed / totalTopics) * 100) : 0;
+    
+    updateWidget('syllabus-progress', progress);
+    updateWidget('syllabus-completed', `${completed}/${totalTopics}`);
+}
+
+function loadRecentTests() {
+    const tests = JSON.parse(localStorage.getItem('buddy_tests') || '[]');
+    const recentTests = tests.slice(0, 3);
+    
+    const container = document.getElementById('recent-tests-list');
+    if (container) {
+        if (recentTests.length === 0) {
+            container.innerHTML = '<div class="empty-state">No tests yet. Start practicing!</div>';
+        } else {
+            container.innerHTML = recentTests.map(test => `
+                <div class="test-item">
+                    <span class="test-name">${test.name || 'Practice Test'}</span>
+                    <span class="test-score" style="color: ${test.score >= 70 ? 'var(--grn)' : 'var(--amber)'}">
+                        ${test.score}%
+                    </span>
+                </div>
+            `).join('');
+        }
+    }
+}
+
+function loadUpcomingTasks() {
+    const timetable = JSON.parse(localStorage.getItem('buddy_timetable') || '[]');
+    const today = new Date().toISOString().split('T')[0];
+    const upcoming = timetable.filter(item => item.date >= today).slice(0, 4);
+    
+    const container = document.getElementById('upcoming-tasks');
+    if (container) {
+        if (upcoming.length === 0) {
+            container.innerHTML = '<div class="empty-state">No upcoming tasks. Add to your timetable!</div>';
+        } else {
+            container.innerHTML = upcoming.map(task => `
+                <div class="task-item">
+                    <span class="task-time">${task.time || 'Flexible'}</span>
+                    <span class="task-subject">${task.subject || 'Study'}</span>
+                    <span class="task-topic">${task.topic || 'Review'}</span>
+                </div>
+            `).join('');
+        }
+    }
+}
+
+function updateWidget(widgetId, value) {
+    const el = document.getElementById(widgetId);
+    if (el) el.textContent = value;
+}
+
+// Initialize widgets on page load
+document.addEventListener('DOMContentLoaded', () => {
+    loadSyllabusStats();
+    loadRecentTests();
+    loadUpcomingTasks();
+});
 // ══ SYNC ══
 async function syncFromCloud(){
     if(!_cu)return;
