@@ -396,8 +396,6 @@
 </div>
 
 <div class="toast-el" id="toast"></div>
-<script src="/js/auth.js"></script>
-
 <script>
 // ═══ STATE ═══
 let tests = [];
@@ -622,12 +620,19 @@ function cycleStaged(id){const cyc={correct:'wrong',wrong:'skipped',skipped:'cor
 function saveTest() {
     const name=document.getElementById('mName').value.trim(),date=document.getElementById('mDate').value;
     if(!name||!date){showToast('Name and date required');return;}
-    const payload={id:Date.now().toString(),testName:name,date,totalQuestions:+(document.getElementById('mTotalQ').value)||0,maxMarks:+(document.getElementById('mMaxMarks').value)||300,physics:+(document.getElementById('mPhy').value)||0,physicsMax:+(document.getElementById('mPhyMax').value)||100,chemistry:+(document.getElementById('mChem').value)||0,chemistryMax:+(document.getElementById('mChemMax').value)||100,maths:+(document.getElementById('mMath').value)||0,mathsMax:+(document.getElementById('mMathMax').value)||100,rank:document.getElementById('mRank').value,questions:[...stagedQs],prep:{examDate:document.getElementById('mExamDate').value,revisionTarget:+(document.getElementById('mRevisionTarget').value)||0,notes:document.getElementById('mPrepNotes').value.trim()}};
+    const examDate=document.getElementById('mExamDate').value;
+    const revisionTarget=+(document.getElementById('mRevisionTarget').value)||0;
+    const notes=document.getElementById('mPrepNotes').value.trim();
+    const payload={id:Date.now().toString(),testName:name,date,totalQuestions:+(document.getElementById('mTotalQ').value)||0,maxMarks:+(document.getElementById('mMaxMarks').value)||300,physics:+(document.getElementById('mPhy').value)||0,physicsMax:+(document.getElementById('mPhyMax').value)||100,chemistry:+(document.getElementById('mChem').value)||0,chemistryMax:+(document.getElementById('mChemMax').value)||100,maths:+(document.getElementById('mMath').value)||0,mathsMax:+(document.getElementById('mMathMax').value)||100,rank:document.getElementById('mRank').value,questions:[...stagedQs],prep:{examDate,revisionTarget,notes}};
     tests.push(payload);
-    saveTests();closeModal('addModal');showToast('✓ Test logged');
-    tests=[payload];
-    localStorage.setItem('active_test_plan',JSON.stringify({examName:payload.testName,examDate:payload.prep.examDate,revisionTarget:payload.prep.revisionTarget,notes:payload.prep.notes}));
-    saveTests();closeModal('addModal');showToast('✓ Focus test saved (single test mode)');
+    // Update upcoming plan if exam date was provided
+    if(examDate){
+        localStorage.setItem('active_test_plan',JSON.stringify({examName:name,examDate,revisionTarget,notes}));
+        renderUpcomingPlan();
+    }
+    saveTests();
+    closeModal('addModal');
+    showToast('✓ Test logged');
 }
 
 // ═══ DETAIL ═══
@@ -682,17 +687,16 @@ function importData(e) {
     reader.onload=function(ev){
         try{
             const parsed=JSON.parse(ev.target.result);
-            const data=Array.isArray(parsed)?parsed:(Array.isArray(parsed.tests)?parsed.tests:(Array.isArray(parsed.data)?parsed.data:[]));
-            if(!Array.isArray(data)||!data.length)throw new Error('Expected array');
-            const existingIds=new Set(tests.map(t=>t.id));let added=0;
-            const data=JSON.parse(ev.target.result);
-            if(!Array.isArray(data))throw new Error('Expected array');
-            let added=0;const imported=[];
-            data.forEach(t=>{
-                const norm={id:t.id||(Date.now()+''+Math.random()),testName:t.testName||t.name||'Imported Test',date:t.date||'',physics:+(t.physics||t.physicsScore||0),physicsMax:+(t.physicsMax||100),chemistry:+(t.chemistry||t.chemistryScore||0),chemistryMax:+(t.chemistryMax||100),maths:+(t.maths||t.mathsScore||t.mathematics||0),mathsMax:+(t.mathsMax||100),maxMarks:+(t.maxMarks||300),totalQuestions:+(t.totalQuestions||0),rank:t.rank||'',questions:t.questions||[]};
-                imported.push(norm);added++;
+            const raw=Array.isArray(parsed)?parsed:(Array.isArray(parsed.tests)?parsed.tests:(Array.isArray(parsed.data)?parsed.data:[]));
+            if(!Array.isArray(raw)||!raw.length)throw new Error('Expected array of tests');
+            const existingIds=new Set(tests.map(t=>t.id));
+            let added=0;
+            raw.forEach(t=>{
+                const norm={id:t.id||(Date.now()+'_'+Math.random()),testName:t.testName||t.name||'Imported Test',date:t.date||'',physics:+(t.physics||t.physicsScore||0),physicsMax:+(t.physicsMax||100),chemistry:+(t.chemistry||t.chemistryScore||0),chemistryMax:+(t.chemistryMax||100),maths:+(t.maths||t.mathsScore||t.mathematics||0),mathsMax:+(t.mathsMax||100),maxMarks:+(t.maxMarks||300),totalQuestions:+(t.totalQuestions||0),rank:t.rank||'',questions:t.questions||[]};
+                if(!existingIds.has(norm.id)){tests.push(norm);existingIds.add(norm.id);added++;}
             });
-            if(imported.length){tests=[imported[imported.length-1]];saveTests();showToast('✓ Imported latest test in single-test mode');}else{showToast('No valid test found');}
+            if(added>0){saveTests();showToast(`✓ Imported ${added} test${added>1?'s':''}`);}
+            else{showToast('All tests already exist — nothing new imported');}
         }catch(err){showToast('⚠️ Invalid JSON — use exported Buddy data');}
         e.target.value='';
     };
