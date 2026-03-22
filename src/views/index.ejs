@@ -328,6 +328,9 @@
       </div>
       <div class="auth-divider"><div class="auth-divider-line"></div><div class="auth-divider-text">OR EMAIL</div><div class="auth-divider-line"></div></div>
       <div class="auth-field"><label class="auth-label">Your Name</label><input class="auth-input" id="signupName" type="text" placeholder="e.g. Arjun Sharma"></div>
+      <div class="auth-field"><label class="auth-label">Class</label><select class="auth-input" id="signupClass"><option value="11">Class 11</option><option value="12">Class 12</option><option value="dropper">Dropper</option></select></div>
+      <div class="auth-field"><label class="auth-label">Target JEE Year</label><input class="auth-input" id="signupTargetYear" type="number" min="2026" max="2035" placeholder="e.g. 2027"></div>
+      <div class="auth-field"><label class="auth-label">Coaching / Batch</label><input class="auth-input" id="signupBatch" type="text" placeholder="e.g. Omega, Allen SRG, Self-study"></div>
       <div class="auth-field"><label class="auth-label">Email</label><input class="auth-input" id="signupEmail" type="email" placeholder="you@example.com"></div>
       <div class="auth-field"><label class="auth-label">Password</label><input class="auth-input" id="signupPassword" type="password" placeholder="Min. 6 characters"></div>
       <div class="auth-field"><label class="auth-label">Confirm Password</label><input class="auth-input" id="signupConfirm" type="password" placeholder="Same as above" onkeydown="if(event.key==='Enter')doSignup()"></div>
@@ -396,7 +399,7 @@
     <!-- HERO -->
     <div class="hero">
       <div>
-        <div class="hero-eyebrow" id="heroEyebrow">JEE 2027 · CLASS XI · OMEGA BATCH</div>
+        <div class="hero-eyebrow" id="heroEyebrow">JEE 2027 · CLASS XI · YOUR BATCH</div>
         <div class="hero-greeting" id="heroGreeting">GOOD MORNING</div>
         <div class="hero-name" id="heroName"></div>
         <p class="hero-quote" id="dailyQuote">Loading quote...</p>
@@ -510,24 +513,16 @@
         </div>
       </a>
 
-      <!-- HEATMAP col-8 -->
+            <!-- PREP MOMENTUM col-8 -->
       <div class="dc col-8">
-        <div class="ch"><div class="ch-title">ACTIVITY MAP</div><div class="ch-badge">13 WEEKS</div></div>
+        <div class="ch"><div class="ch-title">PREP MOMENTUM</div><div class="ch-badge" id="momentumBadge">LOCK IN</div></div>
         <div class="cb">
-          <div class="heatmap-wrap"><div class="heatmap-grid" id="heatmapGrid"></div></div>
-          <div style="display:flex;align-items:center;gap:5px;margin-top:8px">
-            <span style="font-family:var(--fm);font-size:0.56rem;color:var(--fg3)">LESS</span>
-            <div style="width:9px;height:9px;border-radius:2px;background:rgba(255,255,255,0.04)"></div>
-            <div style="width:9px;height:9px;border-radius:2px" class="hm-l1"></div>
-            <div style="width:9px;height:9px;border-radius:2px" class="hm-l2"></div>
-            <div style="width:9px;height:9px;border-radius:2px" class="hm-l3"></div>
-            <div style="width:9px;height:9px;border-radius:2px" class="hm-l4"></div>
-            <span style="font-family:var(--fm);font-size:0.56rem;color:var(--fg3)">MORE</span>
-          </div>
+          <div id="momentumWidget" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;"></div>
+          <div id="momentumChecklist" style="margin-top:10px;display:flex;flex-direction:column;gap:6px;"></div>
         </div>
       </div>
 
-      <!-- SUBJECT LOAD col-4 -->
+<!-- SUBJECT LOAD col-4 -->
       <a href="/dpp" class="dc dc-link col-4">
         <div class="ch"><div class="ch-title">SUBJECT LOAD</div><div class="ch-badge">DPP</div></div>
         <div class="cb"><div class="subj-bars" id="subjBars"></div></div>
@@ -605,16 +600,16 @@ async function doLogin(){
 }
 
 async function doSignup(){
-    const n=document.getElementById('signupName').value.trim(),e=document.getElementById('signupEmail').value.trim(),p=document.getElementById('signupPassword').value,c=document.getElementById('signupConfirm').value;
+    const n=document.getElementById('signupName').value.trim(),cls=document.getElementById('signupClass').value,targetYear=document.getElementById('signupTargetYear').value.trim(),batch=document.getElementById('signupBatch').value.trim(),e=document.getElementById('signupEmail').value.trim(),p=document.getElementById('signupPassword').value,c=document.getElementById('signupConfirm').value;
     const err=document.getElementById('signupError'),btn=document.getElementById('signupBtn');
-    if(!n||!e||!p){showAuthErr(err,'All fields are required.');return;}
+    if(!n||!e||!p||!targetYear){showAuthErr(err,'Name, target year, email and password are required.');return;}
     if(p!==c){showAuthErr(err,'Passwords do not match.');return;}
     if(p.length<6){showAuthErr(err,'Password must be at least 6 characters.');return;}
     err.classList.remove('show');btn.innerHTML='<span class="auth-spinner"></span>CREATING...';btn.disabled=true;
     try{
         const cred=await firebase.auth().createUserWithEmailAndPassword(e,p);
         await cred.user.updateProfile({displayName:n});
-        firebase.firestore().collection('users').doc(cred.user.uid).set({name:n,email:e,createdAt:new Date().toISOString()}).catch(()=>{});
+        const profile={name:n,classLevel:cls,targetYear:Number(targetYear),batch:batch||'Self-study',email:e,createdAt:new Date().toISOString()};localStorage.setItem('buddy_profile',JSON.stringify(profile));firebase.firestore().collection('users').doc(cred.user.uid).set(profile).catch(()=>{});
         await cred.user.sendEmailVerification();
         document.getElementById('verifyEmailDisplay').textContent=e;
         showScreen('screenVerify');
@@ -659,6 +654,13 @@ function showUserPill(user){
     const hn=document.getElementById('heroName');
     hn.textContent=name.split(' ')[0].toUpperCase()+',';
     hn.style.display='block';
+    applyProfile({name:user.displayName||name});
+}
+function showLocalSignInButton(){
+    const pill=document.getElementById('userMenuPill');
+    const localBtn=document.getElementById('localSignInBtn');
+    if(pill) pill.style.display='none';
+    if(localBtn) localBtn.style.display='flex';
 }
 function showLocalSignInButton(){
     const pill=document.getElementById('userMenuPill');
@@ -701,7 +703,20 @@ async function syncToCloud(){
 function loadLocalData(){showLocalSignInButton();document.getElementById('syncStatusText').textContent='LOCAL';loadPageData();}
 
 // ══ PAGE DATA ══
-function loadPageData(){loadDPPStats();loadSyllabusProgress();buildHeatmap();loadTasks();loadSchedule();loadStreak();loadTestWidget();}
+function applyProfile(override={}){
+    let profile={};
+    try{profile=JSON.parse(localStorage.getItem('buddy_profile')||'{}');}catch(e){}
+    profile={...profile,...override};
+    const cls=(profile.classLevel||'11').toString().toUpperCase();
+    const target=profile.targetYear||2027;
+    const batch=profile.batch||'Self-study';
+    const name=profile.name||'';
+    const eb=document.getElementById('heroEyebrow');
+    if(eb) eb.textContent=`JEE ${target} · CLASS ${cls} · ${batch.toUpperCase()}`;
+    const hn=document.getElementById('heroName');
+    if(name&&hn){hn.textContent=name.split(' ')[0].toUpperCase()+',';hn.style.display='block';}
+}
+function loadPageData(){applyProfile();loadDPPStats();loadSyllabusProgress();loadMomentumWidget();loadTasks();loadSchedule();loadStreak();loadTestWidget();}
 
 // Clock
 function updateClock(){
@@ -716,7 +731,7 @@ setInterval(updateClock,1000);updateClock();
 
 // Countdown
 function updateCountdown(){
-    const exam=new Date('2027-01-20T09:00:00'),start=new Date('2025-06-01'),now=new Date(),rem=exam-now;
+    const plan=JSON.parse(localStorage.getItem('active_test_plan')||'{}');const exam=new Date((plan.examDate||'2027-01-20')+'T09:00:00'),start=new Date('2025-06-01'),now=new Date(),rem=exam-now;document.querySelector('.cd-exam').textContent=(plan.examName||'JEE MAINS 2027').toUpperCase();
     if(rem<=0){document.getElementById('cdDays').textContent='GO!';return;}
     const d=Math.floor(rem/86400000);
     document.getElementById('cdDays').textContent=d;
@@ -744,13 +759,28 @@ function esc(s){if(!s)return'';return s.replace(/[&<>"']/g,m=>({'&':'&amp;','<':
 function showToastMsg(m){const t=document.getElementById('ttToast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2600);}
 window.showComingSoon=(e)=>{if(e)e.preventDefault();showToastMsg('✨ Feature coming soon!');};
 
-// Heatmap
-function buildHeatmap(){
-    const grid=document.getElementById('heatmapGrid'),weeks=13,today=new Date(),start=new Date(today);start.setDate(start.getDate()-(weeks*7));
-    let q={};try{const p=JSON.parse(localStorage.getItem('dpp_q2')||localStorage.getItem('dpp_questions')||'{}');[...(p['11']||[]),...(p['12']||[])].forEach(x=>{const d=x.createdAt?.slice(0,10);if(d)q[d]=(q[d]||0)+1;});}catch(e){}
-    let html='';
-    for(let w=0;w<weeks;w++){html+='<div class="hm-col">';for(let d=0;d<7;d++){const c=new Date(start);c.setDate(start.getDate()+w*7+d);if(c>today){html+='<div class="hm-cell" style="opacity:0.15"></div>';continue;}const ds=c.toISOString().slice(0,10),n=q[ds]||0;const cl=n===0?'':n<5?'hm-l1':n<12?'hm-l2':n<20?'hm-l3':'hm-l4';html+=`<div class="hm-cell ${cl}" title="${ds}: ${n} Q"></div>`;}html+='</div>';}
-    grid.innerHTML=html;
+// Momentum widget
+function loadMomentumWidget(){
+    const box=document.getElementById('momentumWidget');
+    const list=document.getElementById('momentumChecklist');
+    if(!box||!list)return;
+    let q=[];try{const p=JSON.parse(localStorage.getItem('dpp_q2')||localStorage.getItem('dpp_questions')||'{}');q=[...(p['11']||[]),...(p['12']||[])];}catch(e){}
+    let tests=[];try{tests=JSON.parse(localStorage.getItem('test_analysis_data')||'[]');}catch(e){}
+    const today=new Date().toISOString().slice(0,10);
+    const todayQs=q.filter(x=>(x.createdAt||'').slice(0,10)===today).length;
+    const lastTest=[...tests].sort((a,b)=>new Date(b.date||0)-new Date(a.date||0))[0];
+    const testScore=lastTest?((lastTest.total ?? lastTest.totalMarks ?? ((lastTest.physics||0)+(lastTest.chemistry||0)+(lastTest.maths||0)))):0;
+    box.innerHTML=`<div class="mini-card"><div class="mini-card-n" style="color:var(--amber)">${todayQs}</div><div class="mini-card-l">Questions Today</div></div><div class="mini-card"><div class="mini-card-n" style="color:var(--vio)">${tests.length}</div><div class="mini-card-l">Mocks Logged</div></div><div class="mini-card"><div class="mini-card-n" style="color:var(--grn)">${testScore}</div><div class="mini-card-l">Latest Test Score</div></div>`;
+    const plan=JSON.parse(localStorage.getItem('active_test_plan')||'{}');
+    const todo=[
+      {ok:todayQs>=30,t:'Solve 30+ questions today'},
+      {ok:tests.length>0,t:'Review latest mock mistakes'},
+      {ok:(plan.revisionTarget||0)>=70,t:'Revision target set to 70%+'},
+      {ok:!!(plan.examDate),t:'Exam countdown configured'}
+    ];
+    list.innerHTML=todo.map(i=>`<div class="task-row"><div class="task-cb" style="border-color:${i.ok?'var(--grn)':'var(--fg3)'};background:${i.ok?'var(--grn)':'transparent'}"></div><div class="task-text">${i.t}</div></div>`).join('');
+    const done=todo.filter(i=>i.ok).length;
+    document.getElementById('momentumBadge').textContent=`${done}/${todo.length} READY`;
 }
 
 // DPP
@@ -799,7 +829,7 @@ function loadTestWidget(){
     document.getElementById('statTestCount').textContent=tests.length;
     if(!tests.length)return;
     const sorted=[...tests].sort((a,b)=>new Date(b.date||0)-new Date(a.date||0));
-    const last=sorted[0],total=last.total||last.totalMarks||last.score||0,max=last.maxMarks||300;
+    const last=sorted[0],total=(last.total??last.totalMarks??last.score??((last.physics||0)+(last.chemistry||0)+(last.maths||0))),max=last.maxMarks||300;
     const pct=max?Math.round(total/max*100):0;
     const avg=tests.reduce((a,t)=>{const s=t.total||t.totalMarks||t.score||0,m=t.maxMarks||300;return a+(m?s/m*100:0);},0)/tests.length;
     const subs=[{n:'Physics',s:last.physics||last.physicsScore||0,m:last.physicsMax||100,c:'var(--phys)'},{n:'Chemistry',s:last.chemistry||last.chemistryScore||0,m:last.chemistryMax||100,c:'var(--chem)'},{n:'Maths',s:last.maths||last.mathsScore||last.mathematics||0,m:last.mathsMax||100,c:'var(--math)'}];

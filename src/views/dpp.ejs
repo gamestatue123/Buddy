@@ -221,8 +221,8 @@
                             <select id="subjectSelect" onchange="updateChapterDD()"></select>
                         </div>
                         <div class="fg">
-                            <span class="fgl">Chapter</span>
-                            <select id="chapterSelect"></select>
+                            <span class="fgl">Chapter (type or choose saved)</span>
+                            <input id="chapterInput" list="chapterSuggestions" placeholder="Type chapter name"><datalist id="chapterSuggestions"></datalist>
                         </div>
                         <div class="fg">
                             <span class="fgl">DPP / Exercise</span>
@@ -342,17 +342,19 @@
         }
         return n;
     }
-    function subjectOf(ch){
-        for(const[s,cs] of Object.entries(SMAP[CLS]||{})) if(cs.includes(ch)) return s;
+    function subjectOf(q){
+        if(q.subject) return q.subject;
+        for(const[s,cs] of Object.entries(SMAP[CLS]||{})) if(cs.includes(q.chapter)) return s;
         return 'Other';
     }
     function saveQ(){ localStorage.setItem('dpp_q2', JSON.stringify(QS)); }
     function loadQ(){
         const r=localStorage.getItem('dpp_q2');
         if(r){ try{ const p=JSON.parse(r); if(p['11']) QS['11']=p['11']; if(p['12']) QS['12']=p['12']; }catch(e){} }
-        if(QS['11'].length===0) loadPreload();
+
     }
-    function loadPreload(){
+    function loadPreload(){ return;
+
         for(const ch of PRELOAD['11']){
             for(const d of ch.d){
                 const m=d.match(/^([^:]+):(.+)$/);
@@ -366,6 +368,17 @@
         saveQ();
     }
 
+    const USER_CHAPTERS_KEY='buddy_chapters_v1';
+    function getUserChapters(){ try{return JSON.parse(localStorage.getItem(USER_CHAPTERS_KEY)||'{}');}catch(e){return{};} }
+    function saveUserChapters(data){ localStorage.setItem(USER_CHAPTERS_KEY,JSON.stringify(data)); }
+    function addChapterToMemory(cls,subject,chapter){
+        if(!chapter||!subject)return;
+        const key=`${cls}:${subject}`;
+        const store=getUserChapters();
+        const arr=store[key]||[];
+        if(!arr.includes(chapter)){ arr.push(chapter); arr.sort((a,b)=>a.localeCompare(b)); store[key]=arr; saveUserChapters(store); }
+    }
+
     // ── DROPDOWNS ──
     function updateSubDD(){
         const el=document.getElementById('subjectSelect');
@@ -373,24 +386,31 @@
         updateChapterDD();
     }
     function updateChapterDD(){
-        const s=document.getElementById('subjectSelect').value;
-        const el=document.getElementById('chapterSelect');
-        el.innerHTML=((SMAP[CLS]||{})[s]||[]).map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
+        const subject=document.getElementById('subjectSelect').value;
+        const dl=document.getElementById('chapterSuggestions');
+        const input=document.getElementById('chapterInput');
+        const custom=(getUserChapters()[`${CLS}:${subject}`]||[]);
+        const fromLogged=QS[CLS].filter(q=>q.subject===subject).map(q=>q.chapter);
+        const seen=new Set();
+        const options=[...custom,...fromLogged].filter(ch=>{const key=String(ch||'').toLowerCase();if(!key||seen.has(key))return false;seen.add(key);return true;});
+        dl.innerHTML=options.map(c=>`<option value="${esc(c)}"></option>`).join('');
+        if(!input.value&&options[0]) input.value=options[0];
     }
 
     // ── ADD ──
     function addQ(){
-        const ch=document.getElementById('chapterSelect').value;
+        const ch=document.getElementById('chapterInput').value.trim();
+        const sub=document.getElementById('subjectSelect').value;
         const dpp=document.getElementById('dppNumber').value.trim();
         const qr=document.getElementById('questionNumber').value.trim();
-        if(!ch||!dpp||!qr){toast('Fill all fields');return;}
+        if(!ch||!dpp||!qr||!sub){toast('Fill all fields');return;}
         const nums=parseR(qr);
         if(nums.length===0){
-            QS[CLS].push({id:`${Date.now()}`,chapter:ch,dppNumber:dpp,questionNumber:qr,status:SEL_STATUS,createdAt:new Date().toISOString()});
+            QS[CLS].push({id:`${Date.now()}`,subject:sub,chapter:ch,dppNumber:dpp,questionNumber:qr,status:SEL_STATUS,createdAt:new Date().toISOString()});
         } else {
-            nums.forEach(n=>QS[CLS].push({id:`${Date.now()}_${n}_${Math.random()}`,chapter:ch,dppNumber:dpp,questionNumber:n.toString(),status:SEL_STATUS,createdAt:new Date().toISOString()}));
+            nums.forEach(n=>QS[CLS].push({id:`${Date.now()}_${n}_${Math.random()}`,subject:sub,chapter:ch,dppNumber:dpp,questionNumber:n.toString(),status:SEL_STATUS,createdAt:new Date().toISOString()}));
         }
-        saveQ(); renderAll();
+        addChapterToMemory(CLS,sub,ch); saveQ(); updateChapterDD(); renderAll();
         document.getElementById('dppNumber').value='';
         document.getElementById('questionNumber').value='';
         toast(`✓ Logged ${nums.length||1} question(s)`);
@@ -447,7 +467,7 @@
         // Build tree
         const tree={};
         for(const q of qs){
-            const s=subjectOf(q.chapter);
+            const s=subjectOf(q);
             if(!tree[s]) tree[s]={};
             if(!tree[s][q.chapter]) tree[s][q.chapter]={};
             if(!tree[s][q.chapter][q.dppNumber]) tree[s][q.chapter][q.dppNumber]=[];
