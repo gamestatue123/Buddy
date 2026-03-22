@@ -221,7 +221,7 @@
                             <select id="subjectSelect" onchange="updateChapterDD()"></select>
                         </div>
                         <div class="fg">
-                            <span class="fgl">Chapter (type or choose saved)</span>
+                            <span class="fgl" style="display:flex;align-items:center;justify-content:space-between;">Chapter (type or pick)<button onclick="openAddChapter()" style="background:rgba(245,166,35,0.1);border:1px solid rgba(245,166,35,0.3);color:var(--amber);font-family:var(--font-m);font-size:0.56rem;letter-spacing:0.06em;padding:2px 7px;border-radius:4px;cursor:pointer;">+ CUSTOM</button></span>
                             <input id="chapterInput" list="chapterSuggestions" placeholder="Type chapter name"><datalist id="chapterSuggestions"></datalist>
                         </div>
                         <div class="fg">
@@ -355,10 +355,7 @@
     }
     function ensurePreload11(){
         const seen=new Set((QS['11']||[]).map(x=>`${x.chapter}::${x.dppNumber}::${x.questionNumber}`));
-
-    }
-    function loadPreload(){ return;
-
+        let added=0;
         for(const ch of PRELOAD['11']){
             for(const d of ch.d){
                 const m=d.match(/^([^:]+):(.+)$/);
@@ -368,11 +365,15 @@
                     const key=`${ch.n}::${dnum}::${q}`;
                     if(seen.has(key)) continue;
                     seen.add(key);
-                    QS['11'].push({id:`${Date.now()}_${Math.random()}`,subject:subjectOf({chapter:ch.n})||'',chapter:ch.n,dppNumber:dnum,questionNumber:q.toString(),status:'good',createdAt:new Date().toISOString(),preloaded:true});
+                    // determine subject from SMAP
+                    let subj='';
+                    for(const[s,cs] of Object.entries(SMAP['11']||{})){if(cs.includes(ch.n)){subj=s;break;}}
+                    QS['11'].push({id:`pre_${ch.n}_${dnum}_${q}`,subject:subj,chapter:ch.n,dppNumber:dnum,questionNumber:q.toString(),status:'good',createdAt:new Date().toISOString(),preloaded:true});
+                    added++;
                 }
             }
         }
-        saveQ();
+        if(added>0) saveQ();
     }
 
     const USER_CHAPTERS_KEY='buddy_chapters_v1';
@@ -400,13 +401,7 @@
         const custom=(getUserChapters()[`${CLS}:${subject}`]||[]);
         const fromLogged=QS[CLS].filter(q=>(q.subject||subjectOf(q))===subject).map(q=>q.chapter);
         const seen=new Set();
-        let options=[...defaults,...custom,...fromLogged].filter(ch=>{const key=String(ch||'').toLowerCase();if(!key||seen.has(key))return false;seen.add(key);return true;});
-        dl.innerHTML=options.map(c=>`<option value="${esc(c)}"></option>`).join('');
-        if(!options.includes(input.value)) input.value=options[0]||'';
-        const custom=(getUserChapters()[`${CLS}:${subject}`]||[]);
-        const fromLogged=QS[CLS].filter(q=>q.subject===subject).map(q=>q.chapter);
-        const seen=new Set();
-        const options=[...custom,...fromLogged].filter(ch=>{const key=String(ch||'').toLowerCase();if(!key||seen.has(key))return false;seen.add(key);return true;});
+        const options=[...defaults,...custom,...fromLogged].filter(ch=>{const key=String(ch||'').toLowerCase();if(!key||seen.has(key))return false;seen.add(key);return true;});
         dl.innerHTML=options.map(c=>`<option value="${esc(c)}"></option>`).join('');
         if(!input.value&&options[0]) input.value=options[0];
     }
@@ -576,6 +571,51 @@
 
     window.addQ=addQ; window.delQ=delQ; window.tog=tog; window.updateChapterDD=updateChapterDD; window.renderAll=renderAll;
 
+    // ── CUSTOM CHAPTER MODAL ──
+    function openAddChapter(){
+        const modal=document.getElementById('customChapModal');
+        modal.style.display='flex';
+        const sub=document.getElementById('subjectSelect').value;
+        const ccSub=document.getElementById('ccSubject');
+        if(sub) ccSub.value=sub;
+        document.getElementById('ccName').value='';
+        renderExistingCustomChapters();
+        document.getElementById('ccName').focus();
+    }
+    function closeAddChapter(){ document.getElementById('customChapModal').style.display='none'; }
+    function renderExistingCustomChapters(){
+        const sub=document.getElementById('ccSubject').value;
+        const existing=(getUserChapters()[`${CLS}:${sub}`]||[]);
+        const wrap=document.getElementById('ccExistingWrap');
+        if(!existing.length){wrap.innerHTML='';return;}
+        wrap.innerHTML=`<div style="font-family:var(--font-m);font-size:0.56rem;color:var(--fg3);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px;">SAVED CUSTOM CHAPTERS</div><div style="display:flex;flex-wrap:wrap;gap:5px;">${existing.map(c=>`<div style="display:flex;align-items:center;gap:4px;padding:3px 9px;background:rgba(245,166,35,0.08);border:1px solid rgba(245,166,35,0.2);border-radius:4px;font-family:var(--font-m);font-size:0.62rem;color:var(--amber);">${esc(c)}<span onclick="removeCustomChapter('${sub}','${esc(c)}')" style="cursor:pointer;color:var(--fg3);margin-left:3px;">✕</span></div>`).join('')}</div>`;
+    }
+    function saveCustomChapter(){
+        const sub=document.getElementById('ccSubject').value;
+        const name=document.getElementById('ccName').value.trim();
+        if(!name){toast('Enter a chapter name');return;}
+        addChapterToMemory(CLS,sub,name);
+        renderExistingCustomChapters();
+        document.getElementById('ccName').value='';
+        // Update subject in add panel to match
+        document.getElementById('subjectSelect').value=sub;
+        document.getElementById('chapterInput').value=name;
+        updateChapterDD();
+        toast(`✓ "${name}" saved`);
+    }
+    function removeCustomChapter(sub,name){
+        const store=getUserChapters();
+        const key=`${CLS}:${sub}`;
+        if(store[key]) store[key]=store[key].filter(c=>c!==name);
+        saveUserChapters(store);
+        renderExistingCustomChapters();
+        updateChapterDD();
+        toast('Removed');
+    }
+    document.getElementById('ccSubject').addEventListener('change',renderExistingCustomChapters);
+    document.getElementById('customChapModal').addEventListener('click',function(e){if(e.target===this)closeAddChapter();});
+    window.openAddChapter=openAddChapter; window.closeAddChapter=closeAddChapter; window.saveCustomChapter=saveCustomChapter; window.removeCustomChapter=removeCustomChapter;
+
     // Canvas
     const cv=document.getElementById('canvas-bg'), ct=cv.getContext('2d');
     let W=innerWidth, H=innerHeight;
@@ -588,6 +628,32 @@
     window.addEventListener('resize',()=>{ W=cv.width=innerWidth; H=cv.height=innerHeight; });
     cv.width=W; cv.height=H;
     </script>
+<!-- Custom Chapter Modal -->
+<div id="customChapModal" style="display:none;position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;background:rgba(4,6,14,0.88);backdrop-filter:blur(18px);">
+  <div style="background:var(--ink2);border:1px solid rgba(255,255,255,0.1);border-radius:22px;width:420px;max-width:95vw;box-shadow:0 40px 80px rgba(0,0,0,0.7);overflow:hidden;">
+    <div style="height:3px;background:linear-gradient(90deg,var(--amber),var(--mc));"></div>
+    <div style="padding:1.4rem 1.6rem 1.6rem;">
+      <div style="font-family:var(--font-d);font-size:1.5rem;letter-spacing:0.06em;margin-bottom:4px;">ADD CUSTOM CHAPTER</div>
+      <div style="font-family:var(--font-m);font-size:0.6rem;color:var(--fg3);letter-spacing:0.06em;margin-bottom:1.2rem;">This chapter will be saved for quick access alongside the standard list.</div>
+      <div style="margin-bottom:10px;">
+        <label style="font-family:var(--font-m);font-size:0.58rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--fg3);display:block;margin-bottom:5px;">Subject</label>
+        <select id="ccSubject" style="width:100%;padding:9px 12px;background:var(--ink3);border:1px solid var(--bd);border-radius:var(--r2);color:var(--fg1);font-family:var(--font-b);font-size:0.85rem;outline:none;">
+          <option>Mathematics</option><option>Physics</option><option>Chemistry</option>
+        </select>
+      </div>
+      <div style="margin-bottom:1.2rem;">
+        <label style="font-family:var(--font-m);font-size:0.58rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--fg3);display:block;margin-bottom:5px;">Chapter Name</label>
+        <input id="ccName" type="text" placeholder="e.g. Circles, Thermodynamics..." style="width:100%;padding:9px 12px;background:var(--ink3);border:1px solid var(--bd);border-radius:var(--r2);color:var(--fg1);font-family:var(--font-b);font-size:0.85rem;outline:none;transition:border-color 0.18s;">
+      </div>
+      <div id="ccExistingWrap" style="margin-bottom:1.2rem;"></div>
+      <div style="display:flex;gap:8px;">
+        <button onclick="closeAddChapter()" style="flex:1;padding:9px;background:rgba(255,255,255,0.04);border:1px solid var(--bd);border-radius:var(--r2);color:var(--fg2);font-family:var(--font-m);font-size:0.7rem;cursor:pointer;">CANCEL</button>
+        <button onclick="saveCustomChapter()" style="flex:2;padding:9px;background:var(--amber);border:none;border-radius:var(--r2);color:var(--ink);font-family:var(--font-d);font-size:0.9rem;letter-spacing:0.07em;cursor:pointer;">SAVE CHAPTER</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Auth Modal -->
 <div id="authModal" class="modal">
     <div class="modal-content" style="max-width: 400px;">
