@@ -1060,13 +1060,18 @@
             <nav class="nav-menu">
                 <a href="/" class="nav-item">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 9L12 3L21 9V20C21 20.5523 20.5523 21 20 21H15V15H9V21H4C3.44772 21 3 20.5523 3 20V9Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
-                    <span>Home</span>
+                    <span>Overview</span>
                 </a>
-                <a href="/syllabus" class="nav-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 4H20V20H4V4Z" stroke="currentColor" stroke-width="1.5"/><path d="M8 7H16M8 11H14M8 15H12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span>Syllabus</span></a>
                 <a href="/timetable" class="nav-item active">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M16 2V6M8 2V6M3 10H21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
                     <span>Timetable</span>
                 </a>
+                <a href="/dpp" class="nav-item">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                    <span>DPP Logger</span>
+                </a>
+                <a href="/syllabus" class="nav-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 4H20V20H4V4Z" stroke="currentColor" stroke-width="1.5"/><path d="M8 7H16M8 11H14M8 15H12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span>Syllabus</span></a>
+                <a href="/test-analysis" class="nav-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Test Analysis</span></a>
             </nav>
             <div class="sidebar-footer">
                 <div id="sidebarUserSlot"></div>
@@ -1495,6 +1500,18 @@
         return d.toLocaleDateString('en-IN', { day:'numeric', month:'long', year:'numeric', weekday:'short' });
     }
 
+
+    function syncActiveTestPlan() {
+        if (!tests.length) { localStorage.removeItem('active_test_plan'); return; }
+        const t = tests[0];
+        localStorage.setItem('active_test_plan', JSON.stringify({
+            examName: t.name || 'Upcoming Test',
+            examDate: t.date || '',
+            revisionTarget: t.chapters?.length ? Math.round(((t.completedChapters?.length||0)/t.chapters.length)*100) : 0,
+            notes: t.preparationNotes || ''
+        }));
+    }
+
     function closeModal(id) {
         document.getElementById(id).classList.remove('show');
     }
@@ -1793,6 +1810,7 @@
     async function addTest() {
         const name = document.getElementById('atName').value.trim();
         const date = document.getElementById('atDate').value;
+        if (tests.length >= 1) { showToast('Only one active test is allowed here. Edit or delete the existing one.', 'error'); return; }
         if (!name) { showToast('Enter a test name', 'error'); return; }
         if (!date) { showToast('Pick a date', 'error'); return; }
 
@@ -1818,9 +1836,10 @@
             });
             const data = await res.json();
             if (data.success) {
-                tests.push({ ...data.test, subjects, chapters, completedChapters: [],
-                    testType, difficulty, priority, duration, venue, maxMarks, targetScore });
+                tests = [{ ...data.test, subjects, chapters, completedChapters: [], chapterNotes: {},
+                    testType, difficulty, priority, duration, venue, maxMarks, targetScore }];
                 renderTests();
+                syncActiveTestPlan();
                 closeModal('addTestModal');
                 showToast('Test added 🎯');
             }
@@ -1834,7 +1853,7 @@
         try {
             const res = await fetch('/timetable/api/tests');
             const data = await res.json();
-            if (data.success) { tests = data.tests; renderTests(); }
+            if (data.success) { tests = (data.tests||[]).slice(0,1); renderTests(); syncActiveTestPlan(); }
         } catch(e) {}
     }
 
@@ -1962,6 +1981,7 @@
             await fetch(`/timetable/api/tests/${id}`, { method: 'DELETE' });
             tests = tests.filter(t => t.id !== id);
             renderTests();
+            syncActiveTestPlan();
             showToast('Test removed');
         } catch(e) {}
     }
@@ -2013,13 +2033,16 @@
         if (chapters.length === 0) {
             listEl.innerHTML = `<div class="empty-st" style="padding:1.5rem"><div class="empty-st-icon" style="font-size:1.5rem">📖</div><div class="empty-st-text">No chapters yet. Add one below.</div></div>`;
         } else {
-            listEl.innerHTML = chapters.map((ch, i) => `
+            listEl.innerHTML = chapters.map((ch, i) => {
+                const note=(test.chapterNotes||{})[ch]||'';
+                return `
                 <div class="ch-item" onclick="toggleChapter('${escHtml(ch)}')">
                     <div class="ch-item-cb ${completed.includes(ch) ? 'done' : ''}"></div>
-                    <div class="ch-item-text ${completed.includes(ch) ? 'done' : ''}">${escHtml(ch)}</div>
+                    <div class="ch-item-text ${completed.includes(ch) ? 'done' : ''}">${escHtml(ch)}${note?`<div style="font-size:0.62rem;color:var(--text-3);margin-top:2px;">📝 ${escHtml(note)}</div>`:''}</div>
+                    <button class="ch-item-del" onclick="editChapterNote('${escHtml(ch)}', event)" title="Add note">📝</button>
                     <button class="ch-item-del" onclick="removeChapter('${escHtml(ch)}', event)" title="Remove">✕</button>
                 </div>
-            `).join('');
+            `;}).join('');
         }
     }
 
@@ -2043,6 +2066,20 @@
         if (!test) return;
         test.chapters = test.chapters.filter(c => c !== chapter);
         test.completedChapters = (test.completedChapters||[]).filter(c => c !== chapter);
+        updateTestDetailUI(test);
+    }
+
+
+    function editChapterNote(chapter, e) {
+        e.stopPropagation();
+        const test = tests.find(t => t.id === currentTestId);
+        if (!test) return;
+        if (!test.chapterNotes) test.chapterNotes = {};
+        const existing = test.chapterNotes[chapter] || '';
+        const note = prompt(`Focus note for ${chapter}:`, existing);
+        if (note === null) return;
+        if (note.trim()) test.chapterNotes[chapter] = note.trim();
+        else delete test.chapterNotes[chapter];
         updateTestDetailUI(test);
     }
 
@@ -2073,6 +2110,7 @@
                     preparationNotes: test.preparationNotes,
                     chapters: test.chapters || [],
                     completedChapters: test.completedChapters || [],
+                    chapterNotes: test.chapterNotes || {},
                     subjects: test.subjects || []
                 })
             });
@@ -2081,6 +2119,7 @@
                 const idx = tests.findIndex(t => t.id === currentTestId);
                 if (idx !== -1) tests[idx] = { ...tests[idx], ...data.test };
                 renderTests();
+                syncActiveTestPlan();
                 closeModal('testDetailModal');
                 showToast('Saved ✓');
             }
@@ -2207,7 +2246,7 @@
         if(!e.target.closest('#sidePill'))drop.style.display='none';
       });
     } else {
-      slot.innerHTML='';
+      slot.innerHTML='<button onclick="if(typeof openOverlay===\'function\'){openOverlay();if(typeof showScreen===\'function\')showScreen(\'screenLogin\');}else{location.href=\'/\';}" style="width:100%;padding:8px 10px;border-radius:12px;background:rgba(91,110,245,0.12);border:1px solid rgba(91,110,245,0.3);color:#7c8ff8;font-family:\'JetBrains Mono\',monospace;font-size:0.62rem;letter-spacing:0.08em;cursor:pointer;text-transform:uppercase;">Sign In</button>';
     }
   });
 })();

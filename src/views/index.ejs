@@ -194,7 +194,7 @@
     .auth-strip{height:3px;background:linear-gradient(90deg,var(--acc),var(--vio),var(--amber));border-radius:28px 28px 0 0;}
     .auth-glow{position:absolute;top:-80px;left:50%;transform:translateX(-50%);width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(91,110,245,0.2) 0%,transparent 70%);pointer-events:none;}
     .auth-logo-row{display:flex;align-items:center;gap:10px;padding:1.6rem 1.8rem 0;}
-    .auth-logo-icon{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--acc),var(--vio));display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:1.1rem;color:#fff;box-shadow:0 4px 16px rgba(91,110,245,0.4);}
+    .auth-logo-icon{width:34px;height:34px;border-radius:9px;object-fit:cover;display:block;box-shadow:0 4px 16px rgba(91,110,245,0.35);border:1px solid rgba(255,255,255,0.12);}
     .auth-logo-text{font-family:var(--fd);font-size:1.5rem;letter-spacing:0.12em;color:var(--fg1);}
     .auth-logo-tag{font-family:var(--fm);font-size:0.54rem;color:var(--fg3);letter-spacing:0.1em;text-transform:uppercase;margin-left:auto;}
     .auth-screen{display:none;padding:1.4rem 1.8rem 1.8rem;}
@@ -264,7 +264,7 @@
     <div class="auth-strip"></div>
     <div class="auth-glow"></div>
     <div class="auth-logo-row">
-      <div class="auth-logo-icon">B</div>
+      <img class="auth-logo-icon" src="/logo.png" alt="Buddy logo">
       <div class="auth-logo-text">BUDDY</div>
       <span class="auth-logo-tag">JEE PREP</span>
     </div>
@@ -327,6 +327,9 @@
       </div>
       <div class="auth-divider"><div class="auth-divider-line"></div><div class="auth-divider-text">OR EMAIL</div><div class="auth-divider-line"></div></div>
       <div class="auth-field"><label class="auth-label">Your Name</label><input class="auth-input" id="signupName" type="text" placeholder="e.g. Arjun Sharma"></div>
+      <div class="auth-field"><label class="auth-label">Class</label><select class="auth-input" id="signupClass"><option value="11">Class 11</option><option value="12">Class 12</option><option value="dropper">Dropper</option></select></div>
+      <div class="auth-field"><label class="auth-label">Target JEE Year</label><input class="auth-input" id="signupTargetYear" type="number" min="2026" max="2035" placeholder="e.g. 2027"></div>
+      <div class="auth-field"><label class="auth-label">Coaching / Batch</label><input class="auth-input" id="signupBatch" type="text" placeholder="e.g. Omega, Allen SRG, Self-study"></div>
       <div class="auth-field"><label class="auth-label">Email</label><input class="auth-input" id="signupEmail" type="email" placeholder="you@example.com"></div>
       <div class="auth-field"><label class="auth-label">Password</label><input class="auth-input" id="signupPassword" type="password" placeholder="Min. 6 characters"></div>
       <div class="auth-field"><label class="auth-label">Confirm Password</label><input class="auth-input" id="signupConfirm" type="password" placeholder="Same as above" onkeydown="if(event.key==='Enter')doSignup()"></div>
@@ -383,6 +386,7 @@
           <div class="user-dd-item danger" onclick="doLogout();event.stopPropagation()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Sign Out</div>
         </div>
       </div>
+      <button id="localSignInBtn" onclick="openOverlay();showScreen('screenLogin')" style="width:100%;display:none;align-items:center;justify-content:center;gap:8px;padding:8px 10px;background:rgba(91,110,245,0.12);border:1px solid rgba(91,110,245,0.28);color:#7c8ff8;border-radius:14px;font-family:var(--fm);font-size:0.62rem;letter-spacing:0.08em;cursor:pointer;text-transform:uppercase;margin-bottom:8px;">Sign In</button>
       <div class="streak-badge">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L15 8L22 9L17 14L18 21L12 17L6 21L7 14L2 9L9 8L12 2Z"/></svg>
         <span id="homeStreak">Streak: 0 days</span>
@@ -394,7 +398,7 @@
     <!-- HERO -->
     <div class="hero">
       <div>
-        <div class="hero-eyebrow" id="heroEyebrow">JEE 2027 · CLASS XI · OMEGA BATCH</div>
+        <div class="hero-eyebrow" id="heroEyebrow">JEE 2027 · CLASS XI · YOUR BATCH</div>
         <div class="hero-greeting" id="heroGreeting">GOOD MORNING</div>
         <div class="hero-name" id="heroName"></div>
         <p class="hero-quote" id="dailyQuote">Loading quote...</p>
@@ -508,24 +512,16 @@
         </div>
       </a>
 
-      <!-- HEATMAP col-8 -->
+            <!-- FOCUS BOARD col-8 -->
       <div class="dc col-8">
-        <div class="ch"><div class="ch-title">ACTIVITY MAP</div><div class="ch-badge">13 WEEKS</div></div>
+        <div class="ch"><div class="ch-title">FOCUS BOARD</div><div class="ch-badge" id="focusBadge">LOCK IN</div></div>
         <div class="cb">
-          <div class="heatmap-wrap"><div class="heatmap-grid" id="heatmapGrid"></div></div>
-          <div style="display:flex;align-items:center;gap:5px;margin-top:8px">
-            <span style="font-family:var(--fm);font-size:0.56rem;color:var(--fg3)">LESS</span>
-            <div style="width:9px;height:9px;border-radius:2px;background:rgba(255,255,255,0.04)"></div>
-            <div style="width:9px;height:9px;border-radius:2px" class="hm-l1"></div>
-            <div style="width:9px;height:9px;border-radius:2px" class="hm-l2"></div>
-            <div style="width:9px;height:9px;border-radius:2px" class="hm-l3"></div>
-            <div style="width:9px;height:9px;border-radius:2px" class="hm-l4"></div>
-            <span style="font-family:var(--fm);font-size:0.56rem;color:var(--fg3)">MORE</span>
-          </div>
+          <div id="focusWidget" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;"></div>
+          <div id="focusChecklist" style="margin-top:10px;display:flex;flex-direction:column;gap:6px;"></div>
         </div>
       </div>
 
-      <!-- SUBJECT LOAD col-4 -->
+<!-- SUBJECT LOAD col-4 -->
       <a href="/dpp" class="dc dc-link col-4">
         <div class="ch"><div class="ch-title">SUBJECT LOAD</div><div class="ch-badge">DPP</div></div>
         <div class="cb"><div class="subj-bars" id="subjBars"></div></div>
@@ -603,16 +599,16 @@ async function doLogin(){
 }
 
 async function doSignup(){
-    const n=document.getElementById('signupName').value.trim(),e=document.getElementById('signupEmail').value.trim(),p=document.getElementById('signupPassword').value,c=document.getElementById('signupConfirm').value;
+    const n=document.getElementById('signupName').value.trim(),cls=document.getElementById('signupClass').value,targetYear=document.getElementById('signupTargetYear').value.trim(),batch=document.getElementById('signupBatch').value.trim(),e=document.getElementById('signupEmail').value.trim(),p=document.getElementById('signupPassword').value,c=document.getElementById('signupConfirm').value;
     const err=document.getElementById('signupError'),btn=document.getElementById('signupBtn');
-    if(!n||!e||!p){showAuthErr(err,'All fields are required.');return;}
+    if(!n||!e||!p||!targetYear){showAuthErr(err,'Name, target year, email and password are required.');return;}
     if(p!==c){showAuthErr(err,'Passwords do not match.');return;}
     if(p.length<6){showAuthErr(err,'Password must be at least 6 characters.');return;}
     err.classList.remove('show');btn.innerHTML='<span class="auth-spinner"></span>CREATING...';btn.disabled=true;
     try{
         const cred=await firebase.auth().createUserWithEmailAndPassword(e,p);
         await cred.user.updateProfile({displayName:n});
-        firebase.firestore().collection('users').doc(cred.user.uid).set({name:n,email:e,createdAt:new Date().toISOString()}).catch(()=>{});
+        const profile={name:n,classLevel:cls,targetYear:Number(targetYear),batch:batch||'Self-study',email:e,createdAt:new Date().toISOString()};localStorage.setItem('buddy_profile',JSON.stringify(profile));firebase.firestore().collection('users').doc(cred.user.uid).set(profile).catch(()=>{});
         await cred.user.sendEmailVerification();
         document.getElementById('verifyEmailDisplay').textContent=e;
         showScreen('screenVerify');
@@ -647,14 +643,23 @@ async function doLogout(){
 
 function showUserPill(user){
     const pill=document.getElementById('userMenuPill');
+    const localBtn=document.getElementById('localSignInBtn');
     const name=user.displayName||user.email.split('@')[0];
     document.getElementById('userName').textContent=name;
     document.getElementById('userEmail').textContent=user.email;
     document.getElementById('userAvatar').textContent=name.charAt(0).toUpperCase();
     pill.style.display='flex';
+    if(localBtn) localBtn.style.display='none';
     const hn=document.getElementById('heroName');
     hn.textContent=name.split(' ')[0].toUpperCase()+',';
     hn.style.display='block';
+    applyProfile({name:user.displayName||name});
+}
+function showLocalSignInButton(){
+    const pill=document.getElementById('userMenuPill');
+    const localBtn=document.getElementById('localSignInBtn');
+    if(pill) pill.style.display='none';
+    if(localBtn) localBtn.style.display='flex';
 }
 function toggleUserDropdown(){document.getElementById('userDropdown').classList.toggle('show');}
 document.addEventListener('click',e=>{if(!e.target.closest('#userMenuPill'))document.getElementById('userDropdown')?.classList.remove('show');});
@@ -688,10 +693,23 @@ async function syncToCloud(){
     }catch(e){document.getElementById('syncStatusText').textContent='⚠ FAILED';}
     finally{_si=false;}
 }
-function loadLocalData(){document.getElementById('syncStatusText').textContent='LOCAL';loadPageData();}
+function loadLocalData(){showLocalSignInButton();document.getElementById('syncStatusText').textContent='LOCAL';applyProfile();loadPageData();}
 
 // ══ PAGE DATA ══
-function loadPageData(){loadDPPStats();loadSyllabusProgress();buildHeatmap();loadTasks();loadSchedule();loadStreak();loadTestWidget();}
+function applyProfile(override={}){
+    let profile={};
+    try{profile=JSON.parse(localStorage.getItem('buddy_profile')||'{}');}catch(e){}
+    profile={...profile,...override};
+    const cls=(profile.classLevel||'11').toString().toUpperCase();
+    const target=profile.targetYear||2027;
+    const batch=profile.batch||'Self-study';
+    const name=profile.name||'';
+    const eb=document.getElementById('heroEyebrow');
+    if(eb) eb.textContent=`JEE ${target} · CLASS ${cls} · ${batch.toUpperCase()}`;
+    const hn=document.getElementById('heroName');
+    if(name&&hn){hn.textContent=name.split(' ')[0].toUpperCase()+',';hn.style.display='block';}
+}
+function loadPageData(){applyProfile();loadDPPStats();loadSyllabusProgress();loadFocusBoard();loadTasks();loadSchedule();loadStreak();loadTestWidget();}
 
 // Clock
 function updateClock(){
@@ -706,7 +724,7 @@ setInterval(updateClock,1000);updateClock();
 
 // Countdown
 function updateCountdown(){
-    const exam=new Date('2027-01-20T09:00:00'),start=new Date('2025-06-01'),now=new Date(),rem=exam-now;
+    const plan=JSON.parse(localStorage.getItem('active_test_plan')||'{}');const exam=new Date((plan.examDate||'2027-01-20')+'T09:00:00'),start=new Date('2025-06-01'),now=new Date(),rem=exam-now;document.querySelector('.cd-exam').textContent=(plan.examName||'JEE MAINS 2027').toUpperCase();
     if(rem<=0){document.getElementById('cdDays').textContent='GO!';return;}
     const d=Math.floor(rem/86400000);
     document.getElementById('cdDays').textContent=d;
@@ -734,13 +752,24 @@ function esc(s){if(!s)return'';return s.replace(/[&<>"']/g,m=>({'&':'&amp;','<':
 function showToastMsg(m){const t=document.getElementById('ttToast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2600);}
 window.showComingSoon=(e)=>{if(e)e.preventDefault();showToastMsg('✨ Feature coming soon!');};
 
-// Heatmap
-function buildHeatmap(){
-    const grid=document.getElementById('heatmapGrid'),weeks=13,today=new Date(),start=new Date(today);start.setDate(start.getDate()-(weeks*7));
-    let q={};try{const p=JSON.parse(localStorage.getItem('dpp_q2')||localStorage.getItem('dpp_questions')||'{}');[...(p['11']||[]),...(p['12']||[])].forEach(x=>{const d=x.createdAt?.slice(0,10);if(d)q[d]=(q[d]||0)+1;});}catch(e){}
-    let html='';
-    for(let w=0;w<weeks;w++){html+='<div class="hm-col">';for(let d=0;d<7;d++){const c=new Date(start);c.setDate(start.getDate()+w*7+d);if(c>today){html+='<div class="hm-cell" style="opacity:0.15"></div>';continue;}const ds=c.toISOString().slice(0,10),n=q[ds]||0;const cl=n===0?'':n<5?'hm-l1':n<12?'hm-l2':n<20?'hm-l3':'hm-l4';html+=`<div class="hm-cell ${cl}" title="${ds}: ${n} Q"></div>`;}html+='</div>';}
-    grid.innerHTML=html;
+// Focus board
+function loadFocusBoard(){
+    const box=document.getElementById('focusWidget');
+    const list=document.getElementById('focusChecklist');
+    if(!box||!list)return;
+    let q=[];try{const p=JSON.parse(localStorage.getItem('dpp_q2')||localStorage.getItem('dpp_questions')||'{}');q=[...(p['11']||[]),...(p['12']||[])];}catch(e){}
+    let tests=[];try{tests=JSON.parse(localStorage.getItem('test_analysis_data')||'[]');}catch(e){}
+    const weak={};q.filter(x=>x.status==='tough'||x.status==='tricky').forEach(x=>{weak[x.chapter]=(weak[x.chapter]||0)+1;});
+    const topWeak=Object.entries(weak).sort((a,b)=>b[1]-a[1]).slice(0,3);
+    const today=new Date().toISOString().slice(0,10);
+    const todayQs=q.filter(x=>(x.createdAt||'').slice(0,10)===today).length;
+    const pending=Math.max(30-todayQs,0);
+    const last=[...tests].sort((a,b)=>new Date(b.date||0)-new Date(a.date||0))[0];
+    const score=last?((last.total??last.totalMarks??((last.physics||0)+(last.chemistry||0)+(last.maths||0)))):0;
+    box.innerHTML=`<div class="mini-card"><div class="mini-card-n" style="color:var(--amber)">${pending}</div><div class="mini-card-l">Questions Left Today</div></div><div class="mini-card"><div class="mini-card-n" style="color:var(--vio)">${topWeak.length}</div><div class="mini-card-l">Weak Chapters Tracked</div></div><div class="mini-card"><div class="mini-card-n" style="color:var(--grn)">${score}</div><div class="mini-card-l">Latest Mock Score</div></div>`;
+    list.innerHTML=(topWeak.length?topWeak.map(([ch,n])=>`<div class="task-row"><div class="task-cb"></div><div class="task-text">${esc(ch)} · ${n} flagged questions</div></div>`).join(''):'<div class="empty-card"><div class="empty-ico">🎯</div><div class="empty-t">No weak chapters yet — great momentum.</div></div>');
+    const done=[pending===0,topWeak.length>0,tests.length>0].filter(Boolean).length;
+    document.getElementById('focusBadge').textContent=`${done}/3 PRIORITIES`;
 }
 
 // DPP
@@ -789,7 +818,7 @@ function loadTestWidget(){
     document.getElementById('statTestCount').textContent=tests.length;
     if(!tests.length)return;
     const sorted=[...tests].sort((a,b)=>new Date(b.date||0)-new Date(a.date||0));
-    const last=sorted[0],total=last.total||last.totalMarks||last.score||0,max=last.maxMarks||300;
+    const last=sorted[0],total=(last.total??last.totalMarks??last.score??((last.physics||0)+(last.chemistry||0)+(last.maths||0))),max=last.maxMarks||300;
     const pct=max?Math.round(total/max*100):0;
     const avg=tests.reduce((a,t)=>{const s=t.total||t.totalMarks||t.score||0,m=t.maxMarks||300;return a+(m?s/m*100:0);},0)/tests.length;
     const subs=[{n:'Physics',s:last.physics||last.physicsScore||0,m:last.physicsMax||100,c:'var(--phys)'},{n:'Chemistry',s:last.chemistry||last.chemistryScore||0,m:last.chemistryMax||100,c:'var(--chem)'},{n:'Maths',s:last.maths||last.mathsScore||last.mathematics||0,m:last.mathsMax||100,c:'var(--math)'}];
@@ -828,12 +857,17 @@ window.addEventListener('resize',()=>{W=cv.width=innerWidth;H=cv.height=innerHei
 <div class="mob-backdrop" id="_mbd"></div>
 
 <header class="mob-topbar">
-  <div style="display:flex;align-items:center;gap:10px;">
+  <div class="mob-brand-wrap">
     <button id="_mMenu" style="width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.07);display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,0.55);flex-shrink:0;">
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
     </button>
-    <img src="/logo.png" style="width:28px;height:28px;border-radius:7px;object-fit:cover;flex-shrink:0;" onerror="this.style.display='none'" alt="">
-    <span style="font-family:'Bebas Neue',sans-serif;font-size:1.05rem;letter-spacing:0.1em;color:#e8ebf8;">OVERVIEW</span>
+    <div class="mob-brand-chip">
+      <img src="/logo.png" style="width:28px;height:28px;border-radius:7px;object-fit:cover;flex-shrink:0;" onerror="this.style.display='none'" alt="">
+      <div>
+        <div class="mob-brand-title">BUDDY</div>
+        <div class="mob-brand-sub">Overview</div>
+      </div>
+    </div>
   </div>
   <div id="_mRight" style="display:flex;align-items:center;gap:8px;"></div>
 </header>
@@ -856,6 +890,35 @@ window.addEventListener('resize',()=>{W=cv.width=innerWidth;H=cv.height=innerHei
 
 <style>
 /* ── Mob topbar inner styles (not layout) ── */
+.mob-brand-wrap{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.mob-brand-chip{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:12px;
+  padding:5px 9px 5px 6px;
+}
+.mob-brand-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:0.9rem;
+  letter-spacing:0.12em;
+  line-height:1;
+  color:#e8ebf8;
+}
+.mob-brand-sub{
+  font-family:'JetBrains Mono',monospace;
+  font-size:0.52rem;
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+  color:rgba(255,255,255,0.55);
+  margin-top:2px;
+}
 #_mRight button {
   padding: 7px 13px;
   background: rgba(91,110,245,0.14);
