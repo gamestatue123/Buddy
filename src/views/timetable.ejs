@@ -2207,7 +2207,7 @@
         if(!e.target.closest('#sidePill'))drop.style.display='none';
       });
     } else {
-      slot.innerHTML='';
+      slot.innerHTML='<button onclick="if(typeof openOverlay===\'function\'){openOverlay();if(typeof showScreen===\'function\')showScreen(\'screenLogin\');}else{location.href=\'/\';}" style="width:100%;padding:8px 10px;border-radius:12px;background:rgba(91,110,245,0.12);border:1px solid rgba(91,110,245,0.3);color:#7c8ff8;font-family:\'JetBrains Mono\',monospace;font-size:0.62rem;letter-spacing:0.08em;cursor:pointer;text-transform:uppercase;">Sign In</button>';
     }
   });
 })();
