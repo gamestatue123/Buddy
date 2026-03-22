@@ -192,6 +192,104 @@ async function _syncFromCloud(user) {
         if (Object.keys(syl).length) localStorage.setItem('syllabus_progress', JSON.stringify(syl));
     } catch (e) { console.warn('syncFromCloud', e); }
 }
+// ========== MISSING FUNCTIONS ==========
+
+function _updateSidebarPill(user) {
+    const sidebarPill = document.querySelector('.auth-pill');
+    if (!sidebarPill) return;
+    
+    if (user) {
+        const displayName = user.displayName || user.email?.split('@')[0] || 'Buddy';
+        sidebarPill.innerHTML = `
+            <div class="user-avatar">${displayName.charAt(0).toUpperCase()}</div>
+            <span class="user-name">${displayName}</span>
+            <button class="logout-btn" onclick="doLogout()">Sign Out</button>
+        `;
+        sidebarPill.classList.add('signed-in');
+    } else {
+        sidebarPill.innerHTML = `
+            <button class="signin-trigger" onclick="openAuthModal()">SIGN IN</button>
+        `;
+        sidebarPill.classList.remove('signed-in');
+    }
+}
+
+async function _syncFromCloud(user) {
+    if (syncInProgress) return;
+    syncInProgress = true;
+    
+    try {
+        const db = firebase.firestore();
+        const userId = user.uid;
+        
+        // Fetch user's syllabus progress
+        const syllabusSnap = await db.collection('users').doc(userId).collection('syllabus').get();
+        const syllabusData = {};
+        syllabusSnap.forEach(doc => {
+            syllabusData[doc.id] = doc.data();
+        });
+        localStorage.setItem('buddy_syllabus', JSON.stringify(syllabusData));
+        
+        // Fetch test scores
+        const testsSnap = await db.collection('users').doc(userId).collection('tests').orderBy('date', 'desc').limit(10).get();
+        const testsData = [];
+        testsSnap.forEach(doc => {
+            testsData.push({ id: doc.id, ...doc.data() });
+        });
+        localStorage.setItem('buddy_tests', JSON.stringify(testsData));
+        
+        // Fetch timetable
+        const timetableSnap = await db.collection('users').doc(userId).collection('timetable').get();
+        const timetableData = [];
+        timetableSnap.forEach(doc => {
+            timetableData.push({ id: doc.id, ...doc.data() });
+        });
+        localStorage.setItem('buddy_timetable', JSON.stringify(timetableData));
+        
+        // Trigger a page-specific refresh
+        if (window.refreshWidgets) window.refreshWidgets();
+        
+    } catch (err) {
+        console.warn('Cloud sync failed, using local data:', err);
+    } finally {
+        syncInProgress = false;
+    }
+}
+
+function _showAuthErr(errEl, message) {
+    if (errEl) {
+        errEl.textContent = message;
+        errEl.classList.add('show');
+    }
+}
+
+function _friendlyErr(code) {
+    const errors = {
+        'auth/invalid-email': 'Invalid email address.',
+        'auth/user-disabled': 'This account has been disabled.',
+        'auth/user-not-found': 'No account found with this email.',
+        'auth/wrong-password': 'Incorrect password.',
+        'auth/too-many-requests': 'Too many attempts. Try again later.',
+        'auth/network-request-failed': 'Network error. Check your connection.'
+    };
+    return errors[code] || 'Sign in failed. Please try again.';
+}
+
+// ========== EXPORT GLOBALLY ==========
+window.doLogin = doLogin;
+window.doLogout = async function() {
+    await firebase.auth().signOut();
+    localStorage.setItem('buddy_storage_mode', 'local');
+    location.reload();
+};
+window.openAuthModal = function() {
+    const modal = document.getElementById('authModal');
+    if (modal) modal.style.display = 'flex';
+};
+window.closeAuthModal = function() {
+    const modal = document.getElementById('authModal');
+    if (modal) modal.style.display = 'none';
+};
 
 // ── Sidebar pill (used by non-index pages) ──
 function _updateSidebarPill(user) {
