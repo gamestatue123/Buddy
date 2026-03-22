@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Buddy - JEE Assistant</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap">
+    <style>
+        /* Copy all your CSS from style.css here */
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-card: rgba(20, 20, 25, 0.7);
+            --accent-primary: #6366f1;
+            --accent-secondary: #8b5cf6;
+            --text-primary: #ffffff;
+            --text-secondary: #a1a1aa;
+            --border-color: rgba(255, 255, 255, 0.08);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            overflow-x: hidden;
+        }
+        
+        /* Add all your existing CSS here... */
+        /* (Copy from your style.css) */
+        
+        .app {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+        
+        .header {
+            padding: 1rem 0;
+            text-align: center;
+        }
+        
+        .logo {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #fff, var(--accent-secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .nav {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 1rem 0;
+        }
+        
+        .nav a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 12px;
+            transition: all 0.2s;
+        }
+        
+        .nav a:hover, .nav a.active {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--accent-primary);
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        
+        .card {
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 1.5rem;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent-primary);
+        }
+        
+        .card h3 {
+            margin-bottom: 0.5rem;
+        }
+        
+        .card p {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+        
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <div class="header">
+            <div class="logo">⚡ Buddy</div>
+            <p style="color: var(--text-secondary); margin-top: 0.5rem;">Your JEE Study Assistant</p>
+        </div>
+        
+        <div class="nav">
+            <a href="#" class="active" onclick="showPage('home')">Home</a>
+            <a href="#" onclick="showPage('timetable')">Timetable</a>
+            <a href="#" onclick="showPage('dpp')">DPP Logger</a>
+            <a href="#" onclick="showPage('syllabus')">Syllabus</a>
+            <a href="#" onclick="showPage('tests')">Tests</a>
+        </div>
+        
+        <div id="homePage">
+            <div class="grid">
+                <div class="card" onclick="showPage('timetable')">
+                    <h3>📅 Timetable</h3>
+                    <p>Manage your daily schedule, tasks, and class timetable</p>
+                </div>
+                <div class="card" onclick="showPage('dpp')">
+                    <h3>📝 DPP Logger</h3>
+                    <p>Track your DPP questions, mark tricky/tough questions</p>
+                </div>
+                <div class="card" onclick="showPage('syllabus')">
+                    <h3>📚 Syllabus Tracker</h3>
+                    <p>Track your syllabus completion progress</p>
+                </div>
+                <div class="card" onclick="showPage('tests')">
+                    <h3>📊 Test Analysis</h3>
+                    <p>Analyze your test performance with charts</p>
+                </div>
+            </div>
+        </div>
+        
+        <div id="timetablePage" style="display: none;">
+            <h2>📅 Timetable Manager</h2>
+            <p style="color: var(--text-secondary); margin: 1rem 0;">Your timetable data will sync across devices when logged in.</p>
+            <div class="card">
+                <h3>Daily Tasks</h3>
+                <div id="tasksList"></div>
+                <input type="text" id="newTask" placeholder="Add a task..." style="width: 100%; padding: 0.75rem; margin-top: 1rem; background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); border-radius: 12px; color: white;">
+                <button onclick="addTask()" style="margin-top: 0.5rem; padding: 0.5rem 1rem; background: var(--accent-primary); border: none; border-radius: 8px; color: white;">Add Task</button>
+            </div>
+        </div>
+        
+        <div id="dppPage" style="display: none;">
+            <h2>📝 DPP Logger</h2>
+            <p style="color: var(--text-secondary); margin: 1rem 0;">Track your DPP questions by chapter and difficulty</p>
+            <div class="card">
+                <h3>Add Question</h3>
+                <input type="text" id="chapter" placeholder="Chapter" style="width: 100%; padding: 0.75rem; margin: 0.5rem 0; background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); border-radius: 12px; color: white;">
+                <input type="text" id="dppNumber" placeholder="DPP Number" style="width: 100%; padding: 0.75rem; margin: 0.5rem 0; background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); border-radius: 12px; color: white;">
+                <input type="text" id="questionNumber" placeholder="Question Number" style="width: 100%; padding: 0.75rem; margin: 0.5rem 0; background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); border-radius: 12px; color: white;">
+                <button onclick="addQuestion()" style="margin-top: 0.5rem; padding: 0.5rem 1rem; background: var(--accent-primary); border: none; border-radius: 8px; color: white;">Add Question</button>
+                <div id="questionsList" style="margin-top: 1rem;"></div>
+            </div>
+        </div>
+        
+        <div id="syllabusPage" style="display: none;">
+            <h2>📚 Syllabus Tracker</h2>
+            <p style="color: var(--text-secondary); margin: 1rem 0;">Track your chapter-wise progress</p>
+            <div id="syllabusList"></div>
+        </div>
+        
+        <div id="testsPage" style="display: none;">
+            <h2>📊 Test Analysis</h2>
+            <p style="color: var(--text-secondary); margin: 1rem 0;">Track and analyze your test performance</p>
+            <div class="card">
+                <h3>Add Test Result</h3>
+                <input type="text" id="testName" placeholder="Test Name" style="width: 100%; padding: 0.75rem; margin: 0.5rem 0; background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); border-radius: 12px; color: white;">
+                <input type="number" id="physicsScore" placeholder="Physics Score" style="width: 100%; padding: 0.75rem; margin: 0.5rem 0; background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); border-radius: 12px; color: white;">
+                <input type="number" id="chemistryScore" placeholder="Chemistry Score" style="width: 100%; padding: 0.75rem; margin: 0.5rem 0; background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); border-radius: 12px; color: white;">
+                <input type="number" id="mathsScore" placeholder="Maths Score" style="width: 100%; padding: 0.75rem; margin: 0.5rem 0; background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); border-radius: 12px; color: white;">
+                <button onclick="addTest()" style="margin-top: 0.5rem; padding: 0.5rem 1rem; background: var(--accent-primary); border: none; border-radius: 8px; color: white;">Add Test</button>
+                <div id="testsList" style="margin-top: 1rem;"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Simple data storage using localStorage
+        let tasks = [];
+        let questions = [];
+        let syllabus = {};
+        let tests = [];
+        
+        // Load data on startup
+        function loadData() {
+            tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+            questions = JSON.parse(localStorage.getItem('questions') || '[]');
+            syllabus = JSON.parse(localStorage.getItem('syllabus') || '{}');
+            tests = JSON.parse(localStorage.getItem('tests') || '[]');
+            
+            renderTasks();
+            renderQuestions();
+            renderSyllabus();
+            renderTestsList();
+        }
+        
+        function saveData() {
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+            localStorage.setItem('questions', JSON.stringify(questions));
+            localStorage.setItem('syllabus', JSON.stringify(syllabus));
+            localStorage.setItem('tests', JSON.stringify(tests));
+        }
+        
+        // Tasks
+        function renderTasks() {
+            const container = document.getElementById('tasksList');
+            if (!container) return;
+            
+            if (tasks.length === 0) {
+                container.innerHTML = '<p style="color: var(--text-secondary);">No tasks yet. Add one above!</p>';
+                return;
+            }
+            
+            container.innerHTML = tasks.map((task, i) => `
+                <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem; border-bottom: 1px solid var(--border-color);">
+                    <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTask(${i})">
+                    <span style="${task.completed ? 'text-decoration: line-through; color: var(--text-secondary);' : ''}">${task.text}</span>
+                    <button onclick="deleteTask(${i})" style="margin-left: auto; background: none; border: none; color: var(--text-secondary);">🗑️</button>
+                </div>
+            `).join('');
+        }
+        
+        function addTask() {
+            const input = document.getElementById('newTask');
+            if (input.value.trim()) {
+                tasks.push({ text: input.value, completed: false });
+                saveData();
+                renderTasks();
+                input.value = '';
+            }
+        }
+        
+        function toggleTask(index) {
+            tasks[index].completed = !tasks[index].completed;
+            saveData();
+            renderTasks();
+        }
+        
+        function deleteTask(index) {
+            tasks.splice(index, 1);
+            saveData();
+            renderTasks();
+        }
+        
+        // Questions
+        function renderQuestions() {
+            const container = document.getElementById('questionsList');
+            if (!container) return;
+            
+            if (questions.length === 0) {
+                container.innerHTML = '<p style="color: var(--text-secondary);">No questions logged yet</p>';
+                return;
+            }
+            
+            container.innerHTML = questions.map((q, i) => `
+                <div style="padding: 0.5rem; border-bottom: 1px solid var(--border-color);">
+                    <strong>${q.chapter}</strong> - ${q.dppNumber} Q${q.questionNumber}
+                    <button onclick="deleteQuestion(${i})" style="float: right; background: none; border: none; color: var(--text-secondary);">🗑️</button>
+                </div>
+            `).join('');
+        }
+        
+        function addQuestion() {
+            const chapter = document.getElementById('chapter').value;
+            const dppNumber = document.getElementById('dppNumber').value;
+            const questionNumber = document.getElementById('questionNumber').value;
+            
+            if (chapter && dppNumber && questionNumber) {
+                questions.push({ chapter, dppNumber, questionNumber });
+                saveData();
+                renderQuestions();
+                document.getElementById('chapter').value = '';
+                document.getElementById('dppNumber').value = '';
+                document.getElementById('questionNumber').value = '';
+            }
+        }
+        
+        function deleteQuestion(index) {
+            questions.splice(index, 1);
+            saveData();
+            renderQuestions();
+        }
+        
+        // Syllabus
+        function renderSyllabus() {
+            const container = document.getElementById('syllabusList');
+            if (!container) return;
+            
+            const subjects = ['Physics', 'Chemistry', 'Mathematics'];
+            container.innerHTML = subjects.map(subject => `
+                <div class="card" style="margin-bottom: 1rem;">
+                    <h3>${subject}</h3>
+                    <div class="progress-bar" style="height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; margin: 0.5rem 0;">
+                        <div style="width: ${syllabus[subject]?.progress || 0}%; height: 100%; background: var(--accent-primary); border-radius: 2px;"></div>
+                    </div>
+                    <input type="range" min="0" max="100" value="${syllabus[subject]?.progress || 0}" onchange="updateProgress('${subject}', this.value)">
+                    <p style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.5rem;">${syllabus[subject]?.progress || 0}% completed</p>
+                </div>
+            `).join('');
+        }
+        
+        function updateProgress(subject, value) {
+            if (!syllabus[subject]) syllabus[subject] = {};
+            syllabus[subject].progress = parseInt(value);
+            saveData();
+            renderSyllabus();
+        }
+        
+        // Tests
+        function renderTestsList() {
+            const container = document.getElementById('testsList');
+            if (!container) return;
+            
+            if (tests.length === 0) {
+                container.innerHTML = '<p style="color: var(--text-secondary);">No tests added yet</p>';
+                return;
+            }
+            
+            container.innerHTML = tests.map((test, i) => `
+                <div style="padding: 0.5rem; border-bottom: 1px solid var(--border-color);">
+                    <strong>${test.name}</strong><br>
+                    Physics: ${test.physics}, Chemistry: ${test.chemistry}, Maths: ${test.maths}
+                    <button onclick="deleteTest(${i})" style="float: right; background: none; border: none; color: var(--text-secondary);">🗑️</button>
+                </div>
+            `).join('');
+        }
+        
+        function addTest() {
+            const name = document.getElementById('testName').value;
+            const physics = parseInt(document.getElementById('physicsScore').value) || 0;
+            const chemistry = parseInt(document.getElementById('chemistryScore').value) || 0;
+            const maths = parseInt(document.getElementById('mathsScore').value) || 0;
+            
+            if (name) {
+                tests.push({ name, physics, chemistry, maths, date: new Date().toISOString() });
+                saveData();
+                renderTestsList();
+                document.getElementById('testName').value = '';
+                document.getElementById('physicsScore').value = '';
+                document.getElementById('chemistryScore').value = '';
+                document.getElementById('mathsScore').value = '';
+            }
+        }
+        
+        function deleteTest(index) {
+            tests.splice(index, 1);
+            saveData();
+            renderTestsList();
+        }
+        
+        // Page navigation
+        function showPage(page) {
+            document.querySelectorAll('[id$="Page"]').forEach(el => el.style.display = 'none');
+            document.getElementById(`${page}Page`).style.display = 'block';
+            
+            document.querySelectorAll('.nav a').forEach(a => a.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Re-render current page
+            if (page === 'timetable') renderTasks();
+            if (page === 'dpp') renderQuestions();
+            if (page === 'syllabus') renderSyllabus();
+            if (page === 'tests') renderTestsList();
+        }
+        
+        // Initialize
+        loadData();
+        
+        // Make functions global
+        window.addTask = addTask;
+        window.toggleTask = toggleTask;
+        window.deleteTask = deleteTask;
+        window.addQuestion = addQuestion;
+        window.deleteQuestion = deleteQuestion;
+        window.updateProgress = updateProgress;
+        window.addTest = addTest;
+        window.deleteTest = deleteTest;
+        window.showPage = showPage;
+    </script>
+</body>
+</html>

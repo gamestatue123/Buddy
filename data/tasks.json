@@ -1,0 +1,27 @@
+{
+  "daily": [
+    {
+      "id": "1774120014531",
+      "text": "hb",
+      "completed": true,
+      "date": "2026-03-21",
+      "createdAt": "2026-03-21T19:06:54.531Z"
+    }
+  ],
+  "recurring": [
+    {
+      "id": "1774117929699",
+      "text": "Daily Streak",
+      "completed": true,
+      "date": "2026-03-21",
+      "streak": 9
+    },
+    {
+      "id": "1774167533486",
+      "text": "Daily Streak",
+      "completed": true,
+      "date": "2026-03-22",
+      "streak": 3
+    }
+  ]
+}

@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+<meta name="theme-color" content="#6366f1">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buddy | DPP Logger</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@300;400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        :root {
+            --font-d: 'Bebas Neue', sans-serif;
+            --font-m: 'JetBrains Mono', monospace;
+            --font-b: 'Outfit', sans-serif;
+            --ink:  #090b11;
+            --ink2: #0e1118;
+            --ink3: #141720;
+            --ink4: #1b1f2c;
+            --ink5: #222736;
+            --gl:   rgba(255,255,255,0.03);
+            --glh:  rgba(255,255,255,0.055);
+            --bd:   rgba(255,255,255,0.07);
+            --bdh:  rgba(255,255,255,0.13);
+            --fg1:  #e6e9f4;
+            --fg2:  #8690aa;
+            --fg3:  #454d66;
+            --amber:#f5a623;
+            --ambd: rgba(245,166,35,0.14);
+            --red:  #f04444;
+            --redd: rgba(240,68,68,0.13);
+            --grn:  #2dcf9e;
+            --grnd: rgba(45,207,158,0.13);
+            --vio:  #a78bfa;
+            --viod: rgba(167,139,250,0.13);
+            --pc:   #4da6ff;
+            --cc:   #2dcf9e;
+            --mc:   #f5a623;
+            --r1: 6px; --r2: 12px; --r3: 18px; --r4: 24px;
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: var(--font-b); background: var(--ink); color: var(--fg1); overflow-x: hidden; }
+
+        /* PAGE */
+        .dpp-page { max-width: 1280px; margin: 0 auto; padding: 0 1rem 5rem; }
+
+        /* CLASS SWITCHER */
+        .cls-sw { display: flex; gap: 3px; background: var(--ink3); border: 1px solid var(--bd); border-radius: 50px; padding: 4px; width: fit-content; margin-bottom: 2.2rem; }
+        .cls-pill { font-family: var(--font-d); font-size: 0.95rem; letter-spacing: 0.07em; padding: 5px 22px; background: transparent; border: none; color: var(--fg3); cursor: pointer; border-radius: 50px; transition: all 0.2s; }
+        .cls-pill:hover { color: var(--fg1); }
+        .cls-pill.on { background: var(--fg1); color: var(--ink); }
+
+        /* LAYOUT */
+        .dpp-layout { display: grid; grid-template-columns: 270px 1fr; gap: 18px; align-items: start; }
+
+        /* ADD PANEL */
+        .add-panel { background: var(--ink2); border: 1px solid var(--bd); border-radius: var(--r4); padding: 1.2rem; position: sticky; top: 1rem; }
+        .ap-title { font-family: var(--font-d); font-size: 1.35rem; letter-spacing: 0.07em; margin-bottom: 1.1rem; display: flex; align-items: center; gap: 8px; }
+        .ap-dot { width: 7px; height: 7px; background: var(--amber); border-radius: 50%; box-shadow: 0 0 8px var(--amber); }
+        .fg { margin-bottom: 0.8rem; }
+        .fgl { font-family: var(--font-m); font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--fg3); display: block; margin-bottom: 4px; }
+        .fg select, .fg input { font-family: var(--font-b); width: 100%; padding: 0.58rem 0.8rem; background: var(--ink3); border: 1px solid var(--bd); border-radius: var(--r2); color: var(--fg1); font-size: 0.8rem; transition: border-color 0.18s; outline: none; }
+        .fg select:focus, .fg input:focus { border-color: var(--amber); box-shadow: 0 0 0 2px rgba(245,166,35,0.1); }
+        .fg input::placeholder { color: var(--fg3); }
+        .sgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-bottom: 0.85rem; }
+        .sb { font-family: var(--font-b); font-size: 0.73rem; font-weight: 500; padding: 7px 5px; background: var(--ink3); border: 1px solid var(--bd); border-radius: var(--r2); color: var(--fg2); cursor: pointer; text-align: center; transition: all 0.16s; }
+        .sb:hover { border-color: var(--bdh); color: var(--fg1); }
+        .sb.st { border-color: var(--amber); background: var(--ambd); color: var(--amber); }
+        .sb.sf { border-color: var(--red);   background: var(--redd); color: var(--red);   }
+        .sb.sg { border-color: var(--grn);   background: var(--grnd); color: var(--grn);   }
+        .sb.sc { border-color: var(--vio);   background: var(--viod); color: var(--vio);   }
+        .add-btn { font-family: var(--font-d); font-size: 1rem; letter-spacing: 0.09em; width: 100%; padding: 0.65rem; background: var(--amber); border: none; border-radius: var(--r2); color: var(--ink); cursor: pointer; transition: all 0.18s; }
+        .add-btn:hover { background: #fbb83c; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(245,166,35,0.28); }
+        .pdiv { height: 1px; background: var(--bd); margin: 1rem 0; }
+        .mstats { display: flex; flex-direction: column; gap: 5px; }
+        .ms { display: flex; align-items: center; justify-content: space-between; padding: 5px 9px; background: var(--ink3); border-radius: var(--r1); }
+        .msl { font-family: var(--font-m); font-size: 0.62rem; color: var(--fg3); letter-spacing: 0.06em; }
+        .msv { font-family: var(--font-m); font-size: 0.76rem; font-weight: 600; }
+
+        /* TOP BAR */
+        .topbar { display: flex; align-items: center; gap: 8px; margin-bottom: 1.3rem; flex-wrap: wrap; }
+        .fchip { font-family: var(--font-m); font-size: 0.62rem; letter-spacing: 0.07em; padding: 4px 11px; background: var(--ink3); border: 1px solid var(--bd); border-radius: 50px; color: var(--fg3); cursor: pointer; transition: all 0.14s; text-transform: uppercase; }
+        .fchip:hover { color: var(--fg1); border-color: var(--bdh); }
+        .fchip.fa.on { background: var(--glh); color: var(--fg1); border-color: var(--bdh); }
+        .fchip.ft.on { background: var(--ambd); color: var(--amber); border-color: var(--amber); }
+        .fchip.ff.on { background: var(--redd); color: var(--red);   border-color: var(--red);   }
+        .fchip.fg2.on{ background: var(--grnd); color: var(--grn);   border-color: var(--grn);   }
+        .fchip.fc.on { background: var(--viod); color: var(--vio);   border-color: var(--vio);   }
+        .qsearch { font-family: var(--font-m); font-size: 0.72rem; padding: 4px 12px; background: var(--ink3); border: 1px solid var(--bd); border-radius: 50px; color: var(--fg1); outline: none; transition: border-color 0.18s; min-width: 150px; }
+        .qsearch:focus { border-color: var(--amber); }
+        .qsearch::placeholder { color: var(--fg3); }
+
+        /* STATS BAR */
+        .sbar { display: flex; gap: 7px; margin-bottom: 1.3rem; flex-wrap: wrap; }
+        .sc2 { display: flex; align-items: center; gap: 5px; padding: 5px 12px; background: var(--ink2); border: 1px solid var(--bd); border-radius: var(--r1); font-size: 0.7rem; }
+        .scn { font-family: var(--font-m); font-size: 0.95rem; font-weight: 600; }
+        .scl { color: var(--fg2); }
+
+        /* LEGEND */
+        .legend { display: flex; gap: 12px; margin-bottom: 1.1rem; flex-wrap: wrap; }
+        .li { display: flex; align-items: center; gap: 4px; font-family: var(--font-m); font-size: 0.58rem; color: var(--fg3); }
+        .ld { width: 6px; height: 6px; border-radius: 50%; }
+
+        /* SUBJECT BLOCK */
+        .subj-block { margin-bottom: 12px; border: 1px solid var(--bd); border-radius: var(--r4); overflow: hidden; background: var(--ink2); transition: border-color 0.2s; }
+        .subj-block:hover { border-color: var(--bdh); }
+        .subj-hd { display: flex; align-items: center; gap: 11px; padding: 13px 16px; cursor: pointer; user-select: none; }
+        .subj-bar { width: 3px; height: 18px; border-radius: 2px; flex-shrink: 0; }
+        .subj-name { font-family: var(--font-d); font-size: 1.25rem; letter-spacing: 0.07em; flex: 1; }
+        .subj-meta { font-family: var(--font-m); font-size: 0.62rem; color: var(--fg3); letter-spacing: 0.05em; }
+        .subj-chev { font-size: 0.7rem; color: var(--fg3); transition: transform 0.24s; }
+        .subj-block.open .subj-chev { transform: rotate(180deg); }
+        .subj-body { display: none; padding: 0 12px 12px; animation: sdown 0.22s ease; }
+        .subj-block.open .subj-body { display: block; }
+
+        /* CHAPTER BLOCK */
+        .ch-block { margin-bottom: 7px; border: 1px solid var(--bd); border-radius: var(--r3); overflow: hidden; background: var(--ink3); transition: border-color 0.16s; }
+        .ch-block:hover { border-color: var(--bdh); }
+        .ch-hd { display: flex; align-items: center; gap: 8px; padding: 9px 13px; cursor: pointer; user-select: none; }
+        .ch-name { font-family: var(--font-b); font-size: 0.85rem; font-weight: 600; flex: 1; }
+        .ch-meta { font-family: var(--font-m); font-size: 0.6rem; color: var(--fg3); }
+        .ch-chev { font-size: 0.62rem; color: var(--fg3); transition: transform 0.2s; }
+        .ch-block.open .ch-chev { transform: rotate(180deg); }
+        .ch-body { display: none; padding: 0 9px 9px; animation: sdown 0.18s ease; }
+        .ch-block.open .ch-body { display: block; }
+
+        /* DPP BLOCK */
+        .dpp-block { margin-bottom: 5px; background: var(--ink4); border: 1px solid rgba(255,255,255,0.045); border-radius: var(--r2); overflow: hidden; }
+        .dpp-hd { display: flex; align-items: center; gap: 7px; padding: 6px 11px; cursor: pointer; user-select: none; }
+        .dpp-lbl { font-family: var(--font-m); font-size: 0.7rem; font-weight: 600; letter-spacing: 0.06em; color: var(--fg2); flex: 1; }
+        .dpp-qc { font-family: var(--font-m); font-size: 0.58rem; color: var(--fg3); }
+        .dpp-chev { font-size: 0.58rem; color: var(--fg3); transition: transform 0.18s; }
+        .dpp-block.open .dpp-chev { transform: rotate(180deg); }
+        .dpp-body { display: none; padding: 3px 9px 9px; animation: sdown 0.16s ease; }
+        .dpp-block.open .dpp-body { display: block; }
+
+        @keyframes sdown { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Q CHIPS */
+        .qgrid { display: flex; flex-wrap: wrap; gap: 4px; }
+        .qchip { font-family: var(--font-m); font-size: 0.62rem; font-weight: 500; padding: 3px 8px; border-radius: var(--r1); border: 1px solid transparent; cursor: default; transition: all 0.14s; position: relative; animation: cin 0.16s ease both; }
+        .qchip:hover { transform: scale(1.12); z-index: 5; }
+        .qchip.sq { background: var(--grnd); border-color: rgba(45,207,158,0.3);  color: var(--grn);   }
+        .qchip.sa { background: var(--ambd); border-color: rgba(245,166,35,0.3);  color: var(--amber); }
+        .qchip.sf { background: var(--redd); border-color: rgba(240,68,68,0.3);   color: var(--red);   }
+        .qchip.sc { background: var(--viod); border-color: rgba(167,139,250,0.3); color: var(--vio);   }
+        @keyframes cin { from { opacity: 0; transform: scale(0.75); } to { opacity: 1; transform: scale(1); } }
+        .qdel { display: none; position: absolute; inset: -1px; background: rgba(240,68,68,0.88); border-radius: var(--r1); font-size: 0.65rem; align-items: center; justify-content: center; color: #fff; cursor: pointer; }
+        .qchip:hover .qdel { display: flex; }
+
+        /* EMPTY */
+        .empty { text-align: center; padding: 4rem 1rem; color: var(--fg3); }
+        .empty-ico { font-size: 2rem; margin-bottom: 0.75rem; opacity: 0.4; }
+        .empty-txt { font-family: var(--font-m); font-size: 0.74rem; letter-spacing: 0.04em; }
+
+        /* TOAST */
+        .toast-el { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(18px); background: var(--ink3); border: 1px solid var(--bdh); color: var(--fg1); padding: 8px 18px; border-radius: 50px; font-family: var(--font-m); font-size: 0.72rem; opacity: 0; pointer-events: none; transition: all 0.22s; z-index: 99999; box-shadow: 0 8px 28px rgba(0,0,0,0.5); }
+        .toast-el.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: var(--ink5); border-radius: 2px; }
+
+        @media (max-width: 840px) { .dpp-layout { grid-template-columns: 1fr; } .add-panel { position: static; } }
+    </style>
+</head>
+<body>
+    <canvas id="canvas-bg"></canvas>
+    <div class="noise-bg"></div>
+    <div class="gradient-orb orb-1"></div>
+
+    <div class="app">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="buddy-logo">
+                    <img src="/logo.png" alt="Buddy" onerror="this.src='https://via.placeholder.com/48x48?text=B'">
+                    <h1>Buddy</h1>
+                </div>
+                <p class="greeting">Master every question.</p>
+            </div>
+            <nav class="nav-menu">
+                <a href="/" class="nav-item">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 9L12 3L21 9V20C21 20.55 20.55 21 20 21H15V15H9V21H4C3.45 21 3 20.55 3 20V9Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+                    <span>Home</span>
+                </a>
+                <a href="/timetable" class="nav-item">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M16 2V6M8 2V6M3 10H21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                    <span>Timetable</span>
+                </a>
+                <a href="/dpp" class="nav-item active">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                    <span>DPP Logger</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <div id="sidebarUserSlot"></div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="dpp-page">
+
+                <div class="cls-sw">
+                    <button class="cls-pill on" data-class="11">CLASS XI</button>
+                    <button class="cls-pill" data-class="12">CLASS XII</button>
+                </div>
+
+                <div class="dpp-layout">
+                    <!-- ADD PANEL -->
+                    <div class="add-panel">
+                        <div class="ap-title"><span class="ap-dot"></span> LOG QUESTION</div>
+
+                        <div class="fg">
+                            <span class="fgl">Subject</span>
+                            <select id="subjectSelect" onchange="updateChapterDD()"></select>
+                        </div>
+                        <div class="fg">
+                            <span class="fgl">Chapter</span>
+                            <select id="chapterSelect"></select>
+                        </div>
+                        <div class="fg">
+                            <span class="fgl">DPP / Exercise</span>
+                            <input type="text" id="dppNumber" placeholder="e.g. DCET-1">
+                        </div>
+                        <div class="fg">
+                            <span class="fgl">Question No(s)</span>
+                            <input type="text" id="questionNumber" placeholder="e.g. 1,2,5-8">
+                        </div>
+                        <div class="fg">
+                            <span class="fgl">Tag</span>
+                            <div class="sgrid">
+                                <div class="sb" data-s="tricky">🎯 Tricky</div>
+                                <div class="sb" data-s="tough">💀 Tough</div>
+                                <div class="sb" data-s="good">✅ Good</div>
+                                <div class="sb" data-s="fundamental">📚 Core</div>
+                            </div>
+                        </div>
+                        <button class="add-btn" onclick="addQ()">+ LOG</button>
+
+                        <div class="pdiv"></div>
+                        <div class="mstats" id="mstats"></div>
+                    </div>
+
+                    <!-- QUESTIONS PANEL -->
+                    <div>
+                        <div class="topbar">
+                            <button class="fchip fa on" data-f="all">All</button>
+                            <button class="fchip ft" data-f="tricky">🎯 Tricky</button>
+                            <button class="fchip ff" data-f="tough">💀 Tough</button>
+                            <button class="fchip fg2" data-f="good">✅ Good</button>
+                            <button class="fchip fc" data-f="fundamental">📚 Core</button>
+                            <input class="qsearch" type="text" id="srch" placeholder="search chapter…" oninput="renderAll()">
+                        </div>
+
+                        <div class="sbar" id="sbar"></div>
+
+                        <div class="legend">
+                            <div class="li"><div class="ld" style="background:var(--grn)"></div>Good</div>
+                            <div class="li"><div class="ld" style="background:var(--amber)"></div>Tricky</div>
+                            <div class="li"><div class="ld" style="background:var(--red)"></div>Tough</div>
+                            <div class="li"><div class="ld" style="background:var(--vio)"></div>Core</div>
+                        </div>
+
+                        <div id="root"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="toast-el" id="toast"></div>
+
+    <script>
+    // ── STATE ──
+    let CLS = '11', FILTER = 'all', SEL_STATUS = 'good';
+    let QS = { '11': [], '12': [] };
+
+    const SMAP = {
+        '11': {
+            'Mathematics': ['Basic Maths (Mod & Log)','Quadratic Equations','Trigonometry','Progression & Series','Binomial Theorem','Straight Lines','Permutation & Combination','Set Theory','Statistics'],
+            'Physics':     ['Centre of Mass','Work Power Energy','Kinematics','Units & Dimensions','Rotational Motion','Fluid & Elasticity','SHM'],
+            'Chemistry':   ['Concentration Terms & Eudiometry','Atomic Structure','Periodic Table','IUPAC Nomenclature','Chemical Equilibrium','Ionic Equilibrium','Ideal Gas','Chemical Bonding','Redox Reactions','Stereoisomers']
+        },
+        '12': {
+            'Physics':     ['Electrostatics','Current Electricity','Magnetism','EMI & AC','Optics','Modern Physics','Semiconductors'],
+            'Chemistry':   ['Solutions','Electrochemistry','Chemical Kinetics','Surface Chemistry','Coordination Compounds','Haloalkanes & Haloarenes','Alcohols & Ethers','Aldehydes & Ketones','Carboxylic Acids','Amines','Biomolecules','Polymers','Chemistry in Everyday Life'],
+            'Mathematics': ['Calculus','Vectors & 3D','Matrices & Determinants','Probability','Differential Equations','Area Under Curves']
+        }
+    };
+
+    const SC = { Mathematics:'var(--mc)', Physics:'var(--pc)', Chemistry:'var(--cc)' };
+
+    const PRELOAD = {
+        '11': [
+            {n:'Basic Maths (Mod & Log)',d:['DCET5:1,2,25,26,27','DCET6:13,20,23,24','DCET7:8,13,15,16,22','DCET8:7,12,21,38,39,41,43','DCET9:2,3,5,6,9,11']},
+            {n:'Quadratic Equations',d:['DCET1:5,6,13,21,24','DCET2:5,7,12,16,20','DCET3:2,5,8,16,22','DCET4:3,5,6,9,13,23','DCET5:5,6,8,17,19','DCET6:1,8,15,17,20','DCET7:1,2,5,8,12']},
+            {n:'Trigonometry',d:['DCET1:15,17,27,39,46,50,56','DCET2:6,15,25,29,32','DCET3:3,6,8,17,26,59,60','DCET4:1,2,8,13,14,32','DCET5:4,13,14,19,42,43','DCET6:4,8,14,17,18']},
+            {n:'Progression & Series',d:['DCET1:6,13,22,33,48,49,50,65','DCET2:4,6,10,11,14,59','DCET3:6,9,10,15,42','DCET4:2,3,5,6,17','DCET5:2,3,4,9,15,20','DCET6:20,21,28,29,35']},
+            {n:'Binomial Theorem',d:['DCET1:1,6,11,19,23','DCET2:4,7,16,19,23','DCET3:1,4,5,16,17','DCET4:1,3,5,8,12,17,25','DCET5:1,3,4,11,13']},
+            {n:'Straight Lines',d:['DCET1:1,14,18,20,21','DCET2:6,8,13,18,27','DCET3:3,5,10,11,13','DCET4:1,2,3,5,13','DCET5:3,5,7,11,12','DCET6:1,4,6,9,12','DCET7:1,5,7,9,10,11','DCET8:2,4,6,10,25','DCET9:1,2,7,8,20','DCET10:4,5,9,10,24','DCET11:3,11,22,26,42,58']},
+            {n:'Permutation & Combination',d:['DCET1:4,7,10,14,19','DCET2:4,5,8,10,14','DCET3:1,5,10,16,26,27','DCET4:3,4,5,18,19,22','DCET5:2,4,9,11,26','DCET6:1,2,7,18,20,21','DCET7:2,5,9,11,15,17','DCET8:1,6,8,10,25','DCET9:2,6,8,14,20','DCET10:1,3,4,11,20','DCET11:2,3,8,14,20,26','DCET12:1,19,22,33,34']},
+            {n:'Set Theory',d:['DCET1:3,9,12,25,35','DCET2:9,10,11,12,16']},
+            {n:'Statistics',d:['DCET1:3,17,11,27,29','DCET2:2,12,17,27,31']},
+            {n:'Centre of Mass',d:['DCET1:8,14,20,22,17','DCET2:5,2,11,13,14','DCET3:4,5,12,18,20','DCET4:4,5,9,11,22','DCET5:4,7,10,14,18','DCET6:1,3,4,8,13','DCET7:1,3,7,13,14']},
+            {n:'Work Power Energy',d:['DCET1:1,2,6,12,13','DCET2:1,4,10,21,28','DCET3:1,2,11,16,22','DCET4:2,10,19,22,7','DCET5:1,11,12,14,7','DCET6:1,2,9,12,17']},
+            {n:'Kinematics',d:['DCET1:7,8,11,15,22','DCET2:2,6,13,15,14','DCET3:1,3,7,22,20','DCET4:5,9,13,19,20','DCET6:4,6,10,12,22']},
+            {n:'Units & Dimensions',d:['DCET1:2,3,9,11,14','DCET2:8,13,26,27,38','DCET3:1,2,3,4,26','DCET5:16,17,18,19,8','DCET6:4,5,6,22']},
+            {n:'Rotational Motion',d:['DCET1:5,15,18,32,35','DCET2:11,24,1,8','DCET3:5,10,17,23,24','DCET4:5,9,10,12,15','DCET5:1,10,16,24,25','DCET6:1,2,30,34,37','DCET7:1,2,47,11,46']},
+            {n:'Fluid & Elasticity',d:['DCET1:5,6,17,21,30','DCET2:3,16,19,29,32','DCET3:8,16,17,28,24','DCET4:16,8,10,25,30','DCET5:4,9,14,25,30','DCET6:3,17,20,26,35','DCET7:5,13,19,34,20','DCET8:3,5,17,26,32','DCET9:5,8,11,23,28']},
+            {n:'SHM',d:['DCET1:7,12,23,22,29','DCET2:15,23,30,17,32','DCET3:5,11,8,13,24','DCET4:5,15,23,28,29','DCET5:1,10,12,27,35','DCET6:5,7,15,18,26']},
+            {n:'Concentration Terms & Eudiometry',d:['DCET1:1,6,22,24,25','DCET2:2,3,5,9,14,15','DCET3:3,6,7,11,12','DCET4:5,6,11,21,22']},
+            {n:'Atomic Structure',d:['DCET1:1,7,8,5','DCET2:1,2,7,8,9,10,19','DCET3:2,6,7,9,14','DCET4:3,10,7,18,26,33','DCET5:1,3,7,12,14,15,17','DCET6:2,8,16,20,22,24,26,31','DCET7:1,2,8,9,17,15,20,22']},
+            {n:'Periodic Table',d:['DCET1:8,9,15,10','DCET2:1,6,10,12,13','DCET3:5,7,6,10,13,16','DCET4:1,11,12,7,4','DCET5:3,6,11,13,14,15','DCET6:2,4,5']},
+            {n:'IUPAC Nomenclature',d:['DCET1:2,7,10,12,13','DCET2:2,5,8,11,14,17,16','DCET3:1,6,8,14,17,23,27','DCET4:1,10,11,12,17,23,27','DCET5:1,6,12,13,23']},
+            {n:'Chemical Equilibrium',d:['DCET1:2,3,9,11,27,28','DCET2:3,5,11,24,28,34','DCET3:1,4,5,6,7','DCET4:1,2,3,4,5','DCET5:3,5,7,8,10,11,12']},
+            {n:'Ionic Equilibrium',d:['DCET1:4,14,18,22,31,32,41,57,63','DCET2:3,14,21,22,41,70,80','DCET3:1,3,2,11,23,24,26']},
+            {n:'Ideal Gas',d:['DCET1:17,18,19,24,37,38,29,30','DCET2:11,12,13,15','DCET3:4,12,13,18']},
+            {n:'Chemical Bonding',d:[]},
+            {n:'Redox Reactions',d:['DCET1:2,8,15,24,34,35','DCET2:1,8,12,14,16,17','DCET3:4,10,13,15,19,31,35,36','DCET4:2,3,4,13,11,17,18','DCET5:3,6,9,16,35,39,40,54']},
+            {n:'Stereoisomers',d:['DCET1:1,2,10,11,13','DCET2:9,10','DCET3:17,19,21,22,24','DCET4:6,8,9,10,18,20']}
+        ],
+        '12': []
+    };
+
+    // ── HELPERS ──
+    function toast(m) {
+        const t=document.getElementById('toast'); t.textContent=m; t.classList.add('show');
+        clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),2200);
+    }
+    function esc(s){ if(!s)return''; return s.replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+    function parseR(s){
+        const n=[];
+        for(const p of s.split(/[,\s]+/)){
+            if(p.includes('-')){ const[a,b]=p.split('-').map(Number); if(!isNaN(a)&&!isNaN(b)) for(let i=a;i<=b;i++) n.push(i); }
+            else if(/^\d+$/.test(p)) n.push(parseInt(p));
+        }
+        return n;
+    }
+    function subjectOf(ch){
+        for(const[s,cs] of Object.entries(SMAP[CLS]||{})) if(cs.includes(ch)) return s;
+        return 'Other';
+    }
+    function saveQ(){ localStorage.setItem('dpp_q2', JSON.stringify(QS)); }
+    function loadQ(){
+        const r=localStorage.getItem('dpp_q2');
+        if(r){ try{ const p=JSON.parse(r); if(p['11']) QS['11']=p['11']; if(p['12']) QS['12']=p['12']; }catch(e){} }
+        if(QS['11'].length===0) loadPreload();
+    }
+    function loadPreload(){
+        for(const ch of PRELOAD['11']){
+            for(const d of ch.d){
+                const m=d.match(/^([^:]+):(.+)$/);
+                if(!m) continue;
+                const dnum=m[1].trim();
+                for(const q of parseR(m[2])){
+                    QS['11'].push({id:`${Date.now()}_${Math.random()}`,chapter:ch.n,dppNumber:dnum,questionNumber:q.toString(),status:'good',createdAt:new Date().toISOString()});
+                }
+            }
+        }
+        saveQ();
+    }
+
+    // ── DROPDOWNS ──
+    function updateSubDD(){
+        const el=document.getElementById('subjectSelect');
+        el.innerHTML=Object.keys(SMAP[CLS]||{}).map(s=>`<option value="${esc(s)}">${esc(s)}</option>`).join('');
+        updateChapterDD();
+    }
+    function updateChapterDD(){
+        const s=document.getElementById('subjectSelect').value;
+        const el=document.getElementById('chapterSelect');
+        el.innerHTML=((SMAP[CLS]||{})[s]||[]).map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
+    }
+
+    // ── ADD ──
+    function addQ(){
+        const ch=document.getElementById('chapterSelect').value;
+        const dpp=document.getElementById('dppNumber').value.trim();
+        const qr=document.getElementById('questionNumber').value.trim();
+        if(!ch||!dpp||!qr){toast('Fill all fields');return;}
+        const nums=parseR(qr);
+        if(nums.length===0){
+            QS[CLS].push({id:`${Date.now()}`,chapter:ch,dppNumber:dpp,questionNumber:qr,status:SEL_STATUS,createdAt:new Date().toISOString()});
+        } else {
+            nums.forEach(n=>QS[CLS].push({id:`${Date.now()}_${n}_${Math.random()}`,chapter:ch,dppNumber:dpp,questionNumber:n.toString(),status:SEL_STATUS,createdAt:new Date().toISOString()}));
+        }
+        saveQ(); renderAll();
+        document.getElementById('dppNumber').value='';
+        document.getElementById('questionNumber').value='';
+        toast(`✓ Logged ${nums.length||1} question(s)`);
+    }
+
+    function delQ(id){
+        QS[CLS]=QS[CLS].filter(q=>q.id!==id);
+        saveQ(); renderAll(); toast('Removed');
+    }
+
+    // ── RENDER ──
+    function filtered(){
+        const s=(document.getElementById('srch')?.value||'').toLowerCase();
+        return QS[CLS].filter(q=>{
+            if(FILTER!=='all'&&q.status!==FILTER) return false;
+            if(s&&!q.chapter.toLowerCase().includes(s)) return false;
+            return true;
+        });
+    }
+
+    function chipClass(st){ return{tricky:'sa',tough:'sf',good:'sq',fundamental:'sc'}[st]||'sq'; }
+
+    function renderAll(){
+        const qs=filtered();
+        // Stats
+        const [tr,tf,gd,co]=['tricky','tough','good','fundamental'].map(s=>qs.filter(q=>q.status===s).length);
+        document.getElementById('sbar').innerHTML=`
+            <div class="sc2"><span class="scn">${qs.length}</span><span class="scl">Total</span></div>
+            <div class="sc2" style="border-color:rgba(45,207,158,.22)"><span class="scn" style="color:var(--grn)">${gd}</span><span class="scl">Good</span></div>
+            <div class="sc2" style="border-color:rgba(245,166,35,.22)"><span class="scn" style="color:var(--amber)">${tr}</span><span class="scl">Tricky</span></div>
+            <div class="sc2" style="border-color:rgba(240,68,68,.22)"><span class="scn" style="color:var(--red)">${tf}</span><span class="scl">Tough</span></div>
+            <div class="sc2" style="border-color:rgba(167,139,250,.22)"><span class="scn" style="color:var(--vio)">${co}</span><span class="scl">Core</span></div>
+        `;
+        // Sidebar mini stats
+        const all=QS[CLS];
+        document.getElementById('mstats').innerHTML=`
+            <div class="ms"><span class="msl">TOTAL</span><span class="msv" style="color:var(--fg1)">${all.length}</span></div>
+            <div class="ms"><span class="msl">TRICKY</span><span class="msv" style="color:var(--amber)">${all.filter(q=>q.status==='tricky').length}</span></div>
+            <div class="ms"><span class="msl">TOUGH</span><span class="msv" style="color:var(--red)">${all.filter(q=>q.status==='tough').length}</span></div>
+            <div class="ms"><span class="msl">CORE</span><span class="msv" style="color:var(--vio)">${all.filter(q=>q.status==='fundamental').length}</span></div>
+        `;
+
+        const root=document.getElementById('root');
+        if(qs.length===0){
+            root.innerHTML=`<div class="empty"><div class="empty-ico">📭</div><div class="empty-txt">No questions match. Try changing filters.</div></div>`;
+            return;
+        }
+
+        // Save open states
+        const openS=new Set([...root.querySelectorAll('.subj-block.open')].map(e=>e.dataset.s));
+        const openC=new Set([...root.querySelectorAll('.ch-block.open')].map(e=>e.dataset.c));
+        const openD=new Set([...root.querySelectorAll('.dpp-block.open')].map(e=>e.dataset.d));
+
+        // Build tree
+        const tree={};
+        for(const q of qs){
+            const s=subjectOf(q.chapter);
+            if(!tree[s]) tree[s]={};
+            if(!tree[s][q.chapter]) tree[s][q.chapter]={};
+            if(!tree[s][q.chapter][q.dppNumber]) tree[s][q.chapter][q.dppNumber]=[];
+            tree[s][q.chapter][q.dppNumber].push(q);
+        }
+
+        let html='';
+        for(const[subj,chaps] of Object.entries(tree)){
+            const col=SC[subj]||'var(--fg2)';
+            const tq=Object.values(chaps).flatMap(d=>Object.values(d)).flat().length;
+            const nch=Object.keys(chaps).length;
+            const sOpen=openS.size===0?true:openS.has(subj);
+
+            html+=`<div class="subj-block${sOpen?' open':''}" data-s="${esc(subj)}">
+                <div class="subj-hd" onclick="tog(this.parentElement)">
+                    <div class="subj-bar" style="background:${col}"></div>
+                    <div class="subj-name" style="color:${col}">${esc(subj)}</div>
+                    <div class="subj-meta">${nch} CHAPTERS · ${tq} QUESTIONS</div>
+                    <div class="subj-chev">▼</div>
+                </div>
+                <div class="subj-body">`;
+
+            for(const[ch,dpps] of Object.entries(chaps)){
+                const chq=Object.values(dpps).flat().length;
+                const nd=Object.keys(dpps).length;
+                const cOpen=openC.has(ch);
+
+                html+=`<div class="ch-block${cOpen?' open':''}" data-c="${esc(ch)}">
+                    <div class="ch-hd" onclick="tog(this.parentElement)">
+                        <div class="ch-name">${esc(ch)}</div>
+                        <div class="ch-meta">${nd} DPP · ${chq} Q</div>
+                        <div class="ch-chev">▾</div>
+                    </div>
+                    <div class="ch-body">`;
+
+                const sortedD=Object.entries(dpps).sort(([a],[b])=>(parseInt(a.replace(/\D/g,''))||0)-(parseInt(b.replace(/\D/g,''))||0));
+                for(const[dnum,dqs] of sortedD){
+                    const key=`${ch}__${dnum}`;
+                    const dOpen=openD.has(key);
+                    const sq=[...dqs].sort((a,b)=>(parseInt(a.questionNumber)||0)-(parseInt(b.questionNumber)||0));
+
+                    html+=`<div class="dpp-block${dOpen?' open':''}" data-d="${esc(key)}">
+                        <div class="dpp-hd" onclick="tog(this.parentElement)">
+                            <div class="dpp-lbl">${esc(dnum)}</div>
+                            <div class="dpp-qc">${dqs.length} Q</div>
+                            <div class="dpp-chev">▾</div>
+                        </div>
+                        <div class="dpp-body">
+                            <div class="qgrid">
+                                ${sq.map((q,i)=>`<div class="qchip ${chipClass(q.status)}" style="animation-delay:${i*15}ms" title="Q${esc(q.questionNumber)} · ${q.status}">${esc(q.questionNumber)}<div class="qdel" onclick="delQ('${q.id}')">✕</div></div>`).join('')}
+                            </div>
+                        </div>
+                    </div>`;
+                }
+                html+=`</div></div>`;
+            }
+            html+=`</div></div>`;
+        }
+        root.innerHTML=html;
+    }
+
+    function tog(el){ el.classList.toggle('open'); }
+
+    function setFilter(f){
+        FILTER=f;
+        document.querySelectorAll('.fchip').forEach(b=>{ b.classList.remove('on'); if(b.dataset.f===f) b.classList.add('on'); });
+        renderAll();
+    }
+
+    function switchCls(c){
+        CLS=c; FILTER='all';
+        document.querySelectorAll('.cls-pill').forEach(p=>p.classList.toggle('on',p.dataset.class===c));
+        document.querySelectorAll('.fchip').forEach(b=>b.classList.toggle('on',b.dataset.f==='all'));
+        updateSubDD(); renderAll();
+    }
+
+    // ── INIT ──
+    loadQ(); updateSubDD(); renderAll();
+
+    document.querySelectorAll('.sb').forEach(b=>{
+        b.addEventListener('click',()=>{
+            document.querySelectorAll('.sb').forEach(x=>x.className='sb');
+            const map={tricky:'st',tough:'sf',good:'sg',fundamental:'sc'};
+            b.classList.add(map[b.dataset.s]||'sg');
+            SEL_STATUS=b.dataset.s;
+        });
+    });
+    document.querySelector('.sb[data-s="good"]').classList.add('sg');
+
+    document.querySelectorAll('.fchip').forEach(b=>b.addEventListener('click',()=>setFilter(b.dataset.f)));
+    document.querySelectorAll('.cls-pill').forEach(p=>p.addEventListener('click',()=>switchCls(p.dataset.class)));
+
+    window.addQ=addQ; window.delQ=delQ; window.tog=tog; window.updateChapterDD=updateChapterDD; window.renderAll=renderAll;
+
+    // Canvas
+    const cv=document.getElementById('canvas-bg'), ct=cv.getContext('2d');
+    let W=innerWidth, H=innerHeight;
+    const pts=Array.from({length:38},()=>({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.1+0.2,vx:(Math.random()-.5)*.18,vy:(Math.random()-.5)*.18,a:Math.random()*.1+.03}));
+    (function draw(){
+        ct.clearRect(0,0,W,H);
+        pts.forEach(p=>{ p.x+=p.vx; p.y+=p.vy; if(p.x<0)p.x=W; if(p.x>W)p.x=0; if(p.y<0)p.y=H; if(p.y>H)p.y=0; ct.beginPath(); ct.arc(p.x,p.y,p.r,0,Math.PI*2); ct.fillStyle=`rgba(245,166,35,${p.a})`; ct.fill(); });
+        requestAnimationFrame(draw);
+    })();
+    window.addEventListener('resize',()=>{ W=cv.width=innerWidth; H=cv.height=innerHeight; });
+    cv.width=W; cv.height=H;
+    </script>
+<!-- Auth Modal -->
+<div id="authModal" class="modal">
+    <div class="modal-content" style="max-width: 400px;">
+        <div class="modal-header">
+            <h3 id="authTitle">Welcome to Buddy</h3>
+            <button class="close-modal" onclick="closeModal('authModal')">&times;</button>
+        </div>
+        
+        <!-- Login Form -->
+        <div id="loginForm">
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="loginEmail" placeholder="your@email.com">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="loginPassword" placeholder="••••••••">
+            </div>
+            <button class="primary-btn" onclick="login()" style="width: 100%;">Login</button>
+            <p style="text-align: center; margin: 1rem 0;">Don't have an account? <a href="#" onclick="switchToSignup()">Sign up</a></p>
+        </div>
+        
+        <!-- Signup Form -->
+        <div id="signupForm" style="display: none;">
+            <div class="form-group">
+                <label>Name</label>
+                <input type="text" id="signupName" placeholder="Your name">
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="signupEmail" placeholder="your@email.com">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="signupPassword" placeholder="••••••••">
+            </div>
+            <div class="form-group">
+                <label>Confirm Password</label>
+                <input type="password" id="signupConfirmPassword" placeholder="••••••••">
+            </div>
+            <button class="primary-btn" onclick="signup()" style="width: 100%;">Create Account</button>
+            <p style="text-align: center; margin: 1rem 0;">Already have an account? <a href="#" onclick="switchToLogin()">Login</a></p>
+        </div>
+        
+        <!-- Sync Mode Selection -->
+        <div id="syncModeForm" style="display: none;">
+            <p style="margin-bottom: 1rem;">How do you want to store your data?</p>
+            <button class="primary-btn" onclick="setSyncMode('online')" style="width: 100%; margin-bottom: 0.5rem;">🌐 Online Sync (Access anywhere)</button>
+            <button class="secondary-btn" onclick="setSyncMode('local')" style="width: 100%;">📱 Local Only (This device only)</button>
+        </div>
+        
+        <!-- Loading State -->
+        <div id="loadingState" style="display: none; text-align: center; padding: 2rem;">
+            <div class="spinner"></div>
+            <p>Syncing your data...</p>
+        </div>
+    </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+if(!firebase.apps.length){firebase.initializeApp({apiKey:"AIzaSyCtu9xTssIZD3S99ekm2gwc1PySwiv0h9Y",authDomain:"buddy-app-jee.firebaseapp.com",projectId:"buddy-app-jee",storageBucket:"buddy-app-jee.firebasestorage.app",messagingSenderId:"888730193846",appId:"1:888730193846:web:4cfc94b24cdb3323e03b17"});}
+firebase.auth().onAuthStateChanged(function(user){
+  var slot=document.getElementById('sidebarUserSlot');
+  if(!slot)return;
+  if(user){
+    var name=user.displayName||user.email.split('@')[0];
+    slot.innerHTML='<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:14px;margin-bottom:8px;"><div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#5b6ef5,#a78bfa);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.9rem;color:#fff;flex-shrink:0;">'+name.charAt(0).toUpperCase()+'</div><div style="flex:1;min-width:0;"><div style="font-size:0.78rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#e8ebf8;">'+name+'</div><div style="font-size:0.54rem;color:rgba(255,255,255,0.35);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+user.email+'</div></div><button onclick="firebase.auth().signOut().then(function(){localStorage.removeItem('buddy_storage_mode');location.reload();})" style="background:rgba(240,68,68,0.12);border:none;color:#f04444;padding:3px 8px;border-radius:6px;font-size:0.6rem;cursor:pointer;white-space:nowrap;flex-shrink:0;">Out</button></div>';
+  } else { slot.innerHTML=''; }
+});
+</script>
+</body>
+</html>

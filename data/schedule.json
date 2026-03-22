@@ -1,0 +1,65 @@
+{
+  "monday": [
+    {
+      "id": "1774167494022",
+      "time": "",
+      "subject": "Off",
+      "teacher": "",
+      "location": ""
+    }
+  ],
+  "tuesday": [
+    {
+      "id": "1774122458388",
+      "time": "",
+      "subject": "Off",
+      "teacher": "",
+      "location": ""
+    }
+  ],
+  "wednesday": [
+    {
+      "id": "1774124474091",
+      "time": "",
+      "subject": "Off",
+      "teacher": "",
+      "location": ""
+    }
+  ],
+  "thursday": [
+    {
+      "id": "1774167495969",
+      "time": "",
+      "subject": "Off",
+      "teacher": "",
+      "location": ""
+    }
+  ],
+  "friday": [
+    {
+      "id": "1774167497948",
+      "time": "",
+      "subject": "Off",
+      "teacher": "",
+      "location": ""
+    }
+  ],
+  "saturday": [
+    {
+      "id": "1774167499135",
+      "time": "",
+      "subject": "Off",
+      "teacher": "",
+      "location": ""
+    }
+  ],
+  "sunday": [
+    {
+      "id": "1774167500594",
+      "time": "",
+      "subject": "Off",
+      "teacher": "",
+      "location": ""
+    }
+  ]
+}

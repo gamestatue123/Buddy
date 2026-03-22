@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+<meta name="theme-color" content="#6366f1">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buddy | Syllabus Tracker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@300;400;500;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        :root{--fd:'Bebas Neue',sans-serif;--fm:'JetBrains Mono',monospace;--fb:'Outfit',sans-serif;--ink:#080a10;--ink2:#0c0f18;--ink3:#121520;--ink4:#191d2a;--ink5:#202535;--bd:rgba(255,255,255,0.07);--bdh:rgba(255,255,255,0.13);--fg1:#e8ebf8;--fg2:#8590aa;--fg3:#444d68;--acc:#5b6ef5;--acc2:#7c8ff8;--amber:#f5a623;--red:#f04444;--grn:#2dcf9e;--vio:#a78bfa;--phys:#4da6ff;--chem:#2dcf9e;--math:#f5a623;--r1:6px;--r2:12px;--r3:18px;--r4:24px;}
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+        body{font-family:var(--fb);background:var(--ink);color:var(--fg1);overflow-x:hidden;}
+        .main-content{padding:2rem 2rem 5rem;overflow-y:auto;}
+        .syl-page{max-width:1300px;margin:0 auto;}
+        .syl-topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+        .syl-title{font-family:var(--fd);font-size:2.5rem;letter-spacing:0.06em;background:linear-gradient(120deg,var(--fg1) 0%,var(--acc2) 60%,var(--amber) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+        .syl-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+        .cls-sw{display:flex;gap:3px;background:var(--ink3);border:1px solid var(--bd);border-radius:50px;padding:4px;}
+        .cls-pill{font-family:var(--fd);font-size:0.95rem;letter-spacing:0.07em;padding:5px 22px;background:transparent;border:none;color:var(--fg3);cursor:pointer;border-radius:50px;transition:all 0.2s;}
+        .cls-pill:hover{color:var(--fg1);} .cls-pill.on{background:var(--fg1);color:var(--ink);}
+        .stat-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.8rem;}
+        .stat-box{background:var(--ink2);border:1px solid var(--bd);border-radius:var(--r4);padding:1rem 1.1rem;position:relative;overflow:hidden;transition:all 0.2s;}
+        .stat-box:hover{border-color:var(--bdh);transform:translateY(-2px);}
+        .stat-box-accent{position:absolute;top:0;left:0;right:0;height:2px;}
+        .stat-box-n{font-family:var(--fd);font-size:2.2rem;letter-spacing:0.04em;line-height:1;}
+        .stat-box-l{font-family:var(--fm);font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--fg3);margin-top:4px;}
+        .subj-tabs{display:flex;gap:5px;background:var(--ink3);border:1px solid var(--bd);border-radius:var(--r4);padding:5px;margin-bottom:1.8rem;}
+        .subj-tab{flex:1;font-family:var(--fd);font-size:1rem;letter-spacing:0.06em;padding:10px;background:transparent;border:none;color:var(--fg3);cursor:pointer;border-radius:var(--r3);transition:all 0.2s;text-align:center;}
+        .subj-tab:hover{color:var(--fg1);background:rgba(255,255,255,0.04);}
+        .subj-tab.on{color:#fff;} .subj-tab.on.sp{background:var(--phys);box-shadow:0 4px 16px rgba(77,166,255,0.3);}
+        .subj-tab.on.sc{background:var(--chem);color:var(--ink);box-shadow:0 4px 16px rgba(45,207,158,0.3);}
+        .subj-tab.on.sm{background:var(--math);color:var(--ink);box-shadow:0 4px 16px rgba(245,166,35,0.3);}
+        .ch-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px;margin-bottom:2rem;}
+        .ch-card{background:var(--ink2);border:1px solid var(--bd);border-radius:var(--r4);overflow:hidden;transition:all 0.22s;position:relative;}
+        .ch-card:hover{border-color:var(--bdh);transform:translateY(-2px);box-shadow:0 12px 36px rgba(0,0,0,0.4);}
+        .ch-card-accent{position:absolute;left:0;top:0;bottom:0;width:3px;}
+        .ch-top{padding:12px 14px 8px 17px;display:flex;align-items:flex-start;gap:8px;}
+        .ch-name{font-family:var(--fb);font-size:0.9rem;font-weight:600;flex:1;line-height:1.35;}
+        .ch-status-sel{font-family:var(--fm);font-size:0.62rem;letter-spacing:0.06em;padding:4px 10px;background:var(--ink4);border:1px solid var(--bd);border-radius:50px;color:var(--fg2);cursor:pointer;outline:none;transition:all 0.15s;flex-shrink:0;}
+        .ch-status-sel:hover{border-color:var(--acc);}
+        .ch-bar-wrap{padding:0 17px 4px;}
+        .ch-track{height:4px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden;}
+        .ch-fill{height:100%;border-radius:2px;transition:width 0.8s ease;}
+        .ch-bar-label{font-family:var(--fm);font-size:0.58rem;color:var(--fg3);margin-top:3px;display:flex;justify-content:space-between;}
+        .ch-meta{padding:6px 17px 10px;display:flex;gap:10px;flex-wrap:wrap;}
+        .ch-meta-item{display:flex;align-items:center;gap:4px;font-family:var(--fm);font-size:0.62rem;color:var(--fg3);}
+        .ch-meta-val{color:var(--fg1);font-weight:600;}
+        .ch-actions{padding:8px 12px;border-top:1px solid var(--bd);display:flex;gap:6px;align-items:center;}
+        .ch-btn{flex:1;font-family:var(--fm);font-size:0.6rem;letter-spacing:0.06em;padding:6px;background:rgba(255,255,255,0.03);border:1px solid var(--bd);border-radius:var(--r2);color:var(--fg3);cursor:pointer;transition:all 0.15s;text-align:center;}
+        .ch-btn:hover{border-color:var(--acc);color:var(--acc);background:rgba(91,110,245,0.06);}
+        .ch-btn.danger:hover{border-color:var(--red);color:var(--red);background:rgba(240,68,68,0.07);}
+        .conf-btns{display:flex;gap:3px;}
+        .conf-btn{font-size:0.72rem;padding:4px 10px;background:rgba(255,255,255,0.04);border:1px solid var(--bd);border-radius:var(--r1);cursor:pointer;transition:all 0.15s;color:var(--fg2);}
+        .conf-btn:hover{border-color:var(--grn);color:var(--grn);}
+        .conf-btn.minus:hover{border-color:var(--red);color:var(--red);}
+        .add-ch-card{background:rgba(91,110,245,0.04);border:1px dashed rgba(91,110,245,0.2);border-radius:var(--r4);display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;min-height:100px;transition:all 0.2s;font-family:var(--fm);font-size:0.72rem;color:var(--acc);letter-spacing:0.06em;}
+        .add-ch-card:hover{border-color:var(--acc);background:rgba(91,110,245,0.08);}
+        .insights-wrap{background:var(--ink2);border:1px solid var(--bd);border-radius:var(--r4);padding:1.3rem;}
+        .insights-title{font-family:var(--fd);font-size:1.2rem;letter-spacing:0.06em;margin-bottom:1.1rem;}
+        .insights-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;}
+        .insight-box{background:var(--ink3);border:1px solid var(--bd);border-radius:var(--r3);padding:12px;}
+        .insight-box-title{font-family:var(--fm);font-size:0.62rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--fg3);margin-bottom:8px;}
+        .insight-row{padding:6px 8px;border-radius:var(--r2);margin-bottom:5px;font-size:0.8rem;}
+        .btn{font-family:var(--fd);font-size:0.9rem;letter-spacing:0.07em;padding:7px 18px;border:none;border-radius:var(--r2);cursor:pointer;transition:all 0.18s;display:inline-flex;align-items:center;gap:6px;}
+        .btn-primary{background:var(--acc);color:#fff;box-shadow:0 4px 16px rgba(91,110,245,0.3);}
+        .btn-primary:hover{background:var(--acc2);transform:translateY(-1px);}
+        .btn-ghost{background:var(--ink3);border:1px solid var(--bd);color:var(--fg2);}
+        .btn-ghost:hover{border-color:var(--bdh);color:var(--fg1);}
+        .modal{display:none;position:fixed;inset:0;background:rgba(4,6,12,0.88);backdrop-filter:blur(14px);z-index:9000;align-items:center;justify-content:center;padding:1rem;}
+        .modal.show{display:flex;}
+        .modal-box{background:#0e1119;border:1px solid var(--bdh);border-radius:var(--r4);width:100%;max-width:460px;overflow:hidden;animation:mIn 0.22s ease;}
+        @keyframes mIn{from{opacity:0;transform:scale(0.96) translateY(10px);}to{opacity:1;transform:scale(1) translateY(0);}}
+        .modal-hd{display:flex;align-items:center;justify-content:space-between;padding:1.2rem 1.4rem;border-bottom:1px solid var(--bd);}
+        .modal-ht{font-family:var(--fd);font-size:1.2rem;letter-spacing:0.06em;}
+        .modal-cl{background:rgba(255,255,255,0.06);border:none;color:var(--fg2);width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:1.1rem;display:flex;align-items:center;justify-content:center;transition:all 0.15s;}
+        .modal-cl:hover{background:rgba(240,68,68,0.15);color:var(--red);}
+        .modal-body{padding:1.4rem;display:flex;flex-direction:column;gap:10px;}
+        .modal-ft{padding:1rem 1.4rem 1.4rem;display:flex;gap:8px;justify-content:flex-end;border-top:1px solid var(--bd);}
+        .tt-inp{font-family:var(--fb);font-size:0.875rem;width:100%;padding:0.65rem 0.9rem;background:rgba(255,255,255,0.05);border:1px solid var(--bd);border-radius:var(--r2);color:var(--fg1);outline:none;transition:border-color 0.18s;}
+        .tt-inp:focus{border-color:var(--acc);box-shadow:0 0 0 2px rgba(91,110,245,0.12);}
+        .tt-inp::placeholder{color:var(--fg3);}
+        textarea.tt-inp{resize:vertical;min-height:100px;}
+        .fld-lbl{font-family:var(--fm);font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--fg3);margin-bottom:5px;}
+        .empty-syl{text-align:center;padding:3rem 1rem;color:var(--fg3);}
+        .empty-syl-ico{font-size:2rem;opacity:0.3;margin-bottom:8px;}
+        .empty-syl-t{font-family:var(--fm);font-size:0.72rem;letter-spacing:0.04em;}
+        .toast-el{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(18px);background:var(--ink3);border:1px solid var(--bdh);color:var(--fg1);padding:8px 18px;border-radius:50px;font-family:var(--fm);font-size:0.72rem;opacity:0;pointer-events:none;transition:all 0.22s;z-index:99999;box-shadow:0 8px 28px rgba(0,0,0,0.5);}
+        .toast-el.show{opacity:1;transform:translateX(-50%) translateY(0);}
+        ::-webkit-scrollbar{width:4px;} ::-webkit-scrollbar-thumb{background:var(--ink5);border-radius:2px;}
+        @media(max-width:760px){.stat-strip{grid-template-columns:1fr 1fr;}.ch-grid{grid-template-columns:1fr;}.subj-tabs{flex-direction:column;}.syl-topbar{flex-direction:column;align-items:flex-start;}}
+    </style>
+</head>
+<body>
+    <canvas id="canvas-bg"></canvas>
+    <div class="noise-bg"></div>
+    <div class="gradient-orb orb-1"></div>
+    <div class="app">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="buddy-logo">
+                    <img src="/logo.png" alt="Buddy" onerror="this.src='https://via.placeholder.com/48x48?text=B'">
+                    <h1>Buddy</h1>
+                </div>
+                <p class="greeting">Syllabus Tracker</p>
+            </div>
+            <nav class="nav-menu">
+                <a href="/" class="nav-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 9L12 3L21 9V20C21 20.55 20.55 21 20 21H15V15H9V21H4C3.45 21 3 20.55 3 20V9Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg><span>Home</span></a>
+                <a href="/timetable" class="nav-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M16 2V6M8 2V6M3 10H21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span>Timetable</span></a>
+                <a href="/dpp" class="nav-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span>DPP Logger</span></a>
+                <a href="/syllabus" class="nav-item active"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 4H20V20H4V4Z" stroke="currentColor" stroke-width="1.5"/><path d="M8 7H16M8 11H14M8 15H12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span>Syllabus</span></a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="streak-badge">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L15 8L22 9L17 14L18 21L12 17L6 21L7 14L2 9L9 8L12 2Z"/></svg>
+                    <span id="masteryDisplay">Mastery: 0%</span>
+                </div>
+            </div>
+        </aside>
+        <main class="main-content">
+            <div class="syl-page">
+                <div class="syl-topbar">
+                    <div class="syl-title">SYLLABUS TRACKER</div>
+                    <div class="syl-actions">
+                        <div class="cls-sw">
+                            <button class="cls-pill on" data-cl="11">CLASS XI</button>
+                            <button class="cls-pill" data-cl="12">CLASS XII</button>
+                        </div>
+                        <button class="btn btn-ghost" onclick="openAddModal()" style="font-size:0.8rem">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+                            ADD CHAPTER
+                        </button>
+                    </div>
+                </div>
+                <div class="stat-strip">
+                    <div class="stat-box"><div class="stat-box-accent" style="background:var(--acc)"></div><div class="stat-box-n" id="statTotal" style="color:var(--fg1)">0</div><div class="stat-box-l">Total Chapters</div></div>
+                    <div class="stat-box"><div class="stat-box-accent" style="background:var(--grn)"></div><div class="stat-box-n" id="statDone" style="color:var(--grn)">0</div><div class="stat-box-l">Completed</div></div>
+                    <div class="stat-box"><div class="stat-box-accent" style="background:var(--amber)"></div><div class="stat-box-n" id="statPct" style="color:var(--amber)">0%</div><div class="stat-box-l">Progress</div></div>
+                    <div class="stat-box"><div class="stat-box-accent" style="background:var(--vio)"></div><div class="stat-box-n" id="statMastery" style="color:var(--vio)">0</div><div class="stat-box-l">Mastery Score</div></div>
+                </div>
+                <div class="subj-tabs">
+                    <button class="subj-tab on sp" data-subj="physics">⚛️ Physics</button>
+                    <button class="subj-tab sc" data-subj="chemistry">🧪 Chemistry</button>
+                    <button class="subj-tab sm" data-subj="maths">📐 Mathematics</button>
+                </div>
+                <div id="chGrid" class="ch-grid"></div>
+                <div class="insights-wrap">
+                    <div class="insights-title">📊 Smart Insights</div>
+                    <div class="insights-grid" id="insightsGrid"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <div id="addModal" class="modal">
+        <div class="modal-box">
+            <div class="modal-hd"><div class="modal-ht" id="modalTitle">ADD CHAPTER</div><button class="modal-cl" onclick="closeModal('addModal')">×</button></div>
+            <div class="modal-body">
+                <input type="hidden" id="editChapterId">
+                <div><div class="fld-lbl">Chapter Name</div><input class="tt-inp" type="text" id="chName" placeholder="e.g. Simple Harmonic Motion"></div>
+                <div><div class="fld-lbl">Priority</div>
+                    <select class="tt-inp" id="chPriority">
+                        <option value="high">🔴 High Priority</option>
+                        <option value="medium" selected>🟡 Medium Priority</option>
+                        <option value="low">🟢 Low Priority</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-ft"><button class="btn btn-ghost" onclick="closeModal('addModal')">Cancel</button><button class="btn btn-primary" onclick="saveChapterModal()">SAVE</button></div>
+        </div>
+    </div>
+
+    <!-- Notes Modal -->
+    <div id="notesModal" class="modal">
+        <div class="modal-box">
+            <div class="modal-hd"><div class="modal-ht">NOTES</div><button class="modal-cl" onclick="closeModal('notesModal')">×</button></div>
+            <div class="modal-body">
+                <div id="notesChName" style="font-size:0.85rem;color:var(--fg2);font-weight:600"></div>
+                <textarea class="tt-inp" id="notesText" rows="6" placeholder="Key concepts, formulas, tricks…"></textarea>
+            </div>
+            <div class="modal-ft"><button class="btn btn-ghost" onclick="closeModal('notesModal')">Cancel</button><button class="btn btn-primary" onclick="saveNotes()">SAVE NOTES</button></div>
+        </div>
+    </div>
+
+    <div class="toast-el" id="ttToast"></div>
+    <div id="toast" class="toast"></div>
+
+    <script>
+    const MASTER = {
+        '11':{
+            physics:['Centre of Mass','Work Power Energy','Kinematics','Units & Dimensions','Rotational Motion','Fluid & Elasticity','SHM'],
+            chemistry:['Concentration Terms & Eudiometry','Atomic Structure','Periodic Table','IUPAC Nomenclature','Chemical Equilibrium','Ionic Equilibrium','Ideal Gas','Chemical Bonding','Redox Reactions','Stereoisomers'],
+            maths:['Basic Maths (Mod & Log)','Quadratic Equations','Trigonometry','Progression & Series','Binomial Theorem','Straight Lines','Permutation & Combination','Set Theory','Statistics']
+        },
+        '12':{physics:[],chemistry:[],maths:[]}
+    };
+    const SUBJ_COL={physics:'var(--phys)',chemistry:'var(--chem)',maths:'var(--math)'};
+    const STATUS_CFG={'not-started':{label:'⚪ Not Started',color:'var(--fg3)'},'in-progress':{label:'🟡 In Progress',color:'var(--amber)'},'completed':{label:'🟢 Completed',color:'var(--grn)'},'revised':{label:'🔵 Revised',color:'var(--acc)'}};
+
+    let CLS='11', SUBJ='physics', chapters=[], userProgress={}, notesId=null;
+
+    function toast(m){const t=document.getElementById('ttToast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2300);}
+    function esc(s){if(!s)return'';return s.replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+    function closeModal(id){document.getElementById(id).classList.remove('show');}
+
+    function getDpp(name){
+        try{const p=JSON.parse(localStorage.getItem('dpp_q2')||localStorage.getItem('dpp_questions')||'{}');return[...(p['11']||[]),...(p['12']||[])].filter(q=>q.chapter===name).length;}catch(e){return 0;}
+    }
+    function getTricky(name){
+        try{const p=JSON.parse(localStorage.getItem('dpp_q2')||localStorage.getItem('dpp_questions')||'{}');return[...(p['11']||[]),...(p['12']||[])].filter(q=>q.chapter===name&&(q.status==='tricky'||q.status==='tough')).length;}catch(e){return 0;}
+    }
+
+    function loadProgress(){try{userProgress=JSON.parse(localStorage.getItem('syllabus_progress')||'{}');}catch(e){}}
+    function saveProgress(){
+        const out={};chapters.forEach(ch=>{out[ch.id]={status:ch.status,confidence:ch.confidence,priority:ch.priority,notes:ch.notes,lastRevised:ch.lastRevised,revisionCount:ch.revisionCount};});
+        const ex=JSON.parse(localStorage.getItem('syllabus_progress')||'{}');Object.assign(ex,out);
+        localStorage.setItem('syllabus_progress',JSON.stringify(ex));
+    }
+    function loadCustom(){try{return JSON.parse(localStorage.getItem('syllabus_custom')||'{}');}catch(e){return{};}}
+    function saveCustom(c){localStorage.setItem('syllabus_custom',JSON.stringify(c));}
+
+    function buildList(){
+        const base=(MASTER[CLS]?.[SUBJ]||[]).map(name=>({id:`${CLS}-${SUBJ}-${name}`.replace(/\s+/g,'-').toLowerCase(),name,subject:SUBJ,cls:CLS,status:'not-started',confidence:0,priority:'medium',notes:'',lastRevised:null,revisionCount:0,custom:false}));
+        const custom=loadCustom();
+        const cust=(custom[`${CLS}-${SUBJ}`]||[]).map(ch=>({...ch,subject:SUBJ,cls:CLS,custom:true,status:'not-started',confidence:0,notes:'',lastRevised:null,revisionCount:0}));
+        chapters=[...base,...cust].map(ch=>({...ch,...(userProgress[ch.id]||{})}));
+    }
+
+    function renderStats(){
+        const t=chapters.length,d=chapters.filter(c=>c.status==='completed'||c.status==='revised').length;
+        const p=t?Math.round(d/t*100):0,m=t?Math.round(chapters.reduce((s,c)=>s+(c.confidence||0),0)/t):0;
+        document.getElementById('statTotal').textContent=t;document.getElementById('statDone').textContent=d;
+        document.getElementById('statPct').textContent=p+'%';document.getElementById('statMastery').textContent=m;
+        document.getElementById('masteryDisplay').textContent='Mastery: '+m+'%';
+    }
+
+    function renderChapters(){
+        const g=document.getElementById('chGrid');
+        if(!chapters.length){
+            g.innerHTML=`<div class="empty-syl"><div class="empty-syl-ico">📖</div><div class="empty-syl-t">No chapters yet. Add one!</div></div><div class="add-ch-card" onclick="openAddModal()">＋ ADD CHAPTER</div>`;
+            return;
+        }
+        const col=SUBJ_COL[SUBJ]||'var(--acc)';
+        g.innerHTML=chapters.map(ch=>{
+            const conf=ch.confidence||0,dppN=getDpp(ch.name),tricky=getTricky(ch.name);
+            const lastRev=ch.lastRevised?new Date(ch.lastRevised).toLocaleDateString('en-IN',{day:'numeric',month:'short'}):'—';
+            return `<div class="ch-card">
+                <div class="ch-card-accent" style="background:${col}"></div>
+                <div class="ch-top">
+                    <div style="flex:1">
+                        <div class="ch-name">${esc(ch.name)}</div>
+                        ${ch.priority==='high'?'<div style="font-family:var(--fm);font-size:0.58rem;color:var(--red);letter-spacing:0.06em;margin-top:2px">⚡ HIGH PRIORITY</div>':''}
+                    </div>
+                    <select class="ch-status-sel" onchange="updateCh('${ch.id}',{status:this.value})">
+                        ${Object.entries(STATUS_CFG).map(([v,{label}])=>`<option value="${v}" ${ch.status===v?'selected':''}>${label}</option>`).join('')}
+                    </select>
+                </div>
+                <div class="ch-bar-wrap">
+                    <div class="ch-track"><div class="ch-fill" style="width:${conf}%;background:${col}"></div></div>
+                    <div class="ch-bar-label"><span>Confidence ${conf}%</span><span>${ch.status==='revised'?`Revised ${ch.revisionCount||0}×`:''}</span></div>
+                </div>
+                <div class="ch-meta">
+                    <div class="ch-meta-item">📊 <span class="ch-meta-val">${dppN}</span> DPPs</div>
+                    ${tricky>0?`<div class="ch-meta-item" style="color:var(--red)">⚠ <span class="ch-meta-val" style="color:var(--red)">${tricky}</span> tricky</div>`:''}
+                    <div class="ch-meta-item">🔄 <span class="ch-meta-val">${lastRev}</span></div>
+                </div>
+                <div class="ch-actions">
+                    <div class="conf-btns"><button class="conf-btn minus" onclick="nudgeConf('${ch.id}',-10)">−</button><button class="conf-btn" onclick="nudgeConf('${ch.id}',10)">+</button></div>
+                    <button class="ch-btn" onclick="openNotesModal('${ch.id}')">📝 Notes</button>
+                    <button class="ch-btn" onclick="openEditModal('${ch.id}')">✏️</button>
+                    ${ch.custom?`<button class="ch-btn danger" onclick="deleteCh('${ch.id}')">🗑</button>`:''}
+                </div>
+            </div>`;
+        }).join('')+`<div class="add-ch-card" onclick="openAddModal()">＋ ADD CHAPTER</div>`;
+    }
+
+    function renderInsights(){
+        const weak=chapters.filter(c=>(c.confidence||0)<50&&c.status!=='revised').slice(0,4);
+        const strong=chapters.filter(c=>(c.confidence||0)>=80).slice(0,4);
+        const overdue=chapters.filter(c=>c.status==='completed'&&c.lastRevised&&(Date.now()-new Date(c.lastRevised))>14*86400000).slice(0,4);
+        document.getElementById('insightsGrid').innerHTML=`
+            <div class="insight-box"><div class="insight-box-title">⚠️ Weak Areas</div>${weak.length?weak.map(c=>`<div class="insight-row" style="background:rgba(240,68,68,0.08);border-left:2px solid var(--red)">${esc(c.name)} · ${c.confidence||0}%</div>`).join(''):'<div class="insight-row" style="background:rgba(45,207,158,0.08);color:var(--grn)">✨ No weak areas!</div>'}</div>
+            <div class="insight-box"><div class="insight-box-title">💪 Strong Chapters</div>${strong.length?strong.map(c=>`<div class="insight-row" style="background:rgba(45,207,158,0.08);border-left:2px solid var(--grn)">${esc(c.name)} · ${c.confidence}%</div>`).join(''):'<div class="insight-row" style="color:var(--fg3)">Keep building confidence!</div>'}</div>
+            <div class="insight-box"><div class="insight-box-title">🔄 Due for Revision</div>${overdue.length?overdue.map(c=>`<div class="insight-row" style="background:rgba(245,166,35,0.08);border-left:2px solid var(--amber)">${esc(c.name)}</div>`).join(''):'<div class="insight-row" style="color:var(--fg3)">All chapters up to date!</div>'}</div>
+            <div class="insight-box"><div class="insight-box-title">📈 Quick Stats</div><div class="insight-row" style="background:rgba(91,110,245,0.08);border-left:2px solid var(--acc)">${chapters.filter(c=>c.status==='not-started').length} not yet started</div><div class="insight-row" style="background:rgba(167,139,250,0.08);border-left:2px solid var(--vio)">${chapters.filter(c=>c.priority==='high').length} high priority chapters</div></div>
+        `;
+    }
+
+    function updateCh(id,updates){
+        const ch=chapters.find(c=>c.id===id);if(!ch)return;
+        Object.assign(ch,updates);
+        if(updates.status){
+            if(updates.status==='completed'&&ch.confidence<70)ch.confidence=70;
+            if(updates.status==='revised'){ch.revisionCount=(ch.revisionCount||0)+1;ch.lastRevised=new Date().toISOString();if(ch.confidence<85)ch.confidence=85;}
+            if(updates.status==='in-progress'&&ch.confidence<30)ch.confidence=30;
+        }
+        saveProgress();renderAll();
+    }
+
+    function nudgeConf(id,d){
+        const ch=chapters.find(c=>c.id===id);if(!ch)return;
+        ch.confidence=Math.max(0,Math.min(100,(ch.confidence||0)+d));
+        saveProgress();renderAll();toast('Confidence: '+ch.confidence+'%');
+    }
+
+    function openAddModal(){
+        document.getElementById('editChapterId').value='';document.getElementById('chName').value='';
+        document.getElementById('chPriority').value='medium';document.getElementById('modalTitle').textContent='ADD CHAPTER';
+        document.getElementById('addModal').classList.add('show');
+    }
+
+    function openEditModal(id){
+        const ch=chapters.find(c=>c.id===id);if(!ch)return;
+        document.getElementById('editChapterId').value=id;document.getElementById('chName').value=ch.name;
+        document.getElementById('chPriority').value=ch.priority||'medium';document.getElementById('modalTitle').textContent='EDIT CHAPTER';
+        document.getElementById('addModal').classList.add('show');
+    }
+
+    function saveChapterModal(){
+        const eid=document.getElementById('editChapterId').value,name=document.getElementById('chName').value.trim(),pri=document.getElementById('chPriority').value;
+        if(!name){toast('Enter a chapter name');return;}
+        if(eid){
+            const ch=chapters.find(c=>c.id===eid);
+            if(ch){ch.name=name;ch.priority=pri;
+                if(ch.custom){const cust=loadCustom();const key=`${CLS}-${SUBJ}`;if(cust[key]){const i=cust[key].findIndex(x=>x.id===eid);if(i!==-1){cust[key][i].name=name;cust[key][i].priority=pri;}saveCustom(cust);}}
+                saveProgress();toast('Updated "'+name+'"');
+            }
+        } else {
+            const id=`${CLS}-${SUBJ}-c-${name}`.replace(/\s+/g,'-').toLowerCase()+Date.now();
+            const newCh={id,name,subject:SUBJ,cls:CLS,status:'not-started',confidence:0,priority:pri,notes:'',lastRevised:null,revisionCount:0,custom:true};
+            const cust=loadCustom();const key=`${CLS}-${SUBJ}`;if(!cust[key])cust[key]=[];
+            cust[key].push({id,name,priority:pri});saveCustom(cust);
+            chapters.push(newCh);saveProgress();toast('Added "'+name+'"');
+        }
+        closeModal('addModal');renderAll();
+    }
+
+    function deleteCh(id){
+        const ch=chapters.find(c=>c.id===id);if(!ch||!ch.custom)return;
+        const cust=loadCustom();const key=`${CLS}-${SUBJ}`;
+        if(cust[key]){cust[key]=cust[key].filter(x=>x.id!==id);saveCustom(cust);}
+        chapters=chapters.filter(c=>c.id!==id);saveProgress();renderAll();toast('Chapter removed');
+    }
+
+    function openNotesModal(id){
+        const ch=chapters.find(c=>c.id===id);if(!ch)return;notesId=id;
+        document.getElementById('notesChName').textContent=ch.name;
+        document.getElementById('notesText').value=ch.notes||'';
+        document.getElementById('notesModal').classList.add('show');
+    }
+
+    function saveNotes(){
+        const ch=chapters.find(c=>c.id===notesId);
+        if(ch){ch.notes=document.getElementById('notesText').value;saveProgress();toast('Notes saved ✓');}
+        closeModal('notesModal');
+    }
+
+    function renderAll(){renderStats();renderChapters();renderInsights();}
+
+    document.querySelectorAll('.cls-pill').forEach(p=>p.addEventListener('click',()=>{
+        CLS=p.dataset.cl;document.querySelectorAll('.cls-pill').forEach(x=>x.classList.toggle('on',x.dataset.cl===CLS));
+        buildList();renderAll();
+    }));
+    document.querySelectorAll('.subj-tab').forEach(t=>t.addEventListener('click',()=>{
+        SUBJ=t.dataset.subj;document.querySelectorAll('.subj-tab').forEach(x=>x.classList.remove('on'));t.classList.add('on');
+        buildList();renderAll();
+    }));
+
+    function buildList(){buildChapterList();}
+    function buildChapterList(){
+        const base=(MASTER[CLS]?.[SUBJ]||[]).map(name=>({id:`${CLS}-${SUBJ}-${name}`.replace(/\s+/g,'-').toLowerCase(),name,subject:SUBJ,cls:CLS,status:'not-started',confidence:0,priority:'medium',notes:'',lastRevised:null,revisionCount:0,custom:false}));
+        const cust=loadCustom();
+        const customList=(cust[`${CLS}-${SUBJ}`]||[]).map(ch=>({...ch,subject:SUBJ,cls:CLS,custom:true,status:'not-started',confidence:0,notes:'',lastRevised:null,revisionCount:0}));
+        chapters=[...base,...customList].map(ch=>({...ch,...(userProgress[ch.id]||{})}));
+    }
+
+    loadProgress();buildChapterList();renderAll();
+
+    document.getElementById('chName').addEventListener('keypress',e=>{if(e.key==='Enter')saveChapterModal();});
+    window.updateCh=updateCh;window.nudgeConf=nudgeConf;window.openAddModal=openAddModal;
+    window.openEditModal=openEditModal;window.saveChapterModal=saveChapterModal;window.deleteCh=deleteCh;
+    window.openNotesModal=openNotesModal;window.saveNotes=saveNotes;window.closeModal=closeModal;
+
+    const cv=document.getElementById('canvas-bg'),ct=cv.getContext('2d');let W=innerWidth,H=innerHeight;
+    const pts=Array.from({length:40},()=>({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.2+0.2,vx:(Math.random()-.5)*.18,vy:(Math.random()-.5)*.18,a:Math.random()*.1+.03}));
+    (function draw(){ct.clearRect(0,0,W,H);pts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;ct.beginPath();ct.arc(p.x,p.y,p.r,0,Math.PI*2);ct.fillStyle=`rgba(91,110,245,${p.a})`;ct.fill();});requestAnimationFrame(draw);})();
+    window.addEventListener('resize',()=>{W=cv.width=innerWidth;H=cv.height=innerHeight;});cv.width=W;cv.height=H;
+    </script>
+<!-- Auth Modal -->
+<div id="authModal" class="modal">
+    <div class="modal-content" style="max-width: 400px;">
+        <div class="modal-header">
+            <h3 id="authTitle">Welcome to Buddy</h3>
+            <button class="close-modal" onclick="closeModal('authModal')">&times;</button>
+        </div>
+        
+        <!-- Login Form -->
+        <div id="loginForm">
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="loginEmail" placeholder="your@email.com">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="loginPassword" placeholder="••••••••">
+            </div>
+            <button class="primary-btn" onclick="login()" style="width: 100%;">Login</button>
+            <p style="text-align: center; margin: 1rem 0;">Don't have an account? <a href="#" onclick="switchToSignup()">Sign up</a></p>
+        </div>
+        
+        <!-- Signup Form -->
+        <div id="signupForm" style="display: none;">
+            <div class="form-group">
+                <label>Name</label>
+                <input type="text" id="signupName" placeholder="Your name">
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="signupEmail" placeholder="your@email.com">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="signupPassword" placeholder="••••••••">
+            </div>
+            <div class="form-group">
+                <label>Confirm Password</label>
+                <input type="password" id="signupConfirmPassword" placeholder="••••••••">
+            </div>
+            <button class="primary-btn" onclick="signup()" style="width: 100%;">Create Account</button>
+            <p style="text-align: center; margin: 1rem 0;">Already have an account? <a href="#" onclick="switchToLogin()">Login</a></p>
+        </div>
+        
+        <!-- Sync Mode Selection -->
+        <div id="syncModeForm" style="display: none;">
+            <p style="margin-bottom: 1rem;">How do you want to store your data?</p>
+            <button class="primary-btn" onclick="setSyncMode('online')" style="width: 100%; margin-bottom: 0.5rem;">🌐 Online Sync (Access anywhere)</button>
+            <button class="secondary-btn" onclick="setSyncMode('local')" style="width: 100%;">📱 Local Only (This device only)</button>
+        </div>
+        
+        <!-- Loading State -->
+        <div id="loadingState" style="display: none; text-align: center; padding: 2rem;">
+            <div class="spinner"></div>
+            <p>Syncing your data...</p>
+        </div>
+    </div>
+</div>
+
+<script>
+// ── Inline auth for sidebar pill ──
+(function(){
+  if(!window.firebase||!firebase.apps.length){
+    firebase.initializeApp({
+      apiKey:"AIzaSyCtu9xTssIZD3S99ekm2gwc1PySwiv0h9Y",
+      authDomain:"buddy-app-jee.firebaseapp.com",
+      projectId:"buddy-app-jee",
+      storageBucket:"buddy-app-jee.firebasestorage.app",
+      messagingSenderId:"888730193846",
+      appId:"1:888730193846:web:4cfc94b24cdb3323e03b17"
+    });
+  }
+  firebase.auth().onAuthStateChanged(function(user){
+    var slot=document.getElementById('sidebarUserSlot');
+    if(!slot)return;
+    if(user){
+      var name=user.displayName||user.email.split('@')[0];
+      var av=name.charAt(0).toUpperCase();
+      slot.innerHTML=
+        '<div style="margin:8px 0 4px;border-top:1px solid rgba(255,255,255,0.07);padding-top:8px;">'+
+        '<div onclick="this.querySelector(\'.pill-drop\').classList.toggle(\'.show\')" '+
+             'style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:14px;cursor:pointer;position:relative;" '+
+             'id="sidePill">'+
+          '<div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#5b6ef5,#a78bfa);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.9rem;flex-shrink:0;">'+av+'</div>'+
+          '<div style="flex:1;min-width:0;">'+
+            '<div style="font-size:0.78rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+name+'</div>'+
+            '<div style="font-size:0.54rem;color:rgba(255,255,255,0.35);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+user.email+'</div>'+
+          '</div>'+
+          '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;color:rgba(255,255,255,0.3)"><path d="M18 15l-6-6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'+
+          '<div class="pill-drop" style="display:none;position:absolute;bottom:calc(100% + 6px);left:0;right:0;background:#121520;border:1px solid rgba(255,255,255,0.12);border-radius:14px;padding:6px;z-index:200;box-shadow:0 -12px 32px rgba(0,0,0,0.6);">'+
+            '<div onclick="firebase.auth().signOut().then(function(){localStorage.removeItem('buddy_storage_mode');location.reload();})" '+
+                 'style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;font-size:0.68px;color:#f04444;cursor:pointer;font-size:0.68rem;" '+
+                 'onmouseover="this.style.background='rgba(240,68,68,0.1)'" onmouseout="this.style.background=''">'+
+              '<svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>'+
+              'Sign Out'+
+            '</div>'+
+          '</div>'+
+        '</div>'+
+        '</div>';
+      // toggle dropdown on click
+      var pill=document.getElementById('sidePill');
+      var drop=pill.querySelector('.pill-drop');
+      pill.addEventListener('click',function(e){
+        if(e.target.closest('.pill-drop'))return;
+        drop.style.display=drop.style.display==='none'?'block':'none';
+      });
+      document.addEventListener('click',function(e){
+        if(!e.target.closest('#sidePill'))drop.style.display='none';
+      });
+    } else {
+      slot.innerHTML='';
+    }
+  });
+})();
+</script>
+</body>
+</html>
+

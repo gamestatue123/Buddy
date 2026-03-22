@@ -1,0 +1,19 @@
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Android
+android/.gradle/
+android/app/build/
+android/build/
+
+# Mac / Windows junk
+.DS_Store
+Thumbs.db
+
+# Environment files
+.env
+
+# Logs
+*.log
