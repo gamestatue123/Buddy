@@ -224,6 +224,11 @@
       </div>
     </div>
 
+    <div class="card" style="margin-bottom:12px;">
+      <div class="ch"><div class="chl"><div class="cdot" style="background:var(--amber)"></div><div class="ct">UPCOMING TEST PLAN</div></div><button class="btn btn-ghost" onclick="configureUpcomingPlan()">Configure</button></div>
+      <div class="cb" id="upcomingPlanCard"></div>
+    </div>
+
     <!-- STATS -->
     <div class="stat-row">
       <div class="sc" style="--bar:var(--vio)"><div class="sc-label">Tests Taken</div><div class="sc-val" id="sTotal" style="color:var(--vio)">0</div><div class="sc-sub">all time</div></div>
@@ -406,6 +411,7 @@ const C = { phys:'#4da6ff',chem:'#2dcf9e',math:'#f5a623',vio:'#a78bfa',acc:'#5b6
 window.addEventListener('DOMContentLoaded', () => {
     initCanvas();
     loadTests();
+    renderUpcomingPlan();
     Chart.defaults.color = C.fg2;
     Chart.defaults.font.family = "'JetBrains Mono', monospace";
     Chart.defaults.font.size = 11;
@@ -619,6 +625,9 @@ function saveTest() {
     const payload={id:Date.now().toString(),testName:name,date,totalQuestions:+(document.getElementById('mTotalQ').value)||0,maxMarks:+(document.getElementById('mMaxMarks').value)||300,physics:+(document.getElementById('mPhy').value)||0,physicsMax:+(document.getElementById('mPhyMax').value)||100,chemistry:+(document.getElementById('mChem').value)||0,chemistryMax:+(document.getElementById('mChemMax').value)||100,maths:+(document.getElementById('mMath').value)||0,mathsMax:+(document.getElementById('mMathMax').value)||100,rank:document.getElementById('mRank').value,questions:[...stagedQs],prep:{examDate:document.getElementById('mExamDate').value,revisionTarget:+(document.getElementById('mRevisionTarget').value)||0,notes:document.getElementById('mPrepNotes').value.trim()}};
     tests.push(payload);
     saveTests();closeModal('addModal');showToast('✓ Test logged');
+    tests=[payload];
+    localStorage.setItem('active_test_plan',JSON.stringify({examName:payload.testName,examDate:payload.prep.examDate,revisionTarget:payload.prep.revisionTarget,notes:payload.prep.notes}));
+    saveTests();closeModal('addModal');showToast('✓ Focus test saved (single test mode)');
 }
 
 // ═══ DETAIL ═══
@@ -676,15 +685,46 @@ function importData(e) {
             const data=Array.isArray(parsed)?parsed:(Array.isArray(parsed.tests)?parsed.tests:(Array.isArray(parsed.data)?parsed.data:[]));
             if(!Array.isArray(data)||!data.length)throw new Error('Expected array');
             const existingIds=new Set(tests.map(t=>t.id));let added=0;
+            const data=JSON.parse(ev.target.result);
+            if(!Array.isArray(data))throw new Error('Expected array');
+            let added=0;const imported=[];
             data.forEach(t=>{
                 const norm={id:t.id||(Date.now()+''+Math.random()),testName:t.testName||t.name||'Imported Test',date:t.date||'',physics:+(t.physics||t.physicsScore||0),physicsMax:+(t.physicsMax||100),chemistry:+(t.chemistry||t.chemistryScore||0),chemistryMax:+(t.chemistryMax||100),maths:+(t.maths||t.mathsScore||t.mathematics||0),mathsMax:+(t.mathsMax||100),maxMarks:+(t.maxMarks||300),totalQuestions:+(t.totalQuestions||0),rank:t.rank||'',questions:t.questions||[]};
-                if(!existingIds.has(norm.id)){tests.push(norm);added++;}
+                imported.push(norm);added++;
             });
-            saveTests();showToast(`✓ Imported ${added} test${added!==1?'s':''}`);
+            if(imported.length){tests=[imported[imported.length-1]];saveTests();showToast('✓ Imported latest test in single-test mode');}else{showToast('No valid test found');}
         }catch(err){showToast('⚠️ Invalid JSON — use exported Buddy data');}
         e.target.value='';
     };
     reader.readAsText(file);
+}
+
+// ═══ UPCOMING TEST (single active plan) ═══
+function renderUpcomingPlan(){
+    const el=document.getElementById('upcomingPlanCard');
+    if(!el)return;
+    let plan={};
+    try{plan=JSON.parse(localStorage.getItem('active_test_plan')||'{}');}catch(e){}
+    if(!plan.examName||!plan.examDate){
+        el.innerHTML='<div class="es"><div class="es-ico">⏳</div><div class="es-hl">NO UPCOMING TEST SET</div><div class="es-sub">Use Configure to set one focused upcoming test plan.</div></div>';
+        return;
+    }
+    const rem=Math.ceil((new Date(plan.examDate+'T09:00:00')-new Date())/86400000);
+    el.innerHTML=`<div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;"><div class="sc"><div class="sc-label">Exam</div><div class="sc-val" style="font-size:1.2rem;color:var(--amber)">${esc(plan.examName)}</div><div class="sc-sub">single active target</div></div><div class="sc"><div class="sc-label">Date</div><div class="sc-val" style="color:var(--acc2)">${new Date(plan.examDate+'T00:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}</div><div class="sc-sub">planned</div></div><div class="sc"><div class="sc-label">Days Left</div><div class="sc-val" style="color:var(--grn)">${rem>0?rem:'GO'}</div><div class="sc-sub">countdown</div></div><div class="sc"><div class="sc-label">Revision Target</div><div class="sc-val" style="color:var(--vio)">${plan.revisionTarget||0}%</div><div class="sc-sub">syllabus coverage</div></div></div>${plan.notes?`<div style="margin-top:8px;font-family:var(--fm);font-size:0.66rem;color:var(--fg2);border-top:1px solid var(--bd);padding-top:8px;">Notes: ${esc(plan.notes)}</div>`:''}`;
+}
+function configureUpcomingPlan(){
+    let plan={};
+    try{plan=JSON.parse(localStorage.getItem('active_test_plan')||'{}');}catch(e){}
+    const examName=prompt('Upcoming test name?',plan.examName||'');
+    if(examName===null)return;
+    const examDate=prompt('Upcoming test date (YYYY-MM-DD)?',plan.examDate||'');
+    if(examDate===null)return;
+    const revisionTarget=prompt('Revision target %?',String(plan.revisionTarget||70));
+    if(revisionTarget===null)return;
+    const notes=prompt('Notes / strategy (optional):',plan.notes||'');
+    localStorage.setItem('active_test_plan',JSON.stringify({examName:examName.trim(),examDate:examDate.trim(),revisionTarget:Number(revisionTarget)||0,notes:(notes||'').trim()}));
+    renderUpcomingPlan();
+    showToast('✓ Upcoming test plan updated');
 }
 
 // ═══ HELPERS ═══

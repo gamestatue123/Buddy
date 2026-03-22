@@ -355,6 +355,10 @@
     }
     function ensurePreload11(){
         const seen=new Set((QS['11']||[]).map(x=>`${x.chapter}::${x.dppNumber}::${x.questionNumber}`));
+
+    }
+    function loadPreload(){ return;
+
         for(const ch of PRELOAD['11']){
             for(const d of ch.d){
                 const m=d.match(/^([^:]+):(.+)$/);
@@ -399,6 +403,12 @@
         let options=[...defaults,...custom,...fromLogged].filter(ch=>{const key=String(ch||'').toLowerCase();if(!key||seen.has(key))return false;seen.add(key);return true;});
         dl.innerHTML=options.map(c=>`<option value="${esc(c)}"></option>`).join('');
         if(!options.includes(input.value)) input.value=options[0]||'';
+        const custom=(getUserChapters()[`${CLS}:${subject}`]||[]);
+        const fromLogged=QS[CLS].filter(q=>q.subject===subject).map(q=>q.chapter);
+        const seen=new Set();
+        const options=[...custom,...fromLogged].filter(ch=>{const key=String(ch||'').toLowerCase();if(!key||seen.has(key))return false;seen.add(key);return true;});
+        dl.innerHTML=options.map(c=>`<option value="${esc(c)}"></option>`).join('');
+        if(!input.value&&options[0]) input.value=options[0];
     }
 
     // ── ADD ──
