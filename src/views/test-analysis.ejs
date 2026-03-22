@@ -224,6 +224,11 @@
       </div>
     </div>
 
+    <div class="card" style="margin-bottom:12px;">
+      <div class="ch"><div class="chl"><div class="cdot" style="background:var(--amber)"></div><div class="ct">UPCOMING TEST PLAN</div></div><button class="btn btn-ghost" onclick="configureUpcomingPlan()">Configure</button></div>
+      <div class="cb" id="upcomingPlanCard"></div>
+    </div>
+
     <!-- STATS -->
     <div class="stat-row">
       <div class="sc" style="--bar:var(--vio)"><div class="sc-label">Tests Taken</div><div class="sc-val" id="sTotal" style="color:var(--vio)">0</div><div class="sc-sub">all time</div></div>
@@ -340,6 +345,9 @@
         <div class="fg"><label>Max Marks</label><input id="mMaxMarks" type="number" placeholder="300" value="300"></div>
         <div class="fg"><label>Total Questions</label><input id="mTotalQ" type="number" placeholder="90"></div>
         <div class="fg"><label>Rank / Percentile</label><input id="mRank" type="text" placeholder="e.g. 256 or 99.5 PR"></div>
+        <div class="fg"><label>Target Exam Date</label><input id="mExamDate" type="date"></div>
+        <div class="fg"><label>Revision Target %</label><input id="mRevisionTarget" type="number" placeholder="e.g. 80"></div>
+        <div class="fg full"><label>Prep Notes</label><input id="mPrepNotes" type="text" placeholder="Focus on weak chapters, mock strategy..."></div>
       </div>
       <div class="sec-title">Subject Scores</div>
       <div class="fg2col">
@@ -403,6 +411,7 @@ const C = { phys:'#4da6ff',chem:'#2dcf9e',math:'#f5a623',vio:'#a78bfa',acc:'#5b6
 window.addEventListener('DOMContentLoaded', () => {
     initCanvas();
     loadTests();
+    renderUpcomingPlan();
     Chart.defaults.color = C.fg2;
     Chart.defaults.font.family = "'JetBrains Mono', monospace";
     Chart.defaults.font.size = 11;
@@ -544,7 +553,7 @@ function renderTable() {
     if(!tests.length){tbody.innerHTML=`<tr><td colspan="9"><div class="es"><div class="es-ico">📊</div><div class="es-hl">NO TESTS YET</div><div class="es-sub">Click LOG TEST to begin</div></div></td></tr>`;return;}
     const sorted=[...tests].sort((a,b)=>new Date(b.date)-new Date(a.date));
     tbody.innerHTML=sorted.map(t=>{
-        const total=t.physics+t.chemistry+t.maths,max=t.maxMarks||300,pct=Math.round(total/max*100);
+        const total=(t.total??t.totalMarks??t.score??(t.physics+t.chemistry+t.maths)),max=t.maxMarks||300,pct=Math.round(total/max*100);
         const bc=pct>=70?'bg':pct>=40?'ba':'br';
         let qC=0,qW=0;(t.questions||[]).forEach(q=>{if(q.status==='correct')qC++;if(q.status==='wrong')qW++;});
         const acc=qC+qW?Math.round(qC/(qC+qW)*100)+'%':'—';
@@ -590,7 +599,7 @@ function generateInsights() {
 function openAddModal() {
     stagedQs=[];renderStagedQs();
     document.getElementById('mDate').value=new Date().toISOString().slice(0,10);
-    ['mName','mTotalQ','mRank','mPhy','mChem','mMath'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    ['mName','mTotalQ','mRank','mPhy','mChem','mMath','mExamDate','mRevisionTarget','mPrepNotes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
     openModal('addModal');
 }
 
@@ -613,7 +622,8 @@ function cycleStaged(id){const cyc={correct:'wrong',wrong:'skipped',skipped:'cor
 function saveTest() {
     const name=document.getElementById('mName').value.trim(),date=document.getElementById('mDate').value;
     if(!name||!date){showToast('Name and date required');return;}
-    tests.push({id:Date.now().toString(),testName:name,date,totalQuestions:+(document.getElementById('mTotalQ').value)||0,maxMarks:+(document.getElementById('mMaxMarks').value)||300,physics:+(document.getElementById('mPhy').value)||0,physicsMax:+(document.getElementById('mPhyMax').value)||100,chemistry:+(document.getElementById('mChem').value)||0,chemistryMax:+(document.getElementById('mChemMax').value)||100,maths:+(document.getElementById('mMath').value)||0,mathsMax:+(document.getElementById('mMathMax').value)||100,rank:document.getElementById('mRank').value,questions:[...stagedQs]});
+    const payload={id:Date.now().toString(),testName:name,date,totalQuestions:+(document.getElementById('mTotalQ').value)||0,maxMarks:+(document.getElementById('mMaxMarks').value)||300,physics:+(document.getElementById('mPhy').value)||0,physicsMax:+(document.getElementById('mPhyMax').value)||100,chemistry:+(document.getElementById('mChem').value)||0,chemistryMax:+(document.getElementById('mChemMax').value)||100,maths:+(document.getElementById('mMath').value)||0,mathsMax:+(document.getElementById('mMathMax').value)||100,rank:document.getElementById('mRank').value,questions:[...stagedQs],prep:{examDate:document.getElementById('mExamDate').value,revisionTarget:+(document.getElementById('mRevisionTarget').value)||0,notes:document.getElementById('mPrepNotes').value.trim()}};
+    tests.push(payload);
     saveTests();closeModal('addModal');showToast('✓ Test logged');
 }
 
@@ -622,7 +632,7 @@ function openDetail(id) {
     const t=tests.find(x=>x.id===id);if(!t)return;
     currentDetailId=id;
     document.getElementById('detailTitle').textContent=(t.testName||'Test').toUpperCase();
-    const total=t.physics+t.chemistry+t.maths,max=t.maxMarks||300,pct=Math.round(total/max*100);
+    const total=(t.total??t.totalMarks??t.score??(t.physics+t.chemistry+t.maths)),max=t.maxMarks||300,pct=Math.round(total/max*100);
     const scoreColor=pct>=70?'var(--grn)':pct>=40?'var(--amber)':'var(--red)';
     document.getElementById('detailContent').innerHTML=`
         <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.2rem;padding:1rem;background:rgba(255,255,255,0.025);border:1px solid var(--bd);border-radius:var(--r3);">
@@ -682,6 +692,34 @@ function importData(e) {
     reader.readAsText(file);
 }
 
+// ═══ UPCOMING TEST (single active plan) ═══
+function renderUpcomingPlan(){
+    const el=document.getElementById('upcomingPlanCard');
+    if(!el)return;
+    let plan={};
+    try{plan=JSON.parse(localStorage.getItem('active_test_plan')||'{}');}catch(e){}
+    if(!plan.examName||!plan.examDate){
+        el.innerHTML='<div class="es"><div class="es-ico">⏳</div><div class="es-hl">NO UPCOMING TEST SET</div><div class="es-sub">Use Configure to set one focused upcoming test plan.</div></div>';
+        return;
+    }
+    const rem=Math.ceil((new Date(plan.examDate+'T09:00:00')-new Date())/86400000);
+    el.innerHTML=`<div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;"><div class="sc"><div class="sc-label">Exam</div><div class="sc-val" style="font-size:1.2rem;color:var(--amber)">${esc(plan.examName)}</div><div class="sc-sub">single active target</div></div><div class="sc"><div class="sc-label">Date</div><div class="sc-val" style="color:var(--acc2)">${new Date(plan.examDate+'T00:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}</div><div class="sc-sub">planned</div></div><div class="sc"><div class="sc-label">Days Left</div><div class="sc-val" style="color:var(--grn)">${rem>0?rem:'GO'}</div><div class="sc-sub">countdown</div></div><div class="sc"><div class="sc-label">Revision Target</div><div class="sc-val" style="color:var(--vio)">${plan.revisionTarget||0}%</div><div class="sc-sub">syllabus coverage</div></div></div>${plan.notes?`<div style="margin-top:8px;font-family:var(--fm);font-size:0.66rem;color:var(--fg2);border-top:1px solid var(--bd);padding-top:8px;">Notes: ${esc(plan.notes)}</div>`:''}`;
+}
+function configureUpcomingPlan(){
+    let plan={};
+    try{plan=JSON.parse(localStorage.getItem('active_test_plan')||'{}');}catch(e){}
+    const examName=prompt('Upcoming test name?',plan.examName||'');
+    if(examName===null)return;
+    const examDate=prompt('Upcoming test date (YYYY-MM-DD)?',plan.examDate||'');
+    if(examDate===null)return;
+    const revisionTarget=prompt('Revision target %?',String(plan.revisionTarget||70));
+    if(revisionTarget===null)return;
+    const notes=prompt('Notes / strategy (optional):',plan.notes||'');
+    localStorage.setItem('active_test_plan',JSON.stringify({examName:examName.trim(),examDate:examDate.trim(),revisionTarget:Number(revisionTarget)||0,notes:(notes||'').trim()}));
+    renderUpcomingPlan();
+    showToast('✓ Upcoming test plan updated');
+}
+
 // ═══ HELPERS ═══
 function openModal(id){document.getElementById(id).classList.add('open');}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
@@ -714,7 +752,7 @@ firebase.auth().onAuthStateChanged(function(user){
         const pill=document.getElementById('_bp'),drop=document.getElementById('_bd');
         pill.addEventListener('click',e=>{if(e.target.closest('#_bd'))return;drop.style.display=drop.style.display==='none'?'block':'none';});
         document.addEventListener('click',e=>{if(!e.target.closest('#_bp'))drop.style.display='none';});
-    }else{slot.innerHTML='';}
+    }else{slot.innerHTML='<button onclick="if(typeof openOverlay===\'function\'){openOverlay();if(typeof showScreen===\'function\')showScreen(\'screenLogin\');}else{location.href=\'/\';}" style="width:100%;padding:8px 10px;border-radius:12px;background:rgba(91,110,245,0.12);border:1px solid rgba(91,110,245,0.3);color:#7c8ff8;font-family:\'JetBrains Mono\',monospace;font-size:0.62rem;letter-spacing:0.08em;cursor:pointer;text-transform:uppercase;">Sign In</button>';}
 });
 </script>
 
