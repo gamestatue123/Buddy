@@ -1535,27 +1535,41 @@
     });
 
     // ============================
+    // LOCAL STORAGE HELPERS
+    // ============================
+    const LS_SCHED = 'buddy_schedule_full';
+    const LS_TASKS = 'buddy_tasks';
+    const LS_TESTS = 'buddy_tests';
+
+    function saveScheduleLS() {
+        localStorage.setItem(LS_SCHED, JSON.stringify(schedule));
+        // Write compact format (mon/tue/...) for homepage widget
+        const SHORT = {monday:'mon',tuesday:'tue',wednesday:'wed',thursday:'thu',friday:'fri',saturday:'sat',sunday:'sun'};
+        const compact = {};
+        for (const [day, cls] of Object.entries(schedule)) compact[SHORT[day]] = cls;
+        localStorage.setItem('buddy_schedule', JSON.stringify(compact));
+    }
+    function saveTasksLS() { localStorage.setItem(LS_TASKS, JSON.stringify(tasks)); }
+    function saveTestsLS()  { localStorage.setItem(LS_TESTS, JSON.stringify(tests)); }
+
+    // ============================
     // SCHEDULE
     // ============================
-    async function loadSchedule() {
+    function loadSchedule() {
         try {
-            const res = await fetch('/timetable/api/schedule');
-            const data = await res.json();
-            if (data.success) {
-                // Convert server data: day → array of class objects
+            const raw = localStorage.getItem(LS_SCHED);
+            if (raw) {
+                const stored = JSON.parse(raw);
                 for (const day of DAY_KEYS) {
-                    schedule[day] = (data.schedule[day] || []).map(c => ({
-                        id: c.id,
-                        subject: c.subject,
-                        teacher: c.teacher || '',
-                        time: c.time || '',
-                        location: c.location || '',
-                        isOff: c.subject === 'Off'
+                    schedule[day] = (stored[day] || []).map(c => ({
+                        id: c.id, subject: c.subject,
+                        teacher: c.teacher || '', time: c.time || '',
+                        location: c.location || '', isOff: c.subject === 'Off'
                     }));
                 }
-                renderSchedule();
             }
-        } catch(e) { console.error('loadSchedule', e); }
+            renderSchedule();
+        } catch(e) { renderSchedule(); }
     }
 
     function renderSchedule() {
@@ -1643,67 +1657,44 @@
 
         if (schedule[day].length >= 3) { showToast('Max 3 classes per day', 'error'); return; }
 
-        try {
-            const res = await fetch('/timetable/api/schedule', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ day, time, subject, teacher, location })
-            });
-            const data = await res.json();
-            if (data.success) {
-                schedule[day].push({ id: data.class.id, subject, teacher, time, location, isOff: false });
-                renderSchedule();
-                closeModal('addClassModal');
-                showToast(`${subject} added to ${DAY_NAMES[DAY_KEYS.indexOf(day)]}`);
-            }
-        } catch(e) { showToast('Failed to save', 'error'); }
+        const newClass = { id: Date.now().toString()+'_'+Math.random(), subject, teacher, time, location, isOff: false };
+        schedule[day].push(newClass);
+        saveScheduleLS();
+        renderSchedule();
+        closeModal('addClassModal');
+        showToast(`${subject} added to ${DAY_NAMES[DAY_KEYS.indexOf(day)]}`);
     }
 
-    async function removeClassSlot(day, classId, e) {
+    function removeClassSlot(day, classId, e) {
         e.stopPropagation();
-        try {
-            await fetch(`/timetable/api/schedule/${day}/${classId}`, { method: 'DELETE' });
-            schedule[day] = schedule[day].filter(c => c.id !== classId);
-            renderSchedule();
-            showToast('Class removed');
-        } catch(e) { showToast('Failed to remove', 'error'); }
+        schedule[day] = schedule[day].filter(c => c.id !== classId);
+        saveScheduleLS();
+        renderSchedule();
+        showToast('Class removed');
     }
 
-    async function toggleDayOff(day) {
+    function toggleDayOff(day) {
         const isOff = schedule[day].length === 1 && schedule[day][0].isOff;
-        try {
-            // Delete all existing classes for the day
-            for (const cls of schedule[day]) {
-                await fetch(`/timetable/api/schedule/${day}/${cls.id}`, { method: 'DELETE' });
-            }
-            schedule[day] = [];
-
-            if (!isOff) {
-                // Mark as off
-                const res = await fetch('/timetable/api/schedule', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ day, time: '', subject: 'Off', teacher: '', location: '' })
-                });
-                const data = await res.json();
-                if (data.success) schedule[day] = [{ id: data.class.id, subject: 'Off', isOff: true, teacher:'', time:'', location:'' }];
-                showToast(`${DAY_NAMES[DAY_KEYS.indexOf(day)]} set as day off`);
-            } else {
-                showToast(`${DAY_NAMES[DAY_KEYS.indexOf(day)]} is now free`);
-            }
-            renderSchedule();
-        } catch(e) { showToast('Failed to update', 'error'); }
+        schedule[day] = [];
+        if (!isOff) {
+            schedule[day] = [{ id: Date.now().toString(), subject: 'Off', isOff: true, teacher:'', time:'', location:'' }];
+            showToast(`${DAY_NAMES[DAY_KEYS.indexOf(day)]} set as day off`);
+        } else {
+            showToast(`${DAY_NAMES[DAY_KEYS.indexOf(day)]} is now free`);
+        }
+        saveScheduleLS();
+        renderSchedule();
     }
 
     // ============================
     // TASKS
     // ============================
-    async function loadTasks() {
+    function loadTasks() {
         try {
-            const res = await fetch('/timetable/api/tasks');
-            const data = await res.json();
-            if (data.success) { tasks = data.tasks; renderTasks(); }
-        } catch(e) {}
+            const raw = localStorage.getItem(LS_TASKS);
+            if (raw) tasks = JSON.parse(raw);
+            renderTasks();
+        } catch(e) { renderTasks(); }
     }
 
     function renderTasks() {
@@ -1728,37 +1719,29 @@
         `).join('');
     }
 
-    async function addTask() {
+    function addTask() {
         const inp = document.getElementById('newTaskInput');
         const text = inp.value.trim();
         if (!text) return;
-        try {
-            const res = await fetch('/timetable/api/tasks', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ text })
-            });
-            const data = await res.json();
-            if (data.success) { tasks.push(data.task); renderTasks(); inp.value = ''; showToast('Task added ✓'); }
-        } catch(e) {}
+        const task = { id: Date.now().toString()+'_'+Math.random(), text, completed: false, createdAt: new Date().toISOString() };
+        tasks.push(task);
+        saveTasksLS();
+        renderTasks();
+        inp.value = '';
+        showToast('Task added ✓');
     }
 
-    async function toggleTask(id) {
-        try {
-            const res = await fetch(`/timetable/api/tasks/${id}/toggle`, { method: 'PUT' });
-            const data = await res.json();
-            if (data.success) { const t = tasks.find(t => t.id === id); if (t) t.completed = !t.completed; renderTasks(); }
-        } catch(e) {}
+    function toggleTask(id) {
+        const t = tasks.find(t => t.id === id);
+        if (t) { t.completed = !t.completed; saveTasksLS(); renderTasks(); }
     }
 
-    async function deleteTask(id, e) {
+    function deleteTask(id, e) {
         e.stopPropagation();
-        try {
-            await fetch(`/timetable/api/tasks/${id}`, { method: 'DELETE' });
-            tasks = tasks.filter(t => t.id !== id);
-            renderTasks();
-            showToast('Task removed');
-        } catch(e) {}
+        tasks = tasks.filter(t => t.id !== id);
+        saveTasksLS();
+        renderTasks();
+        showToast('Task removed');
     }
 
     document.getElementById('newTaskInput').addEventListener('keypress', e => { if (e.key === 'Enter') addTask(); });
@@ -1827,33 +1810,31 @@
         const chaptersRaw = document.getElementById('atChapters').value.trim();
         const chapters    = chaptersRaw ? chaptersRaw.split(',').map(c => c.trim()).filter(Boolean) : [];
 
-        try {
-            const res = await fetch('/timetable/api/tests', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, date, syllabus, subjects, chapters, preparationNotes: prepNotes,
-                    testType, difficulty, priority, duration, venue, maxMarks, targetScore })
-            });
-            const data = await res.json();
-            if (data.success) {
-                tests = [{ ...data.test, subjects, chapters, completedChapters: [], chapterNotes: {},
-                    testType, difficulty, priority, duration, venue, maxMarks, targetScore }];
-                renderTests();
-                syncActiveTestPlan();
-                closeModal('addTestModal');
-                showToast('Test added 🎯');
-            }
-        } catch(e) { showToast('Failed to add test', 'error'); }
+        const newTest = {
+            id: Date.now().toString()+'_'+Math.random(),
+            name, date, syllabus, subjects, chapters,
+            preparationNotes: prepNotes, testType, difficulty, priority,
+            duration, venue, maxMarks, targetScore,
+            completedChapters: [], chapterNotes: {},
+            createdAt: new Date().toISOString()
+        };
+        tests = [newTest];
+        saveTestsLS();
+        renderTests();
+        syncActiveTestPlan();
+        closeModal('addTestModal');
+        showToast('Test added 🎯');
     }
 
     // ============================
     // TESTS
     // ============================
-    async function loadTests() {
+    function loadTests() {
         try {
-            const res = await fetch('/timetable/api/tests');
-            const data = await res.json();
-            if (data.success) { tests = (data.tests||[]).slice(0,1); renderTests(); syncActiveTestPlan(); }
+            const raw = localStorage.getItem(LS_TESTS);
+            if (raw) tests = JSON.parse(raw).slice(0, 1);
+            renderTests();
+            syncActiveTestPlan();
         } catch(e) {}
     }
 
@@ -1976,14 +1957,12 @@
         }).join('');
     }
 
-    async function deleteTest(id) {
-        try {
-            await fetch(`/timetable/api/tests/${id}`, { method: 'DELETE' });
-            tests = tests.filter(t => t.id !== id);
-            renderTests();
-            syncActiveTestPlan();
-            showToast('Test removed');
-        } catch(e) {}
+    function deleteTest(id) {
+        tests = tests.filter(t => t.id !== id);
+        saveTestsLS();
+        renderTests();
+        syncActiveTestPlan();
+        showToast('Test removed');
     }
 
     function openTestDetail(testId) {
@@ -2095,35 +2074,16 @@
         updateTestDetailUI(test);
     }
 
-    async function saveTestDetail() {
+    function saveTestDetail() {
         const test = tests.find(t => t.id === currentTestId);
         if (!test) return;
         test.syllabus = document.getElementById('tdSyllabus').value;
         test.preparationNotes = document.getElementById('tdPrepNotes').value;
-
-        try {
-            const res = await fetch(`/timetable/api/tests/${test.id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    syllabus: test.syllabus,
-                    preparationNotes: test.preparationNotes,
-                    chapters: test.chapters || [],
-                    completedChapters: test.completedChapters || [],
-                    chapterNotes: test.chapterNotes || {},
-                    subjects: test.subjects || []
-                })
-            });
-            const data = await res.json();
-            if (data.success) {
-                const idx = tests.findIndex(t => t.id === currentTestId);
-                if (idx !== -1) tests[idx] = { ...tests[idx], ...data.test };
-                renderTests();
-                syncActiveTestPlan();
-                closeModal('testDetailModal');
-                showToast('Saved ✓');
-            }
-        } catch(e) { showToast('Failed to save', 'error'); }
+        saveTestsLS();
+        renderTests();
+        syncActiveTestPlan();
+        closeModal('testDetailModal');
+        showToast('Saved ✓');
     }
 
     document.getElementById('tdNewChapter').addEventListener('keypress', e => { if (e.key === 'Enter') addChapterToTest(); });
@@ -2187,27 +2147,18 @@
     window.saveTestDetail = saveTestDetail;
     </script>
 <!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-
-<!-- Your Firebase Config -->
-<script src="/js/firebase-config.js"></script>
-
-<!-- Auth System -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script>
-// ── Inline auth for sidebar pill ──
+if(!firebase.apps.length){firebase.initializeApp({apiKey:"AIzaSyCtu9xTssIZD3S99ekm2gwc1PySwiv0h9Y",authDomain:"buddy-app-jee.firebaseapp.com",projectId:"buddy-app-jee",storageBucket:"buddy-app-jee.firebasestorage.app",messagingSenderId:"888730193846",appId:"1:888730193846:web:4cfc94b24cdb3323e03b17"});}
+firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+</script>
+
+<!-- Sidebar auth slot -->
+<script>
 (function(){
-  if(!window.firebase||!firebase.apps.length){
-    firebase.initializeApp({
-      apiKey:"AIzaSyCtu9xTssIZD3S99ekm2gwc1PySwiv0h9Y",
-      authDomain:"buddy-app-jee.firebaseapp.com",
-      projectId:"buddy-app-jee",
-      storageBucket:"buddy-app-jee.firebasestorage.app",
-      messagingSenderId:"888730193846",
-      appId:"1:888730193846:web:4cfc94b24cdb3323e03b17"
-    });
-  }
+  if(typeof firebase==='undefined'||!firebase.apps.length){return;}
   firebase.auth().onAuthStateChanged(function(user){
     var slot=document.getElementById('sidebarUserSlot');
     if(!slot)return;
@@ -2215,102 +2166,33 @@
       var name=user.displayName||user.email.split('@')[0];
       var av=name.charAt(0).toUpperCase();
       slot.innerHTML=
-        '<div style="margin:8px 0 4px;border-top:1px solid rgba(255,255,255,0.07);padding-top:8px;">'+
-        '<div onclick="this.querySelector(\'.pill-drop\').classList.toggle(\'.show\')" '+
-             'style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:14px;cursor:pointer;position:relative;" '+
-             'id="sidePill">'+
-          '<div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#5b6ef5,#a78bfa);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.9rem;flex-shrink:0;">'+av+'</div>'+
+        '<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:14px;cursor:pointer;position:relative;" id="_ttPill">'+
+          '<div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#5b6ef5,#a78bfa);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.9rem;color:#fff;flex-shrink:0;">'+av+'</div>'+
           '<div style="flex:1;min-width:0;">'+
-            '<div style="font-size:0.78rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+name+'</div>'+
-            '<div style="font-size:0.54rem;color:rgba(255,255,255,0.35);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+user.email+'</div>'+
+            '<div style="font-size:0.78rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#f0f2f8;">'+name+'</div>'+
+            '<div style="font-size:0.54rem;color:rgba(255,255,255,0.3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+user.email+'</div>'+
           '</div>'+
-          '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;color:rgba(255,255,255,0.3)"><path d="M18 15l-6-6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'+
-          '<div class="pill-drop" style="display:none;position:absolute;bottom:calc(100% + 6px);left:0;right:0;background:#121520;border:1px solid rgba(255,255,255,0.12);border-radius:14px;padding:6px;z-index:200;box-shadow:0 -12px 32px rgba(0,0,0,0.6);">'+
-            '<div onclick="firebase.auth().signOut().then(function(){localStorage.removeItem('buddy_storage_mode');location.reload();})" '+
-                 'style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;font-size:0.68px;color:#f04444;cursor:pointer;font-size:0.68rem;" '+
-                 'onmouseover="this.style.background='rgba(240,68,68,0.1)'" onmouseout="this.style.background=''">'+
-              '<svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>'+
-              'Sign Out'+
+          '<div id="_ttDrop" style="display:none;position:absolute;bottom:calc(100%+6px);left:0;right:0;background:#121520;border:1px solid rgba(255,255,255,0.12);border-radius:14px;padding:6px;z-index:500;box-shadow:0 -12px 32px rgba(0,0,0,0.6);">'+
+            '<div onclick="firebase.auth().signOut().then(function(){localStorage.removeItem('buddy_storage_mode');location.reload();})" style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;font-size:0.68rem;color:#f04444;cursor:pointer;">'+
+              '<svg width='12' height='12' viewBox='0 0 24 24' fill='none'><path d='M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9' stroke='currentColor' stroke-width='1.5' stroke-linecap='round'/></svg>Sign Out'+
             '</div>'+
           '</div>'+
-        '</div>'+
         '</div>';
-      // toggle dropdown on click
-      var pill=document.getElementById('sidePill');
-      var drop=pill.querySelector('.pill-drop');
+      var pill=document.getElementById('_ttPill');
+      var drop=document.getElementById('_ttDrop');
       pill.addEventListener('click',function(e){
-        if(e.target.closest('.pill-drop'))return;
+        if(e.target.closest('#_ttDrop'))return;
         drop.style.display=drop.style.display==='none'?'block':'none';
       });
       document.addEventListener('click',function(e){
-        if(!e.target.closest('#sidePill'))drop.style.display='none';
-      });
+        if(!e.target.closest('#_ttPill'))drop.style.display='none';
+      },{capture:true});
     } else {
-      slot.innerHTML='<button onclick="if(typeof openOverlay===\'function\'){openOverlay();if(typeof showScreen===\'function\')showScreen(\'screenLogin\');}else{location.href=\'/\';}" style="width:100%;padding:8px 10px;border-radius:12px;background:rgba(91,110,245,0.12);border:1px solid rgba(91,110,245,0.3);color:#7c8ff8;font-family:\'JetBrains Mono\',monospace;font-size:0.62rem;letter-spacing:0.08em;cursor:pointer;text-transform:uppercase;">Sign In</button>';
+      slot.innerHTML='<a href="/" style="display:block;width:100%;padding:8px 10px;border-radius:12px;background:rgba(91,110,245,0.12);border:1px solid rgba(91,110,245,0.3);color:#7c8ff8;font-family:'JetBrains Mono',monospace;font-size:0.62rem;letter-spacing:0.08em;cursor:pointer;text-transform:uppercase;text-align:center;text-decoration:none;">Sign In</a>';
     }
   });
 })();
 </script>
-<!-- Auth Modal -->
-<div id="authModal" class="modal">
-    <div class="modal-content" style="max-width: 400px;">
-        <div class="modal-header">
-            <h3 id="authTitle">Welcome to Buddy</h3>
-            <button class="close-modal" onclick="closeModal('authModal')">&times;</button>
-        </div>
-        
-        <!-- Login Form -->
-        <div id="loginForm">
-            <div class="form-group">
-                <label>Email</label>
-                <input type="email" id="loginEmail" placeholder="your@email.com">
-            </div>
-            <div class="form-group">
-                <label>Password</label>
-                <input type="password" id="loginPassword" placeholder="••••••••">
-            </div>
-            <button class="primary-btn" onclick="login()" style="width: 100%;">Login</button>
-            <p style="text-align: center; margin: 1rem 0;">Don't have an account? <a href="#" onclick="switchToSignup()">Sign up</a></p>
-        </div>
-        
-        <!-- Signup Form -->
-        <div id="signupForm" style="display: none;">
-            <div class="form-group">
-                <label>Name</label>
-                <input type="text" id="signupName" placeholder="Your name">
-            </div>
-            <div class="form-group">
-                <label>Email</label>
-                <input type="email" id="signupEmail" placeholder="your@email.com">
-            </div>
-            <div class="form-group">
-                <label>Password</label>
-                <input type="password" id="signupPassword" placeholder="••••••••">
-            </div>
-            <div class="form-group">
-                <label>Confirm Password</label>
-                <input type="password" id="signupConfirmPassword" placeholder="••••••••">
-            </div>
-            <button class="primary-btn" onclick="signup()" style="width: 100%;">Create Account</button>
-            <p style="text-align: center; margin: 1rem 0;">Already have an account? <a href="#" onclick="switchToLogin()">Login</a></p>
-        </div>
-        
-        <!-- Sync Mode Selection -->
-        <div id="syncModeForm" style="display: none;">
-            <p style="margin-bottom: 1rem;">How do you want to store your data?</p>
-            <button class="primary-btn" onclick="setSyncMode('online')" style="width: 100%; margin-bottom: 0.5rem;">🌐 Online Sync (Access anywhere)</button>
-            <button class="secondary-btn" onclick="setSyncMode('local')" style="width: 100%;">📱 Local Only (This device only)</button>
-        </div>
-        
-        <!-- Loading State -->
-        <div id="loadingState" style="display: none; text-align: center; padding: 2rem;">
-            <div class="spinner"></div>
-            <p>Syncing your data...</p>
-        </div>
-    </div>
-</div>
-
-
 <!-- ══ MOBILE UI ══ -->
 <div class="mob-backdrop" id="_mbd"></div>
 
