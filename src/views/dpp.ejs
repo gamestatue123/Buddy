@@ -654,80 +654,6 @@
   </div>
 </div>
 
-<!-- Auth Modal -->
-<div id="authModal" class="modal">
-    <div class="modal-content" style="max-width: 400px;">
-        <div class="modal-header">
-            <h3 id="authTitle">Welcome to Buddy</h3>
-            <button class="close-modal" onclick="closeModal('authModal')">&times;</button>
-        </div>
-        
-        <!-- Login Form -->
-        <div id="loginForm">
-            <div class="form-group">
-                <label>Email</label>
-                <input type="email" id="loginEmail" placeholder="your@email.com">
-            </div>
-            <div class="form-group">
-                <label>Password</label>
-                <input type="password" id="loginPassword" placeholder="••••••••">
-            </div>
-            <button class="primary-btn" onclick="login()" style="width: 100%;">Login</button>
-            <p style="text-align: center; margin: 1rem 0;">Don't have an account? <a href="#" onclick="switchToSignup()">Sign up</a></p>
-        </div>
-        
-        <!-- Signup Form -->
-        <div id="signupForm" style="display: none;">
-            <div class="form-group">
-                <label>Name</label>
-                <input type="text" id="signupName" placeholder="Your name">
-            </div>
-            <div class="form-group">
-                <label>Email</label>
-                <input type="email" id="signupEmail" placeholder="your@email.com">
-            </div>
-            <div class="form-group">
-                <label>Password</label>
-                <input type="password" id="signupPassword" placeholder="••••••••">
-            </div>
-            <div class="form-group">
-                <label>Confirm Password</label>
-                <input type="password" id="signupConfirmPassword" placeholder="••••••••">
-            </div>
-            <button class="primary-btn" onclick="signup()" style="width: 100%;">Create Account</button>
-            <p style="text-align: center; margin: 1rem 0;">Already have an account? <a href="#" onclick="switchToLogin()">Login</a></p>
-        </div>
-        
-        <!-- Sync Mode Selection -->
-        <div id="syncModeForm" style="display: none;">
-            <p style="margin-bottom: 1rem;">How do you want to store your data?</p>
-            <button class="primary-btn" onclick="setSyncMode('online')" style="width: 100%; margin-bottom: 0.5rem;">🌐 Online Sync (Access anywhere)</button>
-            <button class="secondary-btn" onclick="setSyncMode('local')" style="width: 100%;">📱 Local Only (This device only)</button>
-        </div>
-        
-        <!-- Loading State -->
-        <div id="loadingState" style="display: none; text-align: center; padding: 2rem;">
-            <div class="spinner"></div>
-            <p>Syncing your data...</p>
-        </div>
-    </div>
-</div>
-
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script>
-if(!firebase.apps.length){firebase.initializeApp({apiKey:"AIzaSyCtu9xTssIZD3S99ekm2gwc1PySwiv0h9Y",authDomain:"buddy-app-jee.firebaseapp.com",projectId:"buddy-app-jee",storageBucket:"buddy-app-jee.firebasestorage.app",messagingSenderId:"888730193846",appId:"1:888730193846:web:4cfc94b24cdb3323e03b17"});}
-firebase.auth().onAuthStateChanged(function(user){
-  var slot=document.getElementById('sidebarUserSlot');
-  if(!slot)return;
-  if(user){
-    var name=user.displayName||user.email.split('@')[0];
-    slot.innerHTML='<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:14px;margin-bottom:8px;"><div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#5b6ef5,#a78bfa);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.9rem;color:#fff;flex-shrink:0;">'+name.charAt(0).toUpperCase()+'</div><div style="flex:1;min-width:0;"><div style="font-size:0.78rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#e8ebf8;">'+name+'</div><div style="font-size:0.54rem;color:rgba(255,255,255,0.35);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+user.email+'</div></div><button onclick="firebase.auth().signOut().then(function(){localStorage.removeItem('buddy_storage_mode');location.reload();})" style="background:rgba(240,68,68,0.12);border:none;color:#f04444;padding:3px 8px;border-radius:6px;font-size:0.6rem;cursor:pointer;white-space:nowrap;flex-shrink:0;">Out</button></div>';
-  } else { slot.innerHTML='<button onclick="if(typeof openOverlay===\'function\'){openOverlay();if(typeof showScreen===\'function\')showScreen(\'screenLogin\');}else{location.href=\'/\';}" style="width:100%;padding:8px 10px;border-radius:12px;background:rgba(91,110,245,0.12);border:1px solid rgba(91,110,245,0.3);color:#7c8ff8;font-family:\'JetBrains Mono\',monospace;font-size:0.62rem;letter-spacing:0.08em;cursor:pointer;text-transform:uppercase;">Sign In</button>'; }
-});
-</script>
-
 <!-- ══ MOBILE UI ══ -->
 <div class="mob-backdrop" id="_mbd"></div>
 
@@ -812,6 +738,14 @@ firebase.auth().onAuthStateChanged(function(user){
 ._mdbtn.blu { background: rgba(91,110,245,0.1); border-color: rgba(91,110,245,0.22); color: #7c8ff8; }
 </style>
 
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+if(!firebase.apps.length){firebase.initializeApp({apiKey:"AIzaSyCtu9xTssIZD3S99ekm2gwc1PySwiv0h9Y",authDomain:"buddy-app-jee.firebaseapp.com",projectId:"buddy-app-jee",storageBucket:"buddy-app-jee.firebasestorage.app",messagingSenderId:"888730193846",appId:"1:888730193846:web:4cfc94b24cdb3323e03b17"});}
+firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+</script>
+<script src="/js/auth.js"></script>
 <script>
 (function() {
   if (window.innerWidth > 768) return;
@@ -898,3 +832,4 @@ firebase.auth().onAuthStateChanged(function(user){
 
 </body>
 </html>
+
