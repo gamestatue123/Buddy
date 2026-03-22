@@ -194,7 +194,7 @@
     .auth-strip{height:3px;background:linear-gradient(90deg,var(--acc),var(--vio),var(--amber));border-radius:28px 28px 0 0;}
     .auth-glow{position:absolute;top:-80px;left:50%;transform:translateX(-50%);width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(91,110,245,0.2) 0%,transparent 70%);pointer-events:none;}
     .auth-logo-row{display:flex;align-items:center;gap:10px;padding:1.6rem 1.8rem 0;}
-    .auth-logo-icon{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--acc),var(--vio));display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:1.1rem;color:#fff;box-shadow:0 4px 16px rgba(91,110,245,0.4);}
+    .auth-logo-icon{width:34px;height:34px;border-radius:9px;object-fit:cover;display:block;box-shadow:0 4px 16px rgba(91,110,245,0.35);border:1px solid rgba(255,255,255,0.12);}
     .auth-logo-text{font-family:var(--fd);font-size:1.5rem;letter-spacing:0.12em;color:var(--fg1);}
     .auth-logo-tag{font-family:var(--fm);font-size:0.54rem;color:var(--fg3);letter-spacing:0.1em;text-transform:uppercase;margin-left:auto;}
     .auth-screen{display:none;padding:1.4rem 1.8rem 1.8rem;}
@@ -264,7 +264,7 @@
     <div class="auth-strip"></div>
     <div class="auth-glow"></div>
     <div class="auth-logo-row">
-      <div class="auth-logo-icon">B</div>
+      <img class="auth-logo-icon" src="/logo.png" alt="Buddy logo">
       <div class="auth-logo-text">BUDDY</div>
       <span class="auth-logo-tag">JEE PREP</span>
     </div>
@@ -383,6 +383,7 @@
           <div class="user-dd-item danger" onclick="doLogout();event.stopPropagation()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Sign Out</div>
         </div>
       </div>
+      <button id="localSignInBtn" onclick="openOverlay();showScreen('screenLogin')" style="width:100%;display:none;align-items:center;justify-content:center;gap:8px;padding:8px 10px;background:rgba(91,110,245,0.12);border:1px solid rgba(91,110,245,0.28);color:#7c8ff8;border-radius:14px;font-family:var(--fm);font-size:0.62rem;letter-spacing:0.08em;cursor:pointer;text-transform:uppercase;margin-bottom:8px;">Sign In</button>
       <div class="streak-badge">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L15 8L22 9L17 14L18 21L12 17L6 21L7 14L2 9L9 8L12 2Z"/></svg>
         <span id="homeStreak">Streak: 0 days</span>
@@ -647,14 +648,22 @@ async function doLogout(){
 
 function showUserPill(user){
     const pill=document.getElementById('userMenuPill');
+    const localBtn=document.getElementById('localSignInBtn');
     const name=user.displayName||user.email.split('@')[0];
     document.getElementById('userName').textContent=name;
     document.getElementById('userEmail').textContent=user.email;
     document.getElementById('userAvatar').textContent=name.charAt(0).toUpperCase();
     pill.style.display='flex';
+    if(localBtn) localBtn.style.display='none';
     const hn=document.getElementById('heroName');
     hn.textContent=name.split(' ')[0].toUpperCase()+',';
     hn.style.display='block';
+}
+function showLocalSignInButton(){
+    const pill=document.getElementById('userMenuPill');
+    const localBtn=document.getElementById('localSignInBtn');
+    if(pill) pill.style.display='none';
+    if(localBtn) localBtn.style.display='flex';
 }
 function toggleUserDropdown(){document.getElementById('userDropdown').classList.toggle('show');}
 document.addEventListener('click',e=>{if(!e.target.closest('#userMenuPill'))document.getElementById('userDropdown')?.classList.remove('show');});
@@ -688,7 +697,7 @@ async function syncToCloud(){
     }catch(e){document.getElementById('syncStatusText').textContent='⚠ FAILED';}
     finally{_si=false;}
 }
-function loadLocalData(){document.getElementById('syncStatusText').textContent='LOCAL';loadPageData();}
+function loadLocalData(){showLocalSignInButton();document.getElementById('syncStatusText').textContent='LOCAL';loadPageData();}
 
 // ══ PAGE DATA ══
 function loadPageData(){loadDPPStats();loadSyllabusProgress();buildHeatmap();loadTasks();loadSchedule();loadStreak();loadTestWidget();}
@@ -828,12 +837,17 @@ window.addEventListener('resize',()=>{W=cv.width=innerWidth;H=cv.height=innerHei
 <div class="mob-backdrop" id="_mbd"></div>
 
 <header class="mob-topbar">
-  <div style="display:flex;align-items:center;gap:10px;">
+  <div class="mob-brand-wrap">
     <button id="_mMenu" style="width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.07);display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,0.55);flex-shrink:0;">
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
     </button>
-    <img src="/logo.png" style="width:28px;height:28px;border-radius:7px;object-fit:cover;flex-shrink:0;" onerror="this.style.display='none'" alt="">
-    <span style="font-family:'Bebas Neue',sans-serif;font-size:1.05rem;letter-spacing:0.1em;color:#e8ebf8;">OVERVIEW</span>
+    <div class="mob-brand-chip">
+      <img src="/logo.png" style="width:28px;height:28px;border-radius:7px;object-fit:cover;flex-shrink:0;" onerror="this.style.display='none'" alt="">
+      <div>
+        <div class="mob-brand-title">BUDDY</div>
+        <div class="mob-brand-sub">Overview</div>
+      </div>
+    </div>
   </div>
   <div id="_mRight" style="display:flex;align-items:center;gap:8px;"></div>
 </header>
@@ -856,6 +870,35 @@ window.addEventListener('resize',()=>{W=cv.width=innerWidth;H=cv.height=innerHei
 
 <style>
 /* ── Mob topbar inner styles (not layout) ── */
+.mob-brand-wrap{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.mob-brand-chip{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:12px;
+  padding:5px 9px 5px 6px;
+}
+.mob-brand-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:0.9rem;
+  letter-spacing:0.12em;
+  line-height:1;
+  color:#e8ebf8;
+}
+.mob-brand-sub{
+  font-family:'JetBrains Mono',monospace;
+  font-size:0.52rem;
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+  color:rgba(255,255,255,0.55);
+  margin-top:2px;
+}
 #_mRight button {
   padding: 7px 13px;
   background: rgba(91,110,245,0.14);

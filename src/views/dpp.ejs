@@ -185,7 +185,7 @@
             <nav class="nav-menu">
                 <a href="/" class="nav-item">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 9L12 3L21 9V20C21 20.55 20.55 21 20 21H15V15H9V21H4C3.45 21 3 20.55 3 20V9Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
-                    <span>Home</span>
+                    <span>Overview</span>
                 </a>
                 <a href="/timetable" class="nav-item">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M16 2V6M8 2V6M3 10H21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
@@ -195,6 +195,8 @@
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
                     <span>DPP Logger</span>
                 </a>
+                <a href="/syllabus" class="nav-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 4H20V20H4V4Z" stroke="currentColor" stroke-width="1.5"/><path d="M8 7H16M8 11H14M8 15H12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span>Syllabus</span></a>
+                <a href="/test-analysis" class="nav-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Test Analysis</span></a>
             </nav>
             <div class="sidebar-footer">
                 <div id="sidebarUserSlot"></div>
@@ -622,7 +624,7 @@ firebase.auth().onAuthStateChanged(function(user){
   if(user){
     var name=user.displayName||user.email.split('@')[0];
     slot.innerHTML='<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:14px;margin-bottom:8px;"><div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#5b6ef5,#a78bfa);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.9rem;color:#fff;flex-shrink:0;">'+name.charAt(0).toUpperCase()+'</div><div style="flex:1;min-width:0;"><div style="font-size:0.78rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#e8ebf8;">'+name+'</div><div style="font-size:0.54rem;color:rgba(255,255,255,0.35);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+user.email+'</div></div><button onclick="firebase.auth().signOut().then(function(){localStorage.removeItem('buddy_storage_mode');location.reload();})" style="background:rgba(240,68,68,0.12);border:none;color:#f04444;padding:3px 8px;border-radius:6px;font-size:0.6rem;cursor:pointer;white-space:nowrap;flex-shrink:0;">Out</button></div>';
-  } else { slot.innerHTML=''; }
+  } else { slot.innerHTML='<button onclick="if(typeof openOverlay===\'function\'){openOverlay();if(typeof showScreen===\'function\')showScreen(\'screenLogin\');}else{location.href=\'/\';}" style="width:100%;padding:8px 10px;border-radius:12px;background:rgba(91,110,245,0.12);border:1px solid rgba(91,110,245,0.3);color:#7c8ff8;font-family:\'JetBrains Mono\',monospace;font-size:0.62rem;letter-spacing:0.08em;cursor:pointer;text-transform:uppercase;">Sign In</button>'; }
 });
 </script>
 
