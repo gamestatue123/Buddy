@@ -1500,6 +1500,18 @@
         return d.toLocaleDateString('en-IN', { day:'numeric', month:'long', year:'numeric', weekday:'short' });
     }
 
+
+    function syncActiveTestPlan() {
+        if (!tests.length) { localStorage.removeItem('active_test_plan'); return; }
+        const t = tests[0];
+        localStorage.setItem('active_test_plan', JSON.stringify({
+            examName: t.name || 'Upcoming Test',
+            examDate: t.date || '',
+            revisionTarget: t.chapters?.length ? Math.round(((t.completedChapters?.length||0)/t.chapters.length)*100) : 0,
+            notes: t.preparationNotes || ''
+        }));
+    }
+
     function closeModal(id) {
         document.getElementById(id).classList.remove('show');
     }
@@ -1798,6 +1810,7 @@
     async function addTest() {
         const name = document.getElementById('atName').value.trim();
         const date = document.getElementById('atDate').value;
+        if (tests.length >= 1) { showToast('Only one active test is allowed here. Edit or delete the existing one.', 'error'); return; }
         if (!name) { showToast('Enter a test name', 'error'); return; }
         if (!date) { showToast('Pick a date', 'error'); return; }
 
@@ -1823,9 +1836,10 @@
             });
             const data = await res.json();
             if (data.success) {
-                tests.push({ ...data.test, subjects, chapters, completedChapters: [],
-                    testType, difficulty, priority, duration, venue, maxMarks, targetScore });
+                tests = [{ ...data.test, subjects, chapters, completedChapters: [], chapterNotes: {},
+                    testType, difficulty, priority, duration, venue, maxMarks, targetScore }];
                 renderTests();
+                syncActiveTestPlan();
                 closeModal('addTestModal');
                 showToast('Test added 🎯');
             }
@@ -1839,7 +1853,7 @@
         try {
             const res = await fetch('/timetable/api/tests');
             const data = await res.json();
-            if (data.success) { tests = data.tests; renderTests(); }
+            if (data.success) { tests = (data.tests||[]).slice(0,1); renderTests(); syncActiveTestPlan(); }
         } catch(e) {}
     }
 
@@ -1967,6 +1981,7 @@
             await fetch(`/timetable/api/tests/${id}`, { method: 'DELETE' });
             tests = tests.filter(t => t.id !== id);
             renderTests();
+            syncActiveTestPlan();
             showToast('Test removed');
         } catch(e) {}
     }
@@ -2018,13 +2033,16 @@
         if (chapters.length === 0) {
             listEl.innerHTML = `<div class="empty-st" style="padding:1.5rem"><div class="empty-st-icon" style="font-size:1.5rem">📖</div><div class="empty-st-text">No chapters yet. Add one below.</div></div>`;
         } else {
-            listEl.innerHTML = chapters.map((ch, i) => `
+            listEl.innerHTML = chapters.map((ch, i) => {
+                const note=(test.chapterNotes||{})[ch]||'';
+                return `
                 <div class="ch-item" onclick="toggleChapter('${escHtml(ch)}')">
                     <div class="ch-item-cb ${completed.includes(ch) ? 'done' : ''}"></div>
-                    <div class="ch-item-text ${completed.includes(ch) ? 'done' : ''}">${escHtml(ch)}</div>
+                    <div class="ch-item-text ${completed.includes(ch) ? 'done' : ''}">${escHtml(ch)}${note?`<div style="font-size:0.62rem;color:var(--text-3);margin-top:2px;">📝 ${escHtml(note)}</div>`:''}</div>
+                    <button class="ch-item-del" onclick="editChapterNote('${escHtml(ch)}', event)" title="Add note">📝</button>
                     <button class="ch-item-del" onclick="removeChapter('${escHtml(ch)}', event)" title="Remove">✕</button>
                 </div>
-            `).join('');
+            `;}).join('');
         }
     }
 
@@ -2048,6 +2066,20 @@
         if (!test) return;
         test.chapters = test.chapters.filter(c => c !== chapter);
         test.completedChapters = (test.completedChapters||[]).filter(c => c !== chapter);
+        updateTestDetailUI(test);
+    }
+
+
+    function editChapterNote(chapter, e) {
+        e.stopPropagation();
+        const test = tests.find(t => t.id === currentTestId);
+        if (!test) return;
+        if (!test.chapterNotes) test.chapterNotes = {};
+        const existing = test.chapterNotes[chapter] || '';
+        const note = prompt(`Focus note for ${chapter}:`, existing);
+        if (note === null) return;
+        if (note.trim()) test.chapterNotes[chapter] = note.trim();
+        else delete test.chapterNotes[chapter];
         updateTestDetailUI(test);
     }
 
@@ -2078,6 +2110,7 @@
                     preparationNotes: test.preparationNotes,
                     chapters: test.chapters || [],
                     completedChapters: test.completedChapters || [],
+                    chapterNotes: test.chapterNotes || {},
                     subjects: test.subjects || []
                 })
             });
@@ -2086,6 +2119,7 @@
                 const idx = tests.findIndex(t => t.id === currentTestId);
                 if (idx !== -1) tests[idx] = { ...tests[idx], ...data.test };
                 renderTests();
+                syncActiveTestPlan();
                 closeModal('testDetailModal');
                 showToast('Saved ✓');
             }
