@@ -932,4 +932,392 @@ body {
     border-color: rgba(99, 102, 241, 0.3);
     box-shadow: 0 20px 40px -20px rgba(0, 0, 0, 0.5);
 }
+/* ===== UNIFIED MOBILE SYSTEM ===== */
+:root {
+    --sat: env(safe-area-inset-top, 0px);
+    --sar: env(safe-area-inset-right, 0px);
+    --sab: env(safe-area-inset-bottom, 0px);
+    --sal: env(safe-area-inset-left, 0px);
+    --tab-h: 62px;
+}
+
+@media (max-width: 768px) {
+    /* Sidebar - hidden by default */
+    .sidebar {
+        position: fixed !important;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: 280px !important;
+        transform: translateX(-100%);
+        transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 500;
+        background: rgba(10, 10, 15, 0.98) !important;
+        backdrop-filter: blur(20px);
+        margin: 0 !important;
+        padding: 1rem 1.5rem !important;
+        border-right: 1px solid rgba(255,255,255,0.07);
+    }
+    
+    .sidebar.mobile-open {
+        transform: translateX(0);
+        box-shadow: 4px 0 30px rgba(0,0,0,0.5);
+    }
+    
+    /* Backdrop */
+    .mob-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.6);
+        backdrop-filter: blur(4px);
+        z-index: 499;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.25s, visibility 0.25s;
+    }
+    
+    .mob-backdrop.show {
+        opacity: 1;
+        visibility: visible;
+    }
+    
+    /* Main Content - Add padding for fixed bars */
+    .main-content {
+        margin-left: 0 !important;
+        padding-top: calc(56px + var(--sat) + 0.75rem) !important;
+        padding-bottom: calc(var(--tab-h) + var(--sab) + 1.5rem) !important;
+        padding-left: max(1rem, var(--sal)) !important;
+        padding-right: max(1rem, var(--sar)) !important;
+        min-height: 100vh;
+    }
+    
+    /* Mobile Top Bar */
+    .mob-topbar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: calc(56px + var(--sat));
+        padding-top: var(--sat);
+        background: rgba(8, 10, 16, 0.96);
+        backdrop-filter: blur(20px);
+        border-bottom: 1px solid rgba(255,255,255,0.06);
+        z-index: 450;
+        display: flex !important;
+        align-items: center;
+        justify-content: space-between;
+        padding-left: max(1rem, var(--sal));
+        padding-right: max(1rem, var(--sar));
+    }
+    
+    .mob-topbar-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    .mob-topbar-logo {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        object-fit: cover;
+    }
+    
+    .mob-topbar-logo-fallback {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: 'Bebas Neue', monospace;
+        font-size: 1.2rem;
+        color: white;
+    }
+    
+    .mob-topbar-title {
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: 1.1rem;
+        letter-spacing: 0.08em;
+        color: #e8ebf8;
+    }
+    
+    .mob-topbar-right {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .mob-icon-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.07);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: rgba(255,255,255,0.6);
+        transition: all 0.15s;
+    }
+    
+    .mob-icon-btn:active {
+        background: rgba(255,255,255,0.1);
+        transform: scale(0.95);
+    }
+    
+    .mob-login-btn-sm {
+        padding: 6px 14px;
+        background: rgba(99, 102, 241, 0.15);
+        border: 1px solid rgba(99, 102, 241, 0.3);
+        border-radius: 24px;
+        color: #7c8ff8;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.7rem;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: all 0.15s;
+    }
+    
+    .mob-login-btn-sm:active {
+        background: rgba(99, 102, 241, 0.25);
+        transform: scale(0.96);
+    }
+    
+    .mob-user-av {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: white;
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(99,102,241,0.3);
+    }
+    
+    /* Bottom Tab Bar */
+    .mob-tabbar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: calc(var(--tab-h) + var(--sab));
+        padding-bottom: var(--sab);
+        background: rgba(9, 11, 20, 0.96);
+        backdrop-filter: blur(20px);
+        border-top: 1px solid rgba(255,255,255,0.06);
+        z-index: 450;
+        display: flex !important;
+        align-items: center;
+        justify-content: space-around;
+    }
+    
+    .mob-tab {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        padding: 8px 4px;
+        text-decoration: none;
+        color: rgba(255,255,255,0.4);
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.55rem;
+        font-weight: 500;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        transition: all 0.15s;
+        position: relative;
+        border: none;
+        background: none;
+        cursor: pointer;
+    }
+    
+    .mob-tab.active {
+        color: #7c8ff8;
+    }
+    
+    .mob-tab.active svg {
+        color: #5b6ef5;
+    }
+    
+    .mob-tab::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 24px;
+        height: 2px;
+        background: #5b6ef5;
+        border-radius: 0 0 2px 2px;
+        opacity: 0;
+        transition: opacity 0.15s;
+    }
+    
+    .mob-tab.active::before {
+        opacity: 1;
+    }
+    
+    .mob-tab:active {
+        transform: scale(0.96);
+    }
+    
+    /* Mobile Drawer (Profile) */
+    .mob-drawer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: #0d1020;
+        border-radius: 24px 24px 0 0;
+        border-top: 1px solid rgba(255,255,255,0.08);
+        z-index: 600;
+        padding: 0 0 calc(var(--sab) + 1rem);
+        transform: translateY(100%);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 -8px 30px rgba(0,0,0,0.5);
+        max-height: 85vh;
+        overflow-y: auto;
+    }
+    
+    .mob-drawer.open {
+        transform: translateY(0);
+    }
+    
+    .mob-drawer-handle {
+        display: flex;
+        justify-content: center;
+        padding: 12px 0 8px;
+    }
+    
+    .mob-drawer-handle::after {
+        content: '';
+        width: 40px;
+        height: 4px;
+        background: rgba(255,255,255,0.15);
+        border-radius: 2px;
+    }
+    
+    .mob-drawer-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 599;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.25s;
+    }
+    
+    .mob-drawer-backdrop.show {
+        opacity: 1;
+        visibility: visible;
+    }
+    
+    .mob-drawer-section {
+        padding: 0 1rem 1rem;
+    }
+    
+    .mob-drawer-title {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.6rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: rgba(255,255,255,0.3);
+        padding: 0 0 10px;
+    }
+    
+    .mob-drawer-user {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 16px;
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 18px;
+        margin-bottom: 12px;
+    }
+    
+    .mob-drawer-av {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: 1.4rem;
+        font-weight: 600;
+        color: white;
+    }
+    
+    .mob-drawer-name {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #e8ebf8;
+    }
+    
+    .mob-drawer-email {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.6rem;
+        color: rgba(255,255,255,0.4);
+        margin-top: 3px;
+    }
+    
+    .mob-drawer-btn {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 14px 16px;
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 14px;
+        color: rgba(255,255,255,0.6);
+        cursor: pointer;
+        font-size: 0.85rem;
+        font-weight: 500;
+        transition: all 0.15s;
+        margin-bottom: 8px;
+        width: 100%;
+        text-align: left;
+    }
+    
+    .mob-drawer-btn:active {
+        background: rgba(255,255,255,0.08);
+        transform: scale(0.98);
+    }
+    
+    .mob-drawer-btn.danger {
+        color: #f04444;
+        border-color: rgba(240,68,68,0.15);
+    }
+    
+    .mob-drawer-btn.primary {
+        background: rgba(99, 102, 241, 0.12);
+        border-color: rgba(99, 102, 241, 0.25);
+        color: #7c8ff8;
+    }
+    
+    /* Hide desktop elements on mobile */
+    .sidebar-footer {
+        display: none;
+    }
+
 }
