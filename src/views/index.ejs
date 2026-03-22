@@ -707,7 +707,6 @@ async function syncToCloud(){
     finally{_si=false;}
 }
 function loadLocalData(){showLocalSignInButton();document.getElementById('syncStatusText').textContent='LOCAL';applyProfile();loadPageData();}
-function loadLocalData(){showLocalSignInButton();document.getElementById('syncStatusText').textContent='LOCAL';loadPageData();}
 
 // ══ PAGE DATA ══
 function applyProfile(override={}){
@@ -723,8 +722,7 @@ function applyProfile(override={}){
     const hn=document.getElementById('heroName');
     if(name&&hn){hn.textContent=name.split(' ')[0].toUpperCase()+',';hn.style.display='block';}
 }
-function loadPageData(){applyProfile();loadDPPStats();loadSyllabusProgress();loadUpcomingWidget();loadTasks();loadSchedule();loadStreak();loadTestWidget();}
-function loadPageData(){applyProfile();loadDPPStats();loadSyllabusProgress();loadMomentumWidget();loadTasks();loadSchedule();loadStreak();loadTestWidget();}
+function loadPageData(){applyProfile();loadDPPStats();loadSyllabusProgress();loadMomentumWidget();loadTasks();loadScheduleLocal();loadStreak();loadTestWidget();updateCountdown();}
 
 // Clock
 function updateClock(){
@@ -785,6 +783,33 @@ function loadUpcomingWidget(){
     const notes=plan.notes?plan.notes.split('.').map(x=>x.trim()).filter(Boolean).slice(0,3):[];
     list.innerHTML=notes.length?notes.map(n=>`<div class="task-row"><div class="task-cb"></div><div class="task-text">${esc(n)}</div></div>`).join(''):'<div class="empty-card"><div class="empty-ico">📝</div><div class="empty-t">Add strategy notes from Timetable → Tests tab.</div></div>';
     document.getElementById('upcomingBadge').textContent=plan.examName?'FROM TIMETABLE':'DEFAULT JEE PLAN';
+}
+
+// Schedule from localStorage
+function loadScheduleLocal(){
+    try{
+        const DAYKEYS=['mon','tue','wed','thu','fri','sat','sun'];
+        const DAYNAMES=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+        const SUB_COLORS={Physics:'var(--phys)',Chemistry:'var(--chem)',Mathematics:'var(--math)',Maths:'var(--math)'};
+        const dayIdx=(new Date().getDay()+6)%7;
+        const dayKey=DAYKEYS[dayIdx];
+        document.getElementById('classDayBadge').textContent=DAYNAMES[dayIdx].toUpperCase();
+        const sched=JSON.parse(localStorage.getItem('buddy_schedule')||'{}');
+        const cls=(sched[dayKey]||[]).filter(c=>c.subject&&c.subject!=='Off');
+        if(!cls.length){document.getElementById('scheduleList').innerHTML=`<div class="empty-card"><div class="empty-ico">🏖</div><div class="empty-t">No classes today</div></div>`;return;}
+        document.getElementById('scheduleList').innerHTML=cls.map(c=>`<div class="sch-item"><div class="sch-dot" style="background:${SUB_COLORS[c.subject]||'var(--acc)'}"></div><div class="sch-text">${esc(c.subject)}</div>${c.time?`<div class="sch-tag">${esc(c.time)}</div>`:''}${c.teacher?`<div class="sch-tag">· ${esc(c.teacher)}</div>`:''}</div>`).join('');
+    }catch(e){}
+}
+
+// Streak from localStorage
+function loadStreak(){
+    try{
+        const streak=parseInt(localStorage.getItem('buddy_streak')||'0');
+        document.getElementById('streakNum').textContent=streak;
+        const hse=document.getElementById('homeStreak');
+        if(hse) hse.textContent='Streak: '+streak+' days';
+    }catch(e){}
+}
 // Momentum widget
 function loadMomentumWidget(){
     const box=document.getElementById('momentumWidget');
@@ -1094,3 +1119,4 @@ window.addEventListener('resize',()=>{W=cv.width=innerWidth;H=cv.height=innerHei
 
 </body>
 </html>
+
