@@ -558,6 +558,30 @@ function showScreen(id){document.querySelectorAll('.auth-screen').forEach(s=>s.c
 function closeOverlay(){document.getElementById('authOverlay').classList.remove('show');}
 function openOverlay(){document.getElementById('authOverlay').classList.add('show');}
 
+// JEE Year modal — avoids browser prompt() which can be blocked
+function showJeeYearModal(onConfirm){
+    const overlay=document.createElement('div');
+    overlay.id='jeeYearModal';
+    overlay.style.cssText='position:fixed;inset:0;z-index:20000;display:flex;align-items:center;justify-content:center;background:rgba(4,6,14,0.92);backdrop-filter:blur(20px);';
+    overlay.innerHTML=`
+      <div style="background:var(--ink2);border:1px solid rgba(91,110,245,0.25);border-radius:24px;padding:2rem 2.2rem;width:340px;max-width:90vw;box-shadow:0 40px 80px rgba(0,0,0,0.7),0 0 0 1px rgba(91,110,245,0.08);">
+        <div style="height:3px;background:linear-gradient(90deg,var(--acc),var(--vio),var(--amber));border-radius:3px;margin-bottom:1.5rem;margin-top:-2rem;margin-left:-2.2rem;margin-right:-2.2rem;border-radius:24px 24px 0 0;"></div>
+        <div style="font-family:var(--fd);font-size:1.8rem;letter-spacing:0.06em;color:var(--fg1);margin-bottom:6px;">YOUR TARGET YEAR</div>
+        <div style="font-family:var(--fm);font-size:0.72rem;color:var(--fg3);letter-spacing:0.06em;margin-bottom:1.4rem;line-height:1.6;">Which year are you targeting for JEE? This powers your countdown timer.</div>
+        <div style="display:flex;gap:8px;margin-bottom:1.2rem;flex-wrap:wrap;">
+          ${[2025,2026,2027,2028].map(y=>`<button onclick="document.getElementById('jeeYearInput').value='${y}';document.querySelectorAll('.jee-yr-pill').forEach(b=>b.classList.remove('active'));this.classList.add('active');" class="jee-yr-pill" style="flex:1;min-width:70px;padding:8px 0;background:var(--ink3);border:1px solid var(--bd);border-radius:var(--r2);font-family:var(--fd);font-size:1.1rem;letter-spacing:0.06em;color:var(--fg2);cursor:pointer;transition:all 0.15s;">${y}</button>`).join('')}
+        </div>
+        <input id="jeeYearInput" type="number" value="2027" min="2025" max="2030" style="width:100%;padding:10px 13px;background:var(--ink3);border:1px solid var(--bd);border-radius:var(--r2);color:var(--fg1);font-family:var(--fm);font-size:1rem;outline:none;margin-bottom:1rem;transition:border-color 0.18s;" onfocus="this.style.borderColor='var(--acc)'" onblur="this.style.borderColor='var(--bd)'">
+        <button onclick="(function(){const v=parseInt(document.getElementById('jeeYearInput').value)||2027;document.getElementById('jeeYearModal').remove();(window._jeeYearCb||function(){})(v);})()" style="width:100%;padding:11px;background:linear-gradient(90deg,var(--acc),var(--acc2,var(--vio)));color:#fff;border:none;border-radius:var(--r2);font-family:var(--fd);font-size:1.1rem;letter-spacing:0.1em;cursor:pointer;transition:all 0.18s;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform=''">LOCK IT IN →</button>
+      </div>`;
+    document.body.appendChild(overlay);
+    window._jeeYearCb=onConfirm;
+    // Highlight default 2027 pill
+    setTimeout(()=>{const pills=overlay.querySelectorAll('.jee-yr-pill');pills.forEach(b=>{if(b.textContent.trim()==='2027'){b.style.borderColor='var(--acc)';b.style.color='var(--fg1)';b.style.background='rgba(91,110,245,0.14)';}});},10);
+    // Add hover styles for pills via JS
+    overlay.querySelectorAll && setTimeout(()=>{overlay.querySelectorAll('.jee-yr-pill').forEach(b=>{b.addEventListener('click',function(){overlay.querySelectorAll('.jee-yr-pill').forEach(x=>{x.style.borderColor='var(--bd)';x.style.color='var(--fg2)';x.style.background='var(--ink3)';});this.style.borderColor='var(--acc)';this.style.color='var(--fg1)';this.style.background='rgba(91,110,245,0.14)';});});},20);
+}
+
 function ensureAuthListener(){
     if(_al)return; _al=true;
     firebase.auth().onAuthStateChanged(async user=>{
@@ -568,7 +592,13 @@ function ensureAuthListener(){
             document.getElementById('syncStatusText').textContent='CLOUD ✓';
             await syncFromCloud();
             closeOverlay();
-            loadPageData();
+            // Check if profile has targetYear; if not, prompt before loading
+            let p={};try{p=JSON.parse(localStorage.getItem('buddy_profile')||'{}');}catch(e){}
+            if(!p.targetYear){
+                showJeeYearModal(yr=>{p.targetYear=yr;localStorage.setItem('buddy_profile',JSON.stringify(p));loadPageData();updateCountdown();});
+            } else {
+                loadPageData();
+            }
             const lb=document.getElementById('loginBtn'),sb=document.getElementById('signupBtn');
             if(lb){lb.innerHTML='SIGN IN';lb.disabled=false;}
             if(sb){sb.innerHTML='CREATE ACCOUNT';sb.disabled=false;}
@@ -579,6 +609,8 @@ function ensureAuthListener(){
 window.addEventListener('DOMContentLoaded',()=>{
     ensureAuthListener();
     const mode=localStorage.getItem('buddy_storage_mode');
+    // Always load whatever data exists in localStorage so widgets aren't blank
+    loadPageData();
     if(!mode){setTimeout(()=>openOverlay(),140);}
     else if(mode==='local'){_sm='local';loadLocalData();}
     else{_sm='cloud';setTimeout(()=>{if(!_cu){openOverlay();showScreen('screenLogin');}},1600);}
@@ -586,7 +618,12 @@ window.addEventListener('DOMContentLoaded',()=>{
 
 function selectStorage(mode){
     _sm=mode; localStorage.setItem('buddy_storage_mode',mode);
-    if(mode==='local'){let p={};try{p=JSON.parse(localStorage.getItem('buddy_profile')||'{}');}catch(e){};if(!p.targetYear){const y=prompt('Enter your target JEE year (e.g. 2027):','2027');if(!y){showToastMsg('Target year is required for setup.');return;}p.targetYear=Number(y)||2027;localStorage.setItem('buddy_profile',JSON.stringify(p));}closeOverlay();loadLocalData();}
+    if(mode==='local'){
+        let p={};try{p=JSON.parse(localStorage.getItem('buddy_profile')||'{}');}catch(e){}
+        if(!p.targetYear){
+            showJeeYearModal(yr=>{p.targetYear=yr;localStorage.setItem('buddy_profile',JSON.stringify(p));closeOverlay();loadLocalData();updateCountdown();});
+        } else {closeOverlay();loadLocalData();}
+    }
     else{ensureAuthListener();if(!firebase.auth().currentUser)showScreen('screenLogin');}
 }
 
@@ -732,11 +769,16 @@ function updateWidget(widgetId, value) {
     if (el) el.textContent = value;
 }
 
-// Initialize widgets on page load
+// Initialize widgets on page load — always runs regardless of auth state
 document.addEventListener('DOMContentLoaded', () => {
     loadSyllabusStats();
     loadRecentTests();
     loadUpcomingTasks();
+    // Load DPP stats from localStorage immediately (populated by dpp.ejs preload)
+    loadDPPStats();
+    // Also load streak and test count for stat banner
+    loadStreak();
+    loadTestWidget();
 });
 // ══ SYNC ══
 async function syncFromCloud(){
@@ -786,28 +828,57 @@ function loadPageData(){applyProfile();loadDPPStats();loadSyllabusProgress();loa
 // Clock
 function updateClock(){
     const now=new Date();
-    document.getElementById('clockTime').textContent=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+    const ct=document.getElementById('clockTime'),cd=document.getElementById('clockDate'),cdy=document.getElementById('clockDay'),hg=document.getElementById('heroGreeting');
+    if(!ct)return;
+    ct.textContent=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
     const D=['SUNDAY','MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY'],M=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
-    document.getElementById('clockDate').textContent=`${D[now.getDay()].slice(0,3)} ${String(now.getDate()).padStart(2,'0')} ${M[now.getMonth()]}`;
-    document.getElementById('clockDay').textContent=D[now.getDay()];
-    const h=now.getHours();document.getElementById('heroGreeting').textContent=h<5?'GOOD NIGHT':h<12?'GOOD MORNING':h<17?'GOOD AFTERNOON':'GOOD EVENING';
+    if(cd)cd.textContent=`${D[now.getDay()].slice(0,3)} ${String(now.getDate()).padStart(2,'0')} ${M[now.getMonth()]}`;
+    if(cdy)cdy.textContent=D[now.getDay()];
+    const h=now.getHours();if(hg)hg.textContent=h<5?'GOOD NIGHT':h<12?'GOOD MORNING':h<17?'GOOD AFTERNOON':'GOOD EVENING';
 }
-setInterval(updateClock,1000);updateClock();
+// Start clock only after DOM is ready
+if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',()=>{updateClock();setInterval(updateClock,1000);});}
+else{updateClock();setInterval(updateClock,1000);}
 
 // Countdown
-function updateCountdown(){
-    const plan=JSON.parse(localStorage.getItem('active_test_plan')||'{}');const exam=new Date((plan.examDate||'2027-01-20')+'T09:00:00'),start=new Date('2025-06-01'),now=new Date(),rem=exam-now;document.querySelector('.cd-exam').textContent=(plan.examName||'JEE MAINS 2027').toUpperCase();
-    if(rem<=0){document.getElementById('cdDays').textContent='GO!';return;}
-    const d=Math.floor(rem/86400000);
-    document.getElementById('cdDays').textContent=d;
-    document.getElementById('cdWeeks').textContent=Math.floor(d/7);
-    document.getElementById('cdMonths').textContent=Math.floor(d/30.44);
-    document.getElementById('cdHours').textContent=Math.min(Math.floor(rem/3600000),9999);
-    const pct=Math.max(0,Math.min(1,1-rem/(exam-start)));
-    document.getElementById('cdRingFill').style.strokeDashoffset=232.48-pct*232.48;
-    document.getElementById('cdPct').textContent=Math.round(pct*100)+'%';
+function getOrPromptTargetYear(){
+    let p={};try{p=JSON.parse(localStorage.getItem('buddy_profile')||'{}');}catch(e){}
+    if(p.targetYear)return p.targetYear;
+    // Check active_test_plan as fallback
+    const plan=JSON.parse(localStorage.getItem('active_test_plan')||'{}');
+    if(plan.examDate){const yr=new Date(plan.examDate).getFullYear();if(yr>=2025){p.targetYear=yr;localStorage.setItem('buddy_profile',JSON.stringify(p));return yr;}}
+    // Prompt only once
+    if(localStorage.getItem('buddy_storage_mode')){
+        const y=prompt('Which year are you targeting for JEE? (e.g. 2027)','2027');
+        const yr=Number(y)||2027;
+        p.targetYear=yr;localStorage.setItem('buddy_profile',JSON.stringify(p));
+        return yr;
+    }
+    return 2027;
 }
-setInterval(updateCountdown,60000);updateCountdown();
+function updateCountdown(){
+    const cdDays=document.getElementById('cdDays');if(!cdDays)return;
+    const plan=JSON.parse(localStorage.getItem('active_test_plan')||'{}');
+    let p={};try{p=JSON.parse(localStorage.getItem('buddy_profile')||'{}');}catch(e){}
+    const targetYear=p.targetYear||2027;
+    // Use active_test_plan examDate if set, otherwise default to Jan 20 of target year
+    const examDateStr=plan.examDate||(targetYear+'-01-20');
+    const examName=(plan.examName||('JEE MAINS '+targetYear)).toUpperCase();
+    const exam=new Date(examDateStr+'T09:00:00'),start=new Date((targetYear-1)+'-06-01'),now=new Date(),rem=exam-now;
+    const cdExam=document.querySelector('.cd-exam');if(cdExam)cdExam.textContent=examName;
+    if(rem<=0){cdDays.textContent='GO!';return;}
+    const d=Math.floor(rem/86400000);
+    cdDays.textContent=d;
+    const cw=document.getElementById('cdWeeks'),cm=document.getElementById('cdMonths'),ch=document.getElementById('cdHours'),cr=document.getElementById('cdRingFill'),cp=document.getElementById('cdPct');
+    if(cw)cw.textContent=Math.floor(d/7);
+    if(cm)cm.textContent=Math.floor(d/30.44);
+    if(ch)ch.textContent=Math.min(Math.floor(rem/3600000),9999);
+    const pct=Math.max(0,Math.min(1,1-rem/(exam-start)));
+    if(cr)cr.style.strokeDashoffset=232.48-pct*232.48;
+    if(cp)cp.textContent=Math.round(pct*100)+'%';
+}
+if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',()=>{updateCountdown();setInterval(updateCountdown,60000);});}
+else{updateCountdown();setInterval(updateCountdown,60000);}
 
 // Ticker
 const TICKER=[{t:'JEE 2027',v:'TARGET LOCKED'},{t:'PHYSICS · CHEMISTRY · MATHS',v:'⚡'},{t:'EVERY QUESTION',v:'MATTERS'},{t:'CONSISTENCY',v:'BEATS INTENSITY'},{t:'TRACK YOUR DPP',v:'LOG TODAY'},{t:'SYLLABUS MASTERY',v:'BUILD IT DAILY'},{t:'RANK',v:'IS EARNED NOT GIVEN'}];
@@ -876,20 +947,23 @@ function loadMomentumWidget(){
 // DPP
 function loadDPPStats(){
     let allQ=[];try{const p=JSON.parse(localStorage.getItem('dpp_q2')||localStorage.getItem('dpp_questions')||'{}');allQ=[...(p['11']||[]),...(p['12']||[])];}catch(e){}
-    document.getElementById('dppTotal').textContent=allQ.length;
-    document.getElementById('dppGood').textContent=allQ.filter(q=>q.status==='good').length;
-    document.getElementById('dppTricky').textContent=allQ.filter(q=>q.status==='tricky').length;
-    document.getElementById('dppTough').textContent=allQ.filter(q=>q.status==='tough').length;
-    document.getElementById('dppCore').textContent=allQ.filter(q=>q.status==='fundamental').length;
-    document.getElementById('statDppCount').textContent=allQ.length;
+    const elTotal=document.getElementById('dppTotal'),elGood=document.getElementById('dppGood'),elTricky=document.getElementById('dppTricky'),elTough=document.getElementById('dppTough'),elCore=document.getElementById('dppCore'),elStat=document.getElementById('statDppCount');
+    if(elTotal)elTotal.textContent=allQ.length;
+    if(elGood)elGood.textContent=allQ.filter(q=>q.status==='good').length;
+    if(elTricky)elTricky.textContent=allQ.filter(q=>q.status==='tricky').length;
+    if(elTough)elTough.textContent=allQ.filter(q=>q.status==='tough').length;
+    if(elCore)elCore.textContent=allQ.filter(q=>q.status==='fundamental').length;
+    if(elStat)elStat.textContent=allQ.length;
     const SMAP={'Mathematics':['Basic Maths (Mod & Log)','Quadratic Equations','Trigonometry','Progression & Series','Binomial Theorem','Straight Lines','Permutation & Combination','Set Theory','Statistics'],'Physics':['Centre of Mass','Work Power Energy','Kinematics','Units & Dimensions','Rotational Motion','Fluid & Elasticity','SHM'],'Chemistry':['Concentration Terms & Eudiometry','Atomic Structure','Periodic Table','IUPAC Nomenclature','Chemical Equilibrium','Ionic Equilibrium','Ideal Gas','Chemical Bonding','Redox Reactions','Stereoisomers']};
     const bySub={Mathematics:0,Physics:0,Chemistry:0};
     allQ.forEach(q=>{for(const[s,cs]of Object.entries(SMAP)){if(cs.includes(q.chapter)){bySub[s]++;break;}}});
     const maxS=Math.max(...Object.values(bySub),1),cols={Mathematics:'var(--math)',Physics:'var(--phys)',Chemistry:'var(--chem)'};
-    document.getElementById('subjBars').innerHTML=Object.entries(bySub).map(([s,n])=>`<div class="subj-row"><div class="subj-row-top"><div class="subj-name" style="color:${cols[s]}">${s}</div><div class="subj-pct">${n} Q</div></div><div class="subj-track"><div class="subj-fill" style="width:${Math.round(n/maxS*100)}%;background:${cols[s]}"></div></div></div>`).join('');
+    const elSubj=document.getElementById('subjBars');
+    if(elSubj)elSubj.innerHTML=Object.entries(bySub).map(([s,n])=>`<div class="subj-row"><div class="subj-row-top"><div class="subj-name" style="color:${cols[s]}">${s}</div><div class="subj-pct">${n} Q</div></div><div class="subj-track"><div class="subj-fill" style="width:${Math.round(n/maxS*100)}%;background:${cols[s]}"></div></div></div>`).join('');
     const byChap={};allQ.forEach(q=>{byChap[q.chapter]=(byChap[q.chapter]||0)+1;});
     const top5=Object.entries(byChap).sort((a,b)=>b[1]-a[1]).slice(0,5),maxC=top5[0]?.[1]||1;
-    document.getElementById('dppBreakdown').innerHTML=top5.map(([ch,n])=>{
+    const elBreakdown=document.getElementById('dppBreakdown');
+    if(elBreakdown)elBreakdown.innerHTML=top5.map(([ch,n])=>{
         const t=allQ.filter(q=>q.chapter===ch&&(q.status==='tough'||q.status==='tricky')).length;
         return`<div style="display:flex;align-items:center;gap:8px"><div style="font-size:0.75rem;width:130px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--fg2)">${esc(ch.substring(0,18))}</div><div style="flex:1;height:4px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden"><div style="width:${Math.round(n/maxC*100)}%;height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2));border-radius:2px;"></div></div><div style="font-family:var(--fm);font-size:0.62rem;color:var(--fg3);width:28px;text-align:right">${n}</div>${t>0?`<div style="font-family:var(--fm);font-size:0.56rem;color:var(--red)">⚠${t}</div>`:'<div style="width:20px"></div>'}</div>`;
     }).join('')||'<div style="font-family:var(--fm);font-size:0.7rem;color:var(--fg3);padding:1rem">No DPPs logged yet</div>';
@@ -1158,10 +1232,6 @@ window.addEventListener('resize',()=>{W=cv.width=innerWidth;H=cv.height=innerHei
   }
 })();
 </script>
-<script src="/js/firebase-config.js"></script>
-<script src="/js/auth.js"></script>
-<script src="/js/main.js"></script>
-<script src="/js/auth.js"></script>
 
 </body>
 </html>
