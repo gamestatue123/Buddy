@@ -5,14 +5,15 @@ const config: CapacitorConfig = {
   appName: 'Buddy',
   webDir: 'public',
   server: {
-    // THIS IS THE KEY - point to your LIVE URL
-    url: 'https://buddy-phi-azure.vercel.app/', // REPLACE WITH YOUR ACTUAL VERCEL URL
-    cleartext: false, // For production, use HTTPS
+    url: 'https://buddy-git-main-gamestatue123s-projects.vercel.app/', // Your deployed URL
+    cleartext: false,
     androidScheme: 'https'
   },
   android: {
     allowMixedContent: false,
-    webContentsDebuggingEnabled: false // Disable for production
+    webContentsDebuggingEnabled: true,
+    // Important: Add custom URL scheme for redirect
+    customURLSchemes: ['com.buddy.app']
   }
 };
 
