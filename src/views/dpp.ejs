@@ -351,9 +351,10 @@
     function loadQ(){
         const r=localStorage.getItem('dpp_q2');
         if(r){ try{ const p=JSON.parse(r); if(p['11']) QS['11']=p['11']; if(p['12']) QS['12']=p['12']; }catch(e){} }
-        if(QS['11'].length===0) loadPreload();
+
     }
-    function loadPreload(){
+    function loadPreload(){ return;
+
         for(const ch of PRELOAD['11']){
             for(const d of ch.d){
                 const m=d.match(/^([^:]+):(.+)$/);
@@ -388,18 +389,12 @@
         const subject=document.getElementById('subjectSelect').value;
         const dl=document.getElementById('chapterSuggestions');
         const input=document.getElementById('chapterInput');
-        const defaults=((SMAP[CLS]||{})[subject]||[]);
+        const custom=(getUserChapters()[`${CLS}:${subject}`]||[]);
+        const fromLogged=QS[CLS].filter(q=>q.subject===subject).map(q=>q.chapter);
         const seen=new Set();
-        let options=[];
-        if(CLS==='12'){
-            const custom=(getUserChapters()[`${CLS}:${subject}`]||[]);
-            const fromLogged=QS[CLS].filter(q=>q.subject===subject).map(q=>q.chapter);
-            options=[...custom,...fromLogged,...defaults].filter(ch=>{const key=String(ch||'').toLowerCase();if(!key||seen.has(key))return false;seen.add(key);return true;});
-        } else {
-            options=[...defaults].filter(ch=>{const key=String(ch||'').toLowerCase();if(!key||seen.has(key))return false;seen.add(key);return true;});
-        }
+        const options=[...custom,...fromLogged].filter(ch=>{const key=String(ch||'').toLowerCase();if(!key||seen.has(key))return false;seen.add(key);return true;});
         dl.innerHTML=options.map(c=>`<option value="${esc(c)}"></option>`).join('');
-        if(!options.includes(input.value)) input.value=options[0]||'';
+        if(!input.value&&options[0]) input.value=options[0];
     }
 
     // ── ADD ──
@@ -415,7 +410,7 @@
         } else {
             nums.forEach(n=>QS[CLS].push({id:`${Date.now()}_${n}_${Math.random()}`,subject:sub,chapter:ch,dppNumber:dpp,questionNumber:n.toString(),status:SEL_STATUS,createdAt:new Date().toISOString()}));
         }
-        if(CLS==='12') addChapterToMemory(CLS,sub,ch); saveQ(); updateChapterDD(); renderAll();
+        addChapterToMemory(CLS,sub,ch); saveQ(); updateChapterDD(); renderAll();
         document.getElementById('dppNumber').value='';
         document.getElementById('questionNumber').value='';
         toast(`✓ Logged ${nums.length||1} question(s)`);
