@@ -513,22 +513,16 @@
         </div>
       </a>
 
-            <!-- UPCOMING TEST col-8 -->
-      <div class="dc col-8">
-        <div class="ch"><div class="ch-title">UPCOMING TEST</div><div class="ch-badge" id="upcomingBadge">LOCK IN</div></div>
-        <div class="cb">
-          <div id="upcomingWidget" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;"></div>
-          <div id="upcomingChecklist" style="margin-top:10px;display:flex;flex-direction:column;gap:6px;"></div>
-            <!-- PREP MOMENTUM col-8 -->
+      <!-- PREP MOMENTUM col-8 -->
       <div class="dc col-8">
         <div class="ch"><div class="ch-title">PREP MOMENTUM</div><div class="ch-badge" id="momentumBadge">LOCK IN</div></div>
         <div class="cb">
-          <div id="momentumWidget" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;"></div>
-          <div id="momentumChecklist" style="margin-top:10px;display:flex;flex-direction:column;gap:6px;"></div>
+          <div id="momentumWidget" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:10px;"></div>
+          <div id="momentumChecklist" style="display:flex;flex-direction:column;gap:6px;"></div>
         </div>
       </div>
 
-<!-- SUBJECT LOAD col-4 -->
+      <!-- SUBJECT LOAD col-4 -->
       <a href="/dpp" class="dc dc-link col-4">
         <div class="ch"><div class="ch-title">SUBJECT LOAD</div><div class="ch-badge">DPP</div></div>
         <div class="cb"><div class="subj-bars" id="subjBars"></div></div>
@@ -668,11 +662,6 @@ function showLocalSignInButton(){
     if(pill) pill.style.display='none';
     if(localBtn) localBtn.style.display='flex';
 }
-function showLocalSignInButton(){
-    const pill=document.getElementById('userMenuPill');
-    const localBtn=document.getElementById('localSignInBtn');
-    if(pill) pill.style.display='none';
-    if(localBtn) localBtn.style.display='flex';
 }
 function toggleUserDropdown(){document.getElementById('userDropdown').classList.toggle('show');}
 document.addEventListener('click',e=>{if(!e.target.closest('#userMenuPill'))document.getElementById('userDropdown')?.classList.remove('show');});
@@ -764,26 +753,6 @@ document.getElementById('refreshQuote').addEventListener('click',setQuote);
 function esc(s){if(!s)return'';return s.replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
 function showToastMsg(m){const t=document.getElementById('ttToast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2600);}
 window.showComingSoon=(e)=>{if(e)e.preventDefault();showToastMsg('✨ Feature coming soon!');};
-
-// Upcoming test widget (from timetable single-test plan)
-function loadUpcomingWidget(){
-    const box=document.getElementById('upcomingWidget');
-    const list=document.getElementById('upcomingChecklist');
-    if(!box||!list)return;
-    let plan={};
-    try{plan=JSON.parse(localStorage.getItem('active_test_plan')||'{}');}catch(e){}
-    const profile=JSON.parse(localStorage.getItem('buddy_profile')||'{}');
-    const fallbackYear=profile.targetYear||2027;
-    const fallbackDate=`${fallbackYear}-01-20`;
-    const examName=plan.examName||`JEE MAINS ${fallbackYear}`;
-    const examDate=plan.examDate||fallbackDate;
-    const rem=Math.ceil((new Date(examDate+'T09:00:00')-new Date())/86400000);
-    const revision=plan.revisionTarget||0;
-    box.innerHTML=`<div class="mini-card"><div class="mini-card-n" style="color:var(--amber)">${rem>0?rem:'GO'}</div><div class="mini-card-l">Days to ${esc(examName)}</div></div><div class="mini-card"><div class="mini-card-n" style="color:var(--vio)">${revision}%</div><div class="mini-card-l">Revision Target</div></div><div class="mini-card"><div class="mini-card-n" style="color:var(--grn)">${examDate}</div><div class="mini-card-l">Exam Date</div></div>`;
-    const notes=plan.notes?plan.notes.split('.').map(x=>x.trim()).filter(Boolean).slice(0,3):[];
-    list.innerHTML=notes.length?notes.map(n=>`<div class="task-row"><div class="task-cb"></div><div class="task-text">${esc(n)}</div></div>`).join(''):'<div class="empty-card"><div class="empty-ico">📝</div><div class="empty-t">Add strategy notes from Timetable → Tests tab.</div></div>';
-    document.getElementById('upcomingBadge').textContent=plan.examName?'FROM TIMETABLE':'DEFAULT JEE PLAN';
-}
 
 // Schedule from localStorage
 function loadScheduleLocal(){
@@ -892,19 +861,22 @@ function loadTestWidget(){
         ${subs.map(s=>`<div class="test-bar-row"><div class="test-bar-top"><div class="test-bar-name">${s.n}</div><div class="test-bar-val">${s.s}/${s.m}</div></div><div class="test-bar-track"><div class="test-bar-fill" style="width:${s.m?Math.round(s.s/s.m*100):0}%;background:${s.c}"></div></div></div>`).join('')}`;
 }
 
-// Tasks
-async function loadTasks(){
-    try{const res=await fetch('/timetable/api/tasks'),data=await res.json();if(!data.success)return;const tasks=data.tasks||[],pending=tasks.filter(t=>!t.completed);document.getElementById('taskBadge').textContent=pending.length+' pending';document.getElementById('statTasksDone').textContent=tasks.filter(t=>t.completed).length;if(!pending.length&&!tasks.length)return;document.getElementById('taskList').innerHTML=pending.slice(0,4).map(t=>`<div class="task-row"><div class="task-cb"></div><div class="task-text">${esc(t.text)}</div></div>`).join('')+(pending.length>4?`<div style="font-family:var(--fm);font-size:0.6rem;color:var(--fg3);padding:6px 0;">+ ${pending.length-4} more</div>`:'');}catch(e){}
+// Tasks from localStorage
+function loadTasks(){
+    try{
+        const raw=localStorage.getItem('buddy_tasks');
+        const tasks=raw?JSON.parse(raw):[];
+        const pending=tasks.filter(t=>!t.completed);
+        const done=tasks.filter(t=>t.completed).length;
+        document.getElementById('taskBadge').textContent=pending.length+' pending';
+        document.getElementById('statTasksDone').textContent=done;
+        if(!pending.length){
+            document.getElementById('taskList').innerHTML='<div class="empty-card"><div class="empty-ico">📋</div><div class="empty-t">No tasks yet · Click to add</div></div>';
+            return;
+        }
+        document.getElementById('taskList').innerHTML=pending.slice(0,4).map(t=>`<div class="task-row"><div class="task-cb"></div><div class="task-text">${esc(t.text||t.title||'Task')}</div></div>`).join('')+(pending.length>4?`<div style="font-family:var(--fm);font-size:0.6rem;color:var(--fg3);padding:6px 0;">+ ${pending.length-4} more</div>`:'');
+    }catch(e){}
 }
-
-// Schedule
-const DAYKEYS=['monday','tuesday','wednesday','thursday','friday','saturday','sunday'],DAYNAMES=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'],SUB_COLORS={Physics:'var(--phys)',Chemistry:'var(--chem)',Mathematics:'var(--math)',Maths:'var(--math)'};
-async function loadSchedule(){
-    try{const dayIdx=(new Date().getDay()+6)%7,dayKey=DAYKEYS[dayIdx];document.getElementById('classDayBadge').textContent=DAYNAMES[dayIdx].toUpperCase();const res=await fetch('/timetable/api/schedule'),data=await res.json();if(!data.success)return;const cls=(data.schedule[dayKey]||[]).filter(c=>c.subject!=='Off');if(!cls.length){document.getElementById('scheduleList').innerHTML=`<div class="empty-card"><div class="empty-ico">🏖</div><div class="empty-t">No classes today</div></div>`;return;}document.getElementById('scheduleList').innerHTML=cls.map(c=>`<div class="sch-item"><div class="sch-dot" style="background:${SUB_COLORS[c.subject]||'var(--acc)'}"></div><div class="sch-text">${esc(c.subject)}</div>${c.time?`<div class="sch-tag">${esc(c.time)}</div>`:''}${c.teacher?`<div class="sch-tag">· ${esc(c.teacher)}</div>`:''}</div>`).join('');}catch(e){}
-}
-
-// Streak
-async function loadStreak(){try{const res=await fetch('/timetable/api/tasks'),data=await res.json();const s=data.streak||0;document.getElementById('streakNum').textContent=s;document.getElementById('homeStreak').textContent='Streak: '+s+' days';}catch(e){}}
 
 setInterval(()=>{if(_cu&&_sm==='cloud')syncToCloud();},30000);
 
