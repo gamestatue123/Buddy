@@ -699,6 +699,20 @@ function showJeeYearModal(onConfirm){
 
 function ensureAuthListener(){
     if(_al)return; _al=true;
+
+    // Handle redirect return (mobile Google/Microsoft sign-in)
+    // getRedirectResult resolves immediately on desktop (null) and on mobile after redirect
+    firebase.auth().getRedirectResult().then(result=>{
+        if(result&&result.user){
+            // onAuthStateChanged will fire and handle the rest
+            localStorage.setItem('buddy_storage_mode','cloud');
+            localStorage.removeItem('buddy_auth_redirect');
+        }
+    }).catch(e=>{
+        localStorage.removeItem('buddy_auth_redirect');
+        if(e.code&&e.code!=='auth/no-auth-event')showToastMsg(friendlyErr(e.code)||'Sign-in failed. Try again.');
+    });
+
     firebase.auth().onAuthStateChanged(async user=>{
         if(user){
             _cu=user; _sm='cloud';
@@ -724,9 +738,18 @@ function ensureAuthListener(){
 window.addEventListener('DOMContentLoaded',()=>{
     ensureAuthListener();
     const mode=localStorage.getItem('buddy_storage_mode');
+    const pendingRedirect=localStorage.getItem('buddy_auth_redirect');
     // Always load whatever data exists in localStorage so widgets aren't blank
     loadPageData();
-    if(!mode){showScreen('screenStorage');openOverlay();}
+    if(pendingRedirect){
+        // Coming back from Google/Microsoft redirect — show a brief "signing in" state,
+        // don't show login overlay; getRedirectResult + onAuthStateChanged will handle it
+        _sm='cloud';
+        showToastMsg('🔄 Completing sign-in…');
+        // Safety fallback: if still not signed in after 8s, show login screen
+        setTimeout(()=>{if(!_cu){localStorage.removeItem('buddy_auth_redirect');showScreen('screenLogin');openOverlay();}},8000);
+    }
+    else if(!mode){showScreen('screenStorage');openOverlay();}
     else if(mode==='local'){_sm='local';loadLocalData();}
     else{_sm='cloud';setTimeout(()=>{if(!_cu){showScreen('screenLogin');openOverlay();}},1600);}
 });
@@ -781,12 +804,36 @@ async function resendVerification(){
     catch(e){showToastMsg('Too many requests — wait a minute.');}
 }
 
+// Detect mobile/Android to use redirect instead of popup (popups break on Android)
+function isMobile(){return /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);}
+
 async function signInWithGoogle(){
-    try{const p=new firebase.auth.GoogleAuthProvider();await firebase.auth().signInWithPopup(p);localStorage.setItem('buddy_storage_mode','cloud');}
+    try{
+        const p=new firebase.auth.GoogleAuthProvider();
+        p.addScope('profile');p.addScope('email');
+        localStorage.setItem('buddy_storage_mode','cloud');
+        if(isMobile()){
+            // Store intent so we can show login screen on redirect return
+            localStorage.setItem('buddy_auth_redirect','google');
+            await firebase.auth().signInWithRedirect(p);
+        } else {
+            await firebase.auth().signInWithPopup(p);
+        }
+    }
     catch(e){if(e.code!=='auth/popup-closed-by-user')showToastMsg(friendlyErr(e.code));}
 }
 async function signInWithMicrosoft(){
-    try{const p=new firebase.auth.OAuthProvider('microsoft.com');p.setCustomParameters({prompt:'select_account'});await firebase.auth().signInWithPopup(p);localStorage.setItem('buddy_storage_mode','cloud');}
+    try{
+        const p=new firebase.auth.OAuthProvider('microsoft.com');
+        p.setCustomParameters({prompt:'select_account'});
+        localStorage.setItem('buddy_storage_mode','cloud');
+        if(isMobile()){
+            localStorage.setItem('buddy_auth_redirect','microsoft');
+            await firebase.auth().signInWithRedirect(p);
+        } else {
+            await firebase.auth().signInWithPopup(p);
+        }
+    }
     catch(e){if(e.code!=='auth/popup-closed-by-user')showToastMsg(friendlyErr(e.code));}
 }
 async function doLogout(){
