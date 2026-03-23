@@ -1024,24 +1024,44 @@ firebase.auth().onAuthStateChanged(function(user){
 
 <script>
 (function(){
-  const IMPORT_PROMPT = `Convert the test result data I've provided above into a JSON array that matches this exact format. Output ONLY the raw JSON — no explanation, no markdown code blocks, no extra text.
+  const IMPORT_PROMPT = `Convert the provided test result data into a valid JSON array using the exact schema below.
 
-Format for each test object:
+Output Requirements (STRICT)
+Output must be pure JSON only
+Do NOT include explanations, comments, or markdown
+Do NOT wrap the JSON in code blocks
+Do NOT prepend or append any text
+Ensure the output is valid JSON that can be directly saved as a .json file
+The response must start with [ and end with ]
+Use double quotes (") for all keys and string values
+No trailing commas
+Schema for each object:
+
 {
-  "testName": "Name of the test (e.g. JEE Main Mock #3)",
-  "date": "YYYY-MM-DD format",
-  "physics": <Physics marks obtained as a number>,
-  "physicsMax": <Max marks for Physics, usually 100>,
-  "chemistry": <Chemistry marks obtained as a number>,
-  "chemistryMax": <Max marks for Chemistry, usually 100>,
-  "maths": <Maths marks obtained as a number>,
-  "mathsMax": <Max marks for Maths, usually 100>,
-  "maxMarks": <Total max marks, usually 300>,
-  "totalQuestions": <Total number of questions if known, else 0>,
-  "rank": "<Rank if mentioned, else empty string>"
+"testName": "Name of the test (e.g. JEE Main Mock #3)",
+"date": "YYYY-MM-DD",
+"physics": number,
+"physicsMax": number,
+"chemistry": number,
+"chemistryMax": number,
+"maths": number,
+"mathsMax": number,
+"maxMarks": number,
+"totalQuestions": number,
+"rank": "string"
 }
 
-If there are multiple tests, output all of them as an array. If any value is missing or unclear from the data, use 0 for numbers and empty string for text. Always output a JSON array even for a single test.`;
+Rules for Missing Data:
+Use 0 for any missing numeric values
+Use "" for missing text values
+Additional Constraints:
+Always return an array, even if there is only one test
+Preserve numeric types (no quotes around numbers)
+Dates must strictly follow YYYY-MM-DD format
+If the input contains multiple tests, include all of them
+Final Instruction:
+
+Return ONLY the JSON array. The output must be directly usable as a .json file without any modification.`;
 
   // Populate the prompt display on load
   document.addEventListener('DOMContentLoaded', () => {
