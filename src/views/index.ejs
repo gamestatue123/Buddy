@@ -1002,22 +1002,19 @@ function updateClock(){
 if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',()=>{updateClock();setInterval(updateClock,1000);});}
 else{updateClock();setInterval(updateClock,1000);}
 
-// Countdown
+// Countdown — always shows JEE exam only, never hijacked by test plans
 function getOrPromptTargetYear(){
     let p={};try{p=JSON.parse(localStorage.getItem('buddy_profile')||'{}');}catch(e){}
     if(p.targetYear)return p.targetYear;
-    const plan=JSON.parse(localStorage.getItem('active_test_plan')||'{}');
-    if(plan.examDate){const yr=new Date(plan.examDate).getFullYear();if(yr>new Date().getFullYear()){p.targetYear=yr;localStorage.setItem('buddy_profile',JSON.stringify(p));return yr;}}
-    // No prompt — use next year as safe default, modal will set it properly
     return new Date().getFullYear()+1;
 }
 function updateCountdown(){
     const cdDays=document.getElementById('cdDays');if(!cdDays)return;
-    const plan=JSON.parse(localStorage.getItem('active_test_plan')||'{}');
     let p={};try{p=JSON.parse(localStorage.getItem('buddy_profile')||'{}');}catch(e){}
     const targetYear=p.targetYear||(new Date().getFullYear()+1);
-    const examDateStr=plan.examDate||(targetYear+'-01-20');
-    const examName=(plan.examName||('JEE MAINS '+targetYear)).toUpperCase();
+    // Always JEE Mains — Jan 20 of target year, never overridden by test plans
+    const examDateStr=targetYear+'-01-20';
+    const examName=('JEE MAINS '+targetYear).toUpperCase();
     const exam=new Date(examDateStr+'T09:00:00');
     const now=new Date();
     const rem=exam-now;
@@ -1029,7 +1026,7 @@ function updateCountdown(){
     if(cw)cw.textContent=Math.floor(d/7);
     if(cm)cm.textContent=Math.floor(d/30.44);
     if(ch)ch.textContent=Math.min(Math.floor(rem/3600000),9999);
-    // Use user's actual prep start date for ring % — "how much of your prep journey is done"
+    // Ring % = how far through prep journey (start date → exam date)
     const startStr=p.prepStartDate||`${targetYear-1}-06-01`;
     const start=new Date(startStr+'T00:00:00');
     const totalSpan=exam-start;
@@ -1086,9 +1083,20 @@ function loadStreak(){
 // Upcoming Tests Widget
 function loadUpcomingTests(){
     let tests=[];
-    try{tests=JSON.parse(localStorage.getItem('tests')||localStorage.getItem('buddy_tests_scheduled')||'[]');}catch(e){}
-    // Also check timetable tests format
-    if(!tests.length){try{const r=localStorage.getItem('tests_data');if(r)tests=JSON.parse(r);}catch(e){}}
+    // timetable.ejs writes to 'buddy_tests' (LS_TESTS = 'buddy_tests')
+    // also check active_test_plan for legacy/other pages, but never use it for the JEE countdown
+    try{
+        const raw=localStorage.getItem('buddy_tests');
+        if(raw) tests=JSON.parse(raw);
+    }catch(e){}
+    // fallbacks for other possible keys
+    if(!tests.length){
+        for(const key of ['tests','buddy_tests_scheduled','tests_data']){
+            try{const r=localStorage.getItem(key);if(r){const parsed=JSON.parse(r);if(Array.isArray(parsed)&&parsed.length){tests=parsed;break;}}}catch(e){}
+        }
+    }
+
+
 
     const today=new Date();today.setHours(0,0,0,0);
     // Filter to upcoming (today or future) and sort by date ascending
@@ -1766,3 +1774,4 @@ window.addEventListener('resize',()=>{W=cv.width=innerWidth;H=cv.height=innerHei
 
 </body>
 </html>
+
