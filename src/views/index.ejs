@@ -517,11 +517,22 @@
         </div>
       </a>
 
-      <!-- TODAY'S BATTLE PLAN col-8 -->
-      <div class="dc col-8" id="battlePlanCard">
-        <div class="card-glow" style="background:var(--acc);top:auto;bottom:-30px;right:20px;"></div>
-        <div class="ch"><div class="ch-title">TODAY'S BATTLE PLAN</div><div class="ch-badge" id="battleBadge" style="background:rgba(240,68,68,0.12);color:var(--red);border-color:rgba(240,68,68,0.25);">LOADING</div></div>
-        <div class="cb" id="battlePlanBody"></div>
+      <!-- WEAK CHAPTERS col-8 -->
+      <div class="dc col-8" id="weakChapCard">
+        <div class="card-glow" style="background:var(--red);top:auto;bottom:-30px;right:20px;opacity:0.18;"></div>
+        <div class="ch">
+          <div class="ch-title">WEAK CHAPTERS</div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div class="ch-badge" id="weakChapBadge" style="background:rgba(240,68,68,0.12);color:var(--red);border-color:rgba(240,68,68,0.25);">0 FLAGGED</div>
+            <div style="display:flex;gap:4px;">
+              <button id="wcFilterAll" onclick="setWCFilter('all')" style="font-family:var(--fm);font-size:0.55rem;letter-spacing:0.05em;padding:3px 8px;border-radius:50px;border:1px solid var(--acc);background:rgba(91,110,245,0.18);color:var(--acc);cursor:pointer;">ALL</button>
+              <button id="wcFilterP" onclick="setWCFilter('Physics')" style="font-family:var(--fm);font-size:0.55rem;letter-spacing:0.05em;padding:3px 8px;border-radius:50px;border:1px solid var(--bd);background:transparent;color:var(--fg3);cursor:pointer;">PHY</button>
+              <button id="wcFilterC" onclick="setWCFilter('Chemistry')" style="font-family:var(--fm);font-size:0.55rem;letter-spacing:0.05em;padding:3px 8px;border-radius:50px;border:1px solid var(--bd);background:transparent;color:var(--fg3);cursor:pointer;">CHEM</button>
+              <button id="wcFilterM" onclick="setWCFilter('Mathematics')" style="font-family:var(--fm);font-size:0.55rem;letter-spacing:0.05em;padding:3px 8px;border-radius:50px;border:1px solid var(--bd);background:transparent;color:var(--fg3);cursor:pointer;">MATH</button>
+            </div>
+          </div>
+        </div>
+        <div class="cb" id="weakChapBody"></div>
       </div>
 
       <!-- SUBJECT LOAD col-4 -->
@@ -609,6 +620,11 @@ function showJeeYearModal(onConfirm){
           <input id="jymBatchInput" type="text" placeholder="e.g. Shikhar OMEGA, Allen SRG, PW Arjuna..." style="width:100%;padding:10px 13px;background:var(--ink3);border:1px solid var(--bd);border-radius:var(--r2);color:var(--fg1);font-family:var(--fm);font-size:0.85rem;outline:none;transition:border-color 0.18s;" onfocus="this.style.borderColor='var(--acc)'" onblur="this.style.borderColor='var(--bd)'">
         </div>
 
+        <!-- PREP START DATE -->
+        <div style="font-family:var(--fm);font-size:0.58rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--fg3);margin-bottom:8px;">📅 When Did You Start Prepping?</div>
+        <div style="font-family:var(--fm);font-size:0.6rem;color:var(--fg3);margin-bottom:8px;line-height:1.6;">Used to calculate your prep % on the countdown ring.</div>
+        <input id="jymStartDate" type="date" style="width:100%;padding:10px 13px;background:var(--ink3);border:1px solid var(--bd);border-radius:var(--r2);color:var(--fg1);font-family:var(--fm);font-size:0.85rem;outline:none;margin-bottom:1.4rem;transition:border-color 0.18s;color-scheme:dark;" onfocus="this.style.borderColor='var(--acc)'" onblur="this.style.borderColor='var(--bd)'">
+
         <button id="jymConfirmBtn" style="width:100%;padding:12px;background:linear-gradient(90deg,var(--acc),var(--vio));color:#fff;border:none;border-radius:var(--r2);font-family:var(--fd);font-size:1.1rem;letter-spacing:0.12em;cursor:pointer;transition:all 0.18s;opacity:0.45;pointer-events:none;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform=''">LET'S GO →</button>
       </div>`;
     document.body.appendChild(overlay);
@@ -633,7 +649,11 @@ function showJeeYearModal(onConfirm){
         b.addEventListener('click',function(){
             overlay.querySelectorAll('.jym-yr').forEach(x=>styleInactive(x));
             styleActive(this,'var(--amber)');this.style.background='rgba(245,166,35,0.14)';
-            selYear=parseInt(this.dataset.year);updateConfirmBtn();
+            selYear=parseInt(this.dataset.year);
+            // Auto-suggest start date if user hasn't manually changed it
+            const di=overlay.querySelector('#jymStartDate');
+            if(di&&!di._touched) di.value=`${selYear-1}-06-01`;
+            updateConfirmBtn();
         });
     });
     // Default highlight next year
@@ -641,6 +661,26 @@ function showJeeYearModal(onConfirm){
         const def=overlay.querySelector(`.jym-yr[data-year="${defYear}"]`);
         if(def){def.click();}
     },20);
+    // Default start date = 1 year before target year Jan 20 (roughly when most start)
+    setTimeout(()=>{
+        const di=overlay.querySelector('#jymStartDate');
+        if(di){
+            // default: June 1 of year before target (will update when year pill clicked)
+            const yr=(defYear-1);
+            di.value=`${yr}-06-01`;
+            di.max=new Date().toISOString().split('T')[0];
+        }
+    },30);
+
+    // Update default date when year changes
+    overlay.addEventListener('click',function(e){
+        const pill=e.target.closest('.jym-yr');
+        if(pill&&selYear){
+            const di=overlay.querySelector('#jymStartDate');
+            if(di&&!di._touched) di.value=`${selYear-1}-06-01`;
+        }
+    });
+    overlay.querySelector('#jymStartDate').addEventListener('change',function(){this._touched=true;});
 
     // Prep pills
     overlay.querySelectorAll('.jym-prep').forEach(b=>{
@@ -656,8 +696,9 @@ function showJeeYearModal(onConfirm){
     // Confirm
     overlay.querySelector('#jymConfirmBtn').addEventListener('click',function(){
         const batch=(overlay.querySelector('#jymBatchInput')?.value||'').trim();
+        const startDate=overlay.querySelector('#jymStartDate')?.value||`${selYear-1}-06-01`;
         document.getElementById('jeeYearModal').remove();
-        (window._jeeYearCb||function(){})(selYear,selPrep,batch);
+        (window._jeeYearCb||function(){})(selYear,selPrep,batch,startDate);
     });
 }
 
@@ -674,7 +715,7 @@ function ensureAuthListener(){
             // Check if profile has targetYear; if not, prompt before loading
             let p={};try{p=JSON.parse(localStorage.getItem('buddy_profile')||'{}');}catch(e){}
             if(!p.targetYear){
-                showJeeYearModal((yr,prepType,batch)=>{p.targetYear=yr;if(prepType)p.prepType=prepType;if(batch)p.batch=batch;localStorage.setItem('buddy_profile',JSON.stringify(p));loadPageData();updateCountdown();});
+                showJeeYearModal((yr,prepType,batch,startDate)=>{p.targetYear=yr;if(prepType)p.prepType=prepType;if(batch)p.batch=batch;if(startDate)p.prepStartDate=startDate;localStorage.setItem('buddy_profile',JSON.stringify(p));loadPageData();updateCountdown();});
             } else {
                 loadPageData();
             }
@@ -700,7 +741,7 @@ function selectStorage(mode){
     if(mode==='local'){
         let p={};try{p=JSON.parse(localStorage.getItem('buddy_profile')||'{}');}catch(e){}
         if(!p.targetYear){
-            showJeeYearModal((yr,prepType,batch)=>{p.targetYear=yr;if(prepType)p.prepType=prepType;if(batch)p.batch=batch;localStorage.setItem('buddy_profile',JSON.stringify(p));closeOverlay();loadLocalData();updateCountdown();});
+            showJeeYearModal((yr,prepType,batch,startDate)=>{p.targetYear=yr;if(prepType)p.prepType=prepType;if(batch)p.batch=batch;if(startDate)p.prepStartDate=startDate;localStorage.setItem('buddy_profile',JSON.stringify(p));closeOverlay();loadLocalData();updateCountdown();});
         } else {closeOverlay();loadLocalData();}
     }
     else{ensureAuthListener();if(!firebase.auth().currentUser)showScreen('screenLogin');}
@@ -902,7 +943,7 @@ function applyProfile(override={}){
     const hn=document.getElementById('heroName');
     if(name&&hn){hn.textContent=name.split(' ')[0].toUpperCase()+',';hn.style.display='block';}
 }
-function loadPageData(){applyProfile();loadDPPStats();loadSyllabusProgress();loadBattlePlan();loadTasks();loadScheduleLocal();loadStreak();loadTestWidget();updateCountdown();}
+function loadPageData(){applyProfile();loadDPPStats();loadSyllabusProgress();loadWeakChapters();loadTasks();loadScheduleLocal();loadStreak();loadTestWidget();updateCountdown();}
 
 // Clock
 function updateClock(){
@@ -933,10 +974,11 @@ function updateCountdown(){
     const plan=JSON.parse(localStorage.getItem('active_test_plan')||'{}');
     let p={};try{p=JSON.parse(localStorage.getItem('buddy_profile')||'{}');}catch(e){}
     const targetYear=p.targetYear||(new Date().getFullYear()+1);
-    // Use active_test_plan examDate if set, otherwise default to Jan 20 of target year
     const examDateStr=plan.examDate||(targetYear+'-01-20');
     const examName=(plan.examName||('JEE MAINS '+targetYear)).toUpperCase();
-    const exam=new Date(examDateStr+'T09:00:00'),start=new Date((targetYear-1)+'-06-01'),now=new Date(),rem=exam-now;
+    const exam=new Date(examDateStr+'T09:00:00');
+    const now=new Date();
+    const rem=exam-now;
     const cdExam=document.querySelector('.cd-exam');if(cdExam)cdExam.textContent=examName;
     if(rem<=0){cdDays.textContent='GO!';return;}
     const d=Math.floor(rem/86400000);
@@ -945,8 +987,13 @@ function updateCountdown(){
     if(cw)cw.textContent=Math.floor(d/7);
     if(cm)cm.textContent=Math.floor(d/30.44);
     if(ch)ch.textContent=Math.min(Math.floor(rem/3600000),9999);
-    const pct=Math.max(0,Math.min(1,1-rem/(exam-start)));
-    if(cr)cr.style.strokeDashoffset=232.48-pct*232.48;
+    // Use user's actual prep start date for ring % — "how much of your prep journey is done"
+    const startStr=p.prepStartDate||`${targetYear-1}-06-01`;
+    const start=new Date(startStr+'T00:00:00');
+    const totalSpan=exam-start;
+    const elapsed=now-start;
+    const pct=totalSpan>0?Math.max(0,Math.min(1,elapsed/totalSpan)):0;
+    if(cr)cr.style.strokeDashoffset=232.48*(1-pct);
     if(cp)cp.textContent=Math.round(pct*100)+'%';
 }
 if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',()=>{updateCountdown();setInterval(updateCountdown,60000);});}
@@ -993,84 +1040,95 @@ function loadStreak(){
     }catch(e){}
 }
 // Momentum widget
-// Battle Plan
-function loadBattlePlan(){
-    const body=document.getElementById('battlePlanBody');
-    const badge=document.getElementById('battleBadge');
-    if(!body)return;
+// Weak Chapters
+const WC_SMAP={
+    'Basic Maths (Mod & Log)':'Mathematics','Quadratic Equations':'Mathematics','Trigonometry':'Mathematics',
+    'Progression & Series':'Mathematics','Binomial Theorem':'Mathematics','Straight Lines':'Mathematics',
+    'Permutation & Combination':'Mathematics','Set Theory':'Mathematics','Statistics':'Mathematics',
+    'Centre of Mass':'Physics','Work Power Energy':'Physics','Kinematics':'Physics',
+    'Units & Dimensions':'Physics','Rotational Motion':'Physics','Fluid & Elasticity':'Physics','SHM':'Physics',
+    'Concentration Terms & Eudiometry':'Chemistry','Atomic Structure':'Chemistry','Periodic Table':'Chemistry',
+    'IUPAC Nomenclature':'Chemistry','Chemical Equilibrium':'Chemistry','Ionic Equilibrium':'Chemistry',
+    'Ideal Gas':'Chemistry','Chemical Bonding':'Chemistry','Redox Reactions':'Chemistry','Stereoisomers':'Chemistry'
+};
+const WC_COLS={Physics:'var(--phys)',Chemistry:'var(--chem)',Mathematics:'var(--math)'};
+let _wcFilter='all';
+window.setWCFilter=function(f){
+    _wcFilter=f;
+    // Update filter button styles
+    const map={all:'wcFilterAll',Physics:'wcFilterP',Chemistry:'wcFilterC',Mathematics:'wcFilterM'};
+    Object.entries(map).forEach(([k,id])=>{
+        const b=document.getElementById(id);if(!b)return;
+        const active=(f===k)||(f==='all'&&k==='all');
+        b.style.background=active?'rgba(91,110,245,0.18)':'transparent';
+        b.style.borderColor=active?'var(--acc)':'var(--bd)';
+        b.style.color=active?'var(--acc)':'var(--fg3)';
+    });
+    renderWeakChapters();
+};
+function loadWeakChapters(){
     let allQ=[];try{const p=JSON.parse(localStorage.getItem('dpp_q2')||localStorage.getItem('dpp_questions')||'{}');allQ=[...(p['11']||[]),...(p['12']||[])];}catch(e){}
-    let tests=[];try{tests=JSON.parse(localStorage.getItem('test_analysis_data')||'[]');}catch(e){}
-    const today=new Date().toISOString().slice(0,10);
-    const todayQs=allQ.filter(x=>(x.createdAt||'').slice(0,10)===today).length;
-    const todayTough=allQ.filter(x=>(x.createdAt||'').slice(0,10)===today&&(x.status==='tough'||x.status==='tricky')).length;
-    const streak=parseInt(localStorage.getItem('buddy_streak')||'0');
-    const lastTest=[...tests].sort((a,b)=>new Date(b.date||0)-new Date(a.date||0))[0];
-    const lastScore=lastTest?Math.round(((lastTest.total??lastTest.totalMarks??lastTest.score??0)/(lastTest.maxMarks||300))*100):null;
-    const hour=new Date().getHours();
-
-    // Fire score 0–5
-    let fire=0;
-    if(todayQs>=10)fire++;if(todayQs>=30)fire++;if(todayQs>=50)fire++;
-    if(streak>=3)fire++;if(tests.length>=1)fire++;
-    const fireEmojis=['🌑','🔥','🔥🔥','🔥🔥🔥','⚡🔥','⚡🔥🔥'];
-    const fireLabels=['COLD','WARMING UP','ON TRACK','HOT','BLAZING','UNSTOPPABLE'];
-    const fireCols=['var(--fg3)','var(--amber)','var(--amber)','var(--red)','var(--red)','#ff6b35'];
-
-    if(badge){
-        badge.textContent=fireLabels[fire];
-        badge.style.background=`rgba(${fire>=3?'240,68,68':'245,166,35'},0.12)`;
-        badge.style.color=fireCols[fire];
-        badge.style.borderColor=`rgba(${fire>=3?'240,68,68':'245,166,35'},0.25)`;
+    // Build per-chapter stats
+    const stats={};
+    allQ.forEach(q=>{
+        const ch=q.chapter||'Unknown';
+        if(!stats[ch])stats[ch]={total:0,tough:0,tricky:0,good:0,subject:WC_SMAP[ch]||'Unknown'};
+        stats[ch].total++;
+        if(q.status==='tough')stats[ch].tough++;
+        else if(q.status==='tricky')stats[ch].tricky++;
+        else if(q.status==='good')stats[ch].good++;
+    });
+    // Score = weighted weakness: tough*3 + tricky*2, only chapters with at least 3 attempts
+    window._wcStats=Object.entries(stats)
+        .filter(([,s])=>s.total>=1)
+        .map(([ch,s])=>({ch,subject:s.subject,total:s.total,tough:s.tough,tricky:s.tricky,good:s.good,score:s.tough*3+s.tricky*2,errorRate:Math.round((s.tough+s.tricky)/s.total*100)}))
+        .sort((a,b)=>b.score-a.score);
+    const flagged=window._wcStats.filter(c=>c.errorRate>=40||c.tough>=2).length;
+    const badge=document.getElementById('weakChapBadge');
+    if(badge)badge.textContent=flagged+' FLAGGED';
+    renderWeakChapters();
+}
+function renderWeakChapters(){
+    const body=document.getElementById('weakChapBody');if(!body)return;
+    const allStats=window._wcStats||[];
+    const filtered=_wcFilter==='all'?allStats:allStats.filter(c=>c.subject===_wcFilter);
+    if(!allStats.length){
+        body.innerHTML=`<div class="empty-card"><div class="empty-ico">✅</div><div class="empty-t">Log DPPs to see your weak chapters here</div></div>`;return;
     }
-
-    // Time-based focus block
-    let focusLabel='',focusSub='',focusIcon='';
-    if(hour<6){focusIcon='🌙';focusLabel='LATE NIGHT GRIND';focusSub='Revision mode — go over weak chapters';}
-    else if(hour<10){focusIcon='🌅';focusLabel='MORNING POWER HOUR';focusSub='Best time for new concepts — full focus';}
-    else if(hour<13){focusIcon='⚡';focusLabel='PEAK FLOW WINDOW';focusSub='Tackle the hardest problems now';}
-    else if(hour<16){focusIcon='☀️';focusLabel='POST-LUNCH GRIND';focusSub='DPP time — quantity + accuracy';}
-    else if(hour<19){focusIcon='🎯';focusLabel='GOLDEN HOUR';focusSub='Mock tests & timed practice sets';}
-    else if(hour<22){focusIcon='🌆';focusLabel='EVENING REVISION';focusSub='Consolidate the day — notes & formulae';}
-    else{focusIcon='🌙';focusLabel='NIGHT OWL SESSION';focusSub='Theory reading & light revision';}
-
-    // Mission targets
-    const missions=[
-        {done:todayQs>=5,icon:'📝',label:'Solve 5+ DPP questions',val:`${todayQs} done`},
-        {done:todayQs>=20,icon:'🎯',label:'Hit 20 questions today',val:`${Math.min(todayQs,20)}/20`},
-        {done:streak>0,icon:'🔥',label:'Maintain your streak',val:`${streak} days`},
-        {done:!!lastTest&&new Date(lastTest.date||0)>Date.now()-7*86400000,icon:'📊',label:'Review last test errors',val:lastScore!==null?`${lastScore}% scored`:'—'},
-    ];
-    const doneMissions=missions.filter(m=>m.done).length;
-
+    if(!filtered.length){
+        body.innerHTML=`<div class="empty-card"><div class="empty-ico">🎯</div><div class="empty-t">No ${_wcFilter} data yet</div></div>`;return;
+    }
+    const top=filtered.slice(0,6);
+    const maxScore=top[0]?.score||1;
     body.innerHTML=`
-    <div style="display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:center;padding:10px 12px;background:linear-gradient(135deg,rgba(91,110,245,0.08),rgba(167,139,250,0.05));border:1px solid rgba(91,110,245,0.14);border-radius:var(--r3);margin-bottom:12px;">
-      <div style="font-size:2rem;line-height:1;">${focusIcon}</div>
-      <div>
-        <div style="font-family:var(--fd);font-size:0.95rem;letter-spacing:0.1em;color:var(--fg1);">${focusLabel}</div>
-        <div style="font-family:var(--fm);font-size:0.6rem;color:var(--fg3);margin-top:2px;">${focusSub}</div>
-      </div>
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-bottom:12px;">
-      <div style="background:rgba(255,255,255,0.025);border:1px solid var(--bd);border-radius:var(--r2);padding:10px 11px;text-align:center;">
-        <div style="font-family:var(--fd);font-size:1.8rem;color:var(--amber);line-height:1;">${todayQs}</div>
-        <div style="font-family:var(--fm);font-size:0.54rem;color:var(--fg3);letter-spacing:0.08em;text-transform:uppercase;margin-top:2px;">Qs Today</div>
-      </div>
-      <div style="background:rgba(255,255,255,0.025);border:1px solid var(--bd);border-radius:var(--r2);padding:10px 11px;text-align:center;">
-        <div style="font-family:var(--fd);font-size:1.8rem;color:${fireCols[fire]};line-height:1;">${fireEmojis[fire]}</div>
-        <div style="font-family:var(--fm);font-size:0.54rem;color:var(--fg3);letter-spacing:0.08em;text-transform:uppercase;margin-top:2px;">${fireLabels[fire]}</div>
-      </div>
-    </div>
-    <div style="font-family:var(--fm);font-size:0.54rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--fg3);margin-bottom:7px;">DAILY MISSIONS · ${doneMissions}/${missions.length} COMPLETE</div>
-    <div style="display:flex;flex-direction:column;gap:5px;">
-      ${missions.map(m=>`
-        <div style="display:flex;align-items:center;gap:9px;padding:7px 9px;background:rgba(255,255,255,0.025);border-radius:var(--r2);border:1px solid ${m.done?'rgba(45,207,158,0.2)':'var(--bd)'};">
-          <div style="width:16px;height:16px;border-radius:4px;border:1.5px solid ${m.done?'var(--grn)':'var(--fg3)'};background:${m.done?'var(--grn)':'transparent'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-            ${m.done?'<svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L19 7" stroke="#080a10" stroke-width="3" stroke-linecap="round"/></svg>':''}
+    <div style="display:flex;flex-direction:column;gap:6px;">
+      ${top.map((c,i)=>{
+        const col=WC_COLS[c.subject]||'var(--fg3)';
+        const barW=Math.max(4,Math.round(c.score/maxScore*100));
+        const rank=i===0?'🔴':i===1?'🟠':i===2?'🟡':'⚪';
+        const label=c.errorRate>=60?'CRITICAL':c.errorRate>=40?'WEAK':c.tough>=2?'TOUGH Qs':'NEEDS WORK';
+        const labelCol=c.errorRate>=60?'var(--red)':c.errorRate>=40?'var(--amber)':'var(--fg3)';
+        return`<div style="padding:9px 11px;background:rgba(255,255,255,0.025);border:1px solid var(--bd);border-radius:var(--r2);transition:background 0.14s;" onmouseover="this.style.background='rgba(255,255,255,0.048)'" onmouseout="this.style.background='rgba(255,255,255,0.025)'">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+            <span style="font-size:0.85rem;line-height:1;">${rank}</span>
+            <div style="flex:1;font-size:0.8rem;font-weight:500;color:var(--fg1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(c.ch)}</div>
+            <div style="font-family:var(--fm);font-size:0.54rem;color:${labelCol};letter-spacing:0.06em;">${label}</div>
           </div>
-          <div style="font-size:0.78rem;flex:1;color:${m.done?'var(--fg2)':'var(--fg1)'};">${m.icon} ${m.label}</div>
-          <div style="font-family:var(--fm);font-size:0.6rem;color:${m.done?'var(--grn)':'var(--fg3)'};">${m.val}</div>
-        </div>`).join('')}
-    </div>`;
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="flex:1;height:3px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden;">
+              <div style="width:${barW}%;height:100%;background:${col};border-radius:2px;transition:width 0.6s ease;"></div>
+            </div>
+            <div style="display:flex;gap:8px;flex-shrink:0;">
+              <span style="font-family:var(--fm);font-size:0.56rem;color:var(--red);">💀 ${c.tough}</span>
+              <span style="font-family:var(--fm);font-size:0.56rem;color:var(--amber);">🎯 ${c.tricky}</span>
+              <span style="font-family:var(--fm);font-size:0.56rem;color:var(--fg3);">${c.total} total</span>
+              <span style="font-family:var(--fm);font-size:0.56rem;color:${col};">${c.subject.slice(0,4).toUpperCase()}</span>
+            </div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div style="font-family:var(--fm);font-size:0.56rem;color:var(--fg3);margin-top:8px;letter-spacing:0.06em;">Ranked by error rate (tough × 3 + tricky × 2). Log more DPPs for better data.</div>`;
 }
 
 // DPP
