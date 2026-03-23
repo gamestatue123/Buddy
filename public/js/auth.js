@@ -48,21 +48,31 @@ async function doLogin() {
 }
 
 // ── Google / Microsoft ──
+// You'll need to import the plugin at the top of your file if you have a bundler, 
+// or use Capacitor.Plugins.FirebaseAuthentication if using globals.
+
 async function signInWithGoogle() {
     try {
-        const provider = new firebase.auth.GoogleAuthProvider();
-        provider.setCustomParameters({ prompt: 'select_account' });
-        if (isAndroidWebView || isCapacitor) {
-            await firebase.auth().signInWithRedirect(provider);
+        if (isCapacitor) {
+            // 1. Native Google Sign In
+            const result = await Capacitor.Plugins.FirebaseAuthentication.signInWithGoogle();
+            // 2. Create a Firebase credential using the native token
+            const credential = firebase.auth.GoogleAuthProvider.credential(result.credential.idToken);
+            // 3. Sign into the Web SDK so your UI updates
+            await firebase.auth().signInWithCredential(credential);
+            localStorage.setItem('buddy_storage_mode', 'cloud');
+            location.reload();
         } else {
+            // Standard web popup
+            const provider = new firebase.auth.GoogleAuthProvider();
+            provider.setCustomParameters({ prompt: 'select_account' });
             await firebase.auth().signInWithPopup(provider);
             localStorage.setItem('buddy_storage_mode', 'cloud');
         }
     } catch (e) {
-        if (e.code !== 'auth/popup-closed-by-user' && e.code !== 'auth/cancelled-popup-request') {
-            _showToast(_friendlyErr(e.code));
-        }
+        _showToast(_friendlyErr(e.code));
     }
+}
 }
 
 async function signInWithMicrosoft() {
