@@ -1024,8 +1024,7 @@ firebase.auth().onAuthStateChanged(function(user){
 
 <script>
 (function(){
-  const IMPORT_PROMPT = `Convert the provided test result data into a valid JSON array using the exact schema below.
-
+  const IMPORT_PROMPT = `Convert the following test results into a valid JSON array. Generate a downloadable .json file named results.json containing this data.
 Output Requirements (STRICT)
 Output must be pure JSON only
 Do NOT include explanations, comments, or markdown
