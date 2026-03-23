@@ -439,7 +439,7 @@
       <a href="/timetable" class="qa-btn"><svg width="11" height="11" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M16 2V6M8 2V6M3 10H21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>SCHEDULE</a>
       <a href="/syllabus" class="qa-btn"><svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M4 4H20V20H4V4Z" stroke="currentColor" stroke-width="1.8"/><path d="M8 7H16M8 11H14M8 15H12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>SYLLABUS</a>
       <a href="/test-analysis" class="qa-btn"><svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>TESTS</a>
-      <button class="qa-btn" onclick="showToastMsg('✨ Coming soon!')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.8"/><path d="M12 6v6l4 2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>TIMER</button>
+      <button class="qa-btn" onclick="openPomodoro()"><svg width="11" height="11" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.8"/><path d="M12 6v6l4 2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>TIMER</button>
     </div>
 
     <!-- GRID -->
@@ -1450,6 +1450,272 @@ window.addEventListener('resize',()=>{W=cv.width=innerWidth;H=cv.height=innerHei
   }
 })();
 </script>
+
+<!-- ══════════ POMODORO FOCUS MODAL ══════════ -->
+<div id="pomodoroOverlay" style="display:none;position:fixed;inset:0;z-index:15000;background:rgba(4,6,14,0.92);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);align-items:center;justify-content:center;padding:1rem;">
+  <div id="pomodoroPanel" style="width:480px;max-width:96vw;background:var(--ink2);border:1px solid rgba(255,255,255,0.09);border-radius:28px;box-shadow:0 40px 100px rgba(0,0,0,0.8),0 0 0 1px rgba(91,110,245,0.08);overflow:hidden;position:relative;">
+    <!-- accent strip -->
+    <div id="pomStrip" style="height:3px;background:linear-gradient(90deg,var(--acc),var(--vio),var(--amber));"></div>
+
+    <!-- close -->
+    <button onclick="closePomodoro()" style="position:absolute;top:14px;right:14px;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);color:var(--fg3);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1rem;transition:all 0.15s;z-index:2;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'">✕</button>
+
+    <div style="padding:1.6rem 2rem 2rem;">
+
+      <!-- mode tabs -->
+      <div style="display:flex;gap:4px;background:rgba(255,255,255,0.04);border:1px solid var(--bd);border-radius:50px;padding:4px;margin-bottom:1.6rem;">
+        <button id="pmTab0" onclick="setPomMode(0)" class="pm-tab pm-tab-active">🍅 FOCUS</button>
+        <button id="pmTab1" onclick="setPomMode(1)" class="pm-tab">☕ SHORT BREAK</button>
+        <button id="pmTab2" onclick="setPomMode(2)" class="pm-tab">🛋️ LONG BREAK</button>
+      </div>
+
+      <!-- subject label -->
+      <div style="text-align:center;margin-bottom:0.5rem;">
+        <input id="pomSubjectInput" type="text" placeholder="What are you studying? (optional)" maxlength="60"
+          style="background:transparent;border:none;outline:none;font-family:var(--fm);font-size:0.7rem;letter-spacing:0.06em;color:var(--fg2);text-align:center;width:100%;text-transform:uppercase;"
+          oninput="document.getElementById('pomSubjectLabel').textContent=this.value||''">
+      </div>
+      <div id="pomSubjectLabel" style="font-family:var(--fd);font-size:0.85rem;letter-spacing:0.12em;color:var(--acc);text-align:center;min-height:1.1em;margin-bottom:1.2rem;"></div>
+
+      <!-- SVG ring timer -->
+      <div style="position:relative;width:200px;height:200px;margin:0 auto 1.4rem;">
+        <svg width="200" height="200" viewBox="0 0 200 200" style="transform:rotate(-90deg);">
+          <circle cx="100" cy="100" r="86" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="8"/>
+          <circle id="pomRing" cx="100" cy="100" r="86" fill="none" stroke="url(#pomGrad)" stroke-width="8"
+            stroke-linecap="round" stroke-dasharray="540.35" stroke-dashoffset="0" style="transition:stroke-dashoffset 1s linear;"/>
+          <defs>
+            <linearGradient id="pomGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#5b6ef5"/>
+              <stop offset="100%" stop-color="#a78bfa"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <!-- inner content -->
+        <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+          <div id="pomTime" style="font-family:'JetBrains Mono',monospace;font-size:2.8rem;font-weight:600;letter-spacing:0.04em;color:var(--fg1);line-height:1;">25:00</div>
+          <div id="pomPhaseLabel" style="font-family:var(--fm);font-size:0.58rem;letter-spacing:0.12em;color:var(--fg3);text-transform:uppercase;margin-top:4px;">FOCUS</div>
+        </div>
+      </div>
+
+      <!-- controls -->
+      <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:1.4rem;">
+        <button onclick="pomReset()" title="Reset" style="width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,0.04);border:1px solid var(--bd);color:var(--fg3);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.09)'" onmouseout="this.style.background='rgba(255,255,255,0.04)'">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M1 4v6h6M3.51 15a9 9 0 102.13-9.36L1 10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </button>
+        <button id="pomPlayBtn" onclick="pomToggle()" style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--acc),var(--vio));border:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 28px rgba(91,110,245,0.4);transition:all 0.18s;font-size:1.4rem;" onmouseover="this.style.transform='scale(1.07)'" onmouseout="this.style.transform='scale(1)'">
+          <span id="pomPlayIcon">▶</span>
+        </button>
+        <button onclick="pomSkip()" title="Skip" style="width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,0.04);border:1px solid var(--bd);color:var(--fg3);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.09)'" onmouseout="this.style.background='rgba(255,255,255,0.04)'">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 4l10 8-10 8V4zM19 5v14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+
+      <!-- session dots + stats row -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:rgba(255,255,255,0.03);border:1px solid var(--bd);border-radius:var(--r3);">
+        <div>
+          <div style="font-family:var(--fm);font-size:0.54rem;color:var(--fg3);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:5px;">SESSION</div>
+          <div id="pomDots" style="display:flex;gap:5px;"></div>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-family:var(--fd);font-size:1.4rem;color:var(--amber);line-height:1;" id="pomFocusToday">0</div>
+          <div style="font-family:var(--fm);font-size:0.52rem;color:var(--fg3);letter-spacing:0.06em;">FOCUS MIN TODAY</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-family:var(--fd);font-size:1.4rem;color:var(--grn);line-height:1;" id="pomSessCount">0</div>
+          <div style="font-family:var(--fm);font-size:0.52rem;color:var(--fg3);letter-spacing:0.06em;">SESSIONS DONE</div>
+        </div>
+      </div>
+
+      <!-- custom durations -->
+      <div style="margin-top:1rem;display:flex;gap:6px;align-items:center;">
+        <span style="font-family:var(--fm);font-size:0.56rem;color:var(--fg3);letter-spacing:0.06em;white-space:nowrap;">CUSTOM MINS:</span>
+        <input id="pomCustomInput" type="number" min="1" max="120" placeholder="25" style="flex:1;padding:6px 10px;background:var(--ink3);border:1px solid var(--bd);border-radius:var(--r2);color:var(--fg1);font-family:var(--fm);font-size:0.8rem;outline:none;transition:border-color 0.15s;" onfocus="this.style.borderColor='var(--acc)'" onblur="this.style.borderColor='var(--bd)'" onkeydown="if(event.key==='Enter')pomSetCustom()">
+        <button onclick="pomSetCustom()" style="padding:6px 12px;background:rgba(91,110,245,0.14);border:1px solid rgba(91,110,245,0.28);border-radius:var(--r2);color:var(--acc);font-family:var(--fm);font-size:0.62rem;letter-spacing:0.05em;cursor:pointer;transition:all 0.15s;white-space:nowrap;" onmouseover="this.style.background='rgba(91,110,245,0.25)'" onmouseout="this.style.background='rgba(91,110,245,0.14)'">SET</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<style>
+.pm-tab{flex:1;padding:7px 4px;border-radius:50px;border:none;background:transparent;color:var(--fg3);font-family:'JetBrains Mono',monospace;font-size:0.6rem;letter-spacing:0.05em;cursor:pointer;transition:all 0.18s;white-space:nowrap;}
+.pm-tab-active{background:var(--ink4)!important;color:var(--fg1)!important;box-shadow:0 2px 8px rgba(0,0,0,0.3);}
+.pm-tab:hover:not(.pm-tab-active){color:var(--fg2);}
+</style>
+
+<script>
+(function(){
+  // ── Config ──
+  const MODES=[
+    {label:'FOCUS',   mins:25, grad:['#5b6ef5','#a78bfa'], strip:'linear-gradient(90deg,#5b6ef5,#a78bfa,#f5a623)'},
+    {label:'SHORT BREAK', mins:5,  grad:['#2dcf9e','#4da6ff'], strip:'linear-gradient(90deg,#2dcf9e,#4da6ff)'},
+    {label:'LONG BREAK',  mins:15, grad:['#f5a623','#f04444'], strip:'linear-gradient(90deg,#f5a623,#f04444)'},
+  ];
+  const CIRCUMFERENCE=540.35;
+
+  let mode=0, totalSecs=25*60, remaining=25*60, running=false, interval=null;
+  let sessionsToday=0, focusMinToday=0, pomsDone=0;
+
+  // Load today's stats from localStorage
+  const todayKey='pom_'+new Date().toISOString().slice(0,10);
+  try{const s=JSON.parse(localStorage.getItem(todayKey)||'{}');sessionsToday=s.sessions||0;focusMinToday=s.focusMins||0;}catch(e){}
+
+  function saveStats(){
+    const s={sessions:sessionsToday,focusMins:focusMinToday};
+    try{localStorage.setItem(todayKey,JSON.stringify(s));}catch(e){}
+  }
+
+  function fmt(s){return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}
+
+  function setRing(rem,total){
+    const r=document.getElementById('pomRing');if(!r)return;
+    const pct=total>0?rem/total:1;
+    r.style.strokeDashoffset=CIRCUMFERENCE*(1-pct);
+  }
+
+  function updateGrad(){
+    const g=MODES[mode].grad;
+    const r=document.getElementById('pomRing');
+    if(r){
+      // update gradient stops
+      const s0=document.querySelector('#pomGrad stop:first-child');
+      const s1=document.querySelector('#pomGrad stop:last-child');
+      if(s0)s0.setAttribute('stop-color',g[0]);
+      if(s1)s1.setAttribute('stop-color',g[1]);
+    }
+    const strip=document.getElementById('pomStrip');
+    if(strip)strip.style.background=MODES[mode].strip;
+  }
+
+  function updateDots(){
+    const el=document.getElementById('pomDots');if(!el)return;
+    // 4 dots per cycle, fill based on pomsDone
+    const dots=4;
+    el.innerHTML=Array.from({length:dots},(_,i)=>{
+      const filled=i<(pomsDone%dots);
+      const isLast=pomsDone>0&&pomsDone%dots===0&&i===dots-1;
+      return`<div style="width:10px;height:10px;border-radius:50%;background:${filled||isLast?'var(--acc)':'rgba(255,255,255,0.1)'};border:1.5px solid ${filled||isLast?'var(--acc)':'rgba(255,255,255,0.15)'};transition:all 0.3s;"></div>`;
+    }).join('');
+  }
+
+  function refreshUI(){
+    const t=document.getElementById('pomTime');if(t)t.textContent=fmt(remaining);
+    const pl=document.getElementById('pomPhaseLabel');if(pl)pl.textContent=MODES[mode].label;
+    const pi=document.getElementById('pomPlayIcon');if(pi)pi.textContent=running?'⏸':'▶';
+    const ft=document.getElementById('pomFocusToday');if(ft)ft.textContent=focusMinToday;
+    const sc=document.getElementById('pomSessCount');if(sc)sc.textContent=sessionsToday;
+    setRing(remaining,totalSecs);
+    updateDots();
+  }
+
+  function tick(){
+    if(remaining<=0){onComplete();return;}
+    remaining--;
+    // accumulate focus minutes while in focus mode
+    if(mode===0&&running)focusMinToday=Math.floor((totalSecs-remaining)/60)||focusMinToday;
+    refreshUI();
+  }
+
+  function onComplete(){
+    clearInterval(interval);interval=null;running=false;
+    if(mode===0){pomsDone++;sessionsToday++;focusMinToday+=Math.ceil(totalSecs/60);saveStats();}
+    // Flash title
+    let flashes=0;
+    const orig=document.title;
+    const fli=setInterval(()=>{document.title=flashes%2===0?'⏰ TIME IS UP!':orig;if(++flashes>=8){clearInterval(fli);document.title=orig;}},500);
+    // Browser notification if allowed
+    if(Notification&&Notification.permission==='granted'){
+      new Notification(mode===0?'🍅 Focus session done! Time for a break.':'☕ Break over! Back to work.',{icon:'/logo.png'});
+    }
+    // Auto-advance to next logical mode
+    const next=mode===0?(pomsDone%4===0?2:1):0;
+    setTimeout(()=>{setPomMode(next);showToastMsg(mode===0?'🎉 Session complete! Take a break.':'⚡ Break done — back to grind!');},400);
+    refreshUI();
+  }
+
+  window.pomToggle=function(){
+    if(remaining<=0)return;
+    running=!running;
+    if(running){
+      // Request notification permission on first play
+      if(Notification&&Notification.permission==='default')Notification.requestPermission();
+      interval=setInterval(tick,1000);
+    } else {
+      clearInterval(interval);interval=null;
+      if(mode===0)saveStats();
+    }
+    refreshUI();
+  };
+
+  window.pomReset=function(){
+    clearInterval(interval);interval=null;running=false;
+    remaining=totalSecs;
+    refreshUI();
+  };
+
+  window.pomSkip=function(){
+    clearInterval(interval);interval=null;running=false;
+    if(mode===0){pomsDone++;sessionsToday++;focusMinToday+=Math.ceil((totalSecs-remaining)/60);saveStats();}
+    const next=mode===0?(pomsDone%4===0?2:1):0;
+    setPomMode(next);
+  };
+
+  window.setPomMode=function(m){
+    clearInterval(interval);interval=null;running=false;
+    mode=m;
+    totalSecs=MODES[m].mins*60;
+    remaining=totalSecs;
+    // Update tab styles
+    for(let i=0;i<3;i++){
+      const b=document.getElementById('pmTab'+i);
+      if(b){b.classList.toggle('pm-tab-active',i===m);}
+    }
+    updateGrad();refreshUI();
+  };
+
+  window.pomSetCustom=function(){
+    const v=parseInt(document.getElementById('pomCustomInput').value)||25;
+    const clamped=Math.max(1,Math.min(120,v));
+    clearInterval(interval);interval=null;running=false;
+    MODES[mode].mins=clamped;
+    totalSecs=clamped*60;remaining=totalSecs;
+    refreshUI();
+    showToastMsg('⏱ Timer set to '+clamped+' minutes');
+  };
+
+  window.openPomodoro=function(){
+    const o=document.getElementById('pomodoroOverlay');
+    o.style.display='flex';
+    updateGrad();refreshUI();
+    // Prevent body scroll
+    document.body.style.overflow='hidden';
+  };
+
+  window.closePomodoro=function(){
+    document.getElementById('pomodoroOverlay').style.display='none';
+    document.body.style.overflow='';
+    // pause if running
+    if(running){clearInterval(interval);interval=null;running=false;if(mode===0)saveStats();}
+  };
+
+  // Close on backdrop click
+  document.getElementById('pomodoroOverlay').addEventListener('click',function(e){
+    if(e.target===this)closePomodoro();
+  });
+
+  // Keyboard shortcut: Space to play/pause when modal open
+  document.addEventListener('keydown',function(e){
+    const o=document.getElementById('pomodoroOverlay');
+    if(o.style.display==='flex'){
+      if(e.code==='Space'){e.preventDefault();pomToggle();}
+      if(e.code==='Escape'){closePomodoro();}
+      if(e.key==='r'||e.key==='R'){pomReset();}
+    }
+  });
+
+})();
+</script>
+<!-- ══════════════════════════════════════════ -->
 
 </body>
 </html>
