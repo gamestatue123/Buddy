@@ -276,13 +276,17 @@
       <div class="auth-sub">How should Buddy store your progress, DPPs and test history?</div>
       <div class="storage-grid">
         <div class="storage-card" style="--sc:var(--amber)" onclick="selectStorage('local')">
-          <img src="/logo.png" class="sc-logo" alt="Buddy logo">
+          <div class="sc-icon-wrap" style="width:38px;height:38px;border-radius:10px;background:rgba(245,166,35,0.13);border:1px solid rgba(245,166,35,0.25);display:flex;align-items:center;justify-content:center;margin-bottom:10px;position:relative;z-index:1;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="4" width="20" height="14" rx="2.5" stroke="#f5a623" stroke-width="1.6"/><path d="M8 4V3M16 4V3" stroke="#f5a623" stroke-width="1.6" stroke-linecap="round"/><path d="M2 9h20" stroke="#f5a623" stroke-width="1.4"/><path d="M7 14h3M14 14h3" stroke="#f5a623" stroke-width="1.4" stroke-linecap="round"/><path d="M8 20h8" stroke="#f5a623" stroke-width="1.6" stroke-linecap="round"/><path d="M12 18v2" stroke="#f5a623" stroke-width="1.6" stroke-linecap="round"/></svg>
+          </div>
           <div class="sc-name">LOCAL ONLY</div>
           <div class="sc-desc">Stored on this device. Fast, private, no account required.</div>
           <span class="sc-badge">NO LOGIN</span>
         </div>
         <div class="storage-card" style="--sc:var(--acc)" onclick="selectStorage('cloud')">
-          <img src="/logo.png" class="sc-logo" alt="Buddy logo">
+          <div class="sc-icon-wrap" style="width:38px;height:38px;border-radius:10px;background:rgba(91,110,245,0.13);border:1px solid rgba(91,110,245,0.25);display:flex;align-items:center;justify-content:center;margin-bottom:10px;position:relative;z-index:1;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18.5 10.5C18.5 10.5 19 10.5 19.5 10.5C21.433 10.5 23 12.067 23 14C23 15.933 21.433 17.5 19.5 17.5H5.5C3.291 17.5 1.5 15.709 1.5 13.5C1.5 11.527 2.944 9.888 4.846 9.567C4.612 9.065 4.5 8.497 4.5 7.9C4.5 5.467 6.467 3.5 8.9 3.5C10.311 3.5 11.565 4.163 12.38 5.195C12.84 4.947 13.352 4.8 13.9 4.8C15.722 4.8 17.2 6.278 17.2 8.1C17.2 8.438 17.15 8.769 17.05 9.08" stroke="#5b6ef5" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 21V14M9 17l3-3 3 3" stroke="#5b6ef5" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
           <div class="sc-name">CLOUD SYNC</div>
           <div class="sc-desc">Access from any device. Auto backed-up, always in sync.</div>
           <span class="sc-badge">LOGIN REQUIRED</span>
@@ -513,13 +517,11 @@
         </div>
       </a>
 
-      <!-- PREP MOMENTUM col-8 -->
-      <div class="dc col-8">
-        <div class="ch"><div class="ch-title">PREP MOMENTUM</div><div class="ch-badge" id="momentumBadge">LOCK IN</div></div>
-        <div class="cb">
-          <div id="momentumWidget" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:10px;"></div>
-          <div id="momentumChecklist" style="display:flex;flex-direction:column;gap:6px;"></div>
-        </div>
+      <!-- TODAY'S BATTLE PLAN col-8 -->
+      <div class="dc col-8" id="battlePlanCard">
+        <div class="card-glow" style="background:var(--acc);top:auto;bottom:-30px;right:20px;"></div>
+        <div class="ch"><div class="ch-title">TODAY'S BATTLE PLAN</div><div class="ch-badge" id="battleBadge" style="background:rgba(240,68,68,0.12);color:var(--red);border-color:rgba(240,68,68,0.25);">LOADING</div></div>
+        <div class="cb" id="battlePlanBody"></div>
       </div>
 
       <!-- SUBJECT LOAD col-4 -->
@@ -558,28 +560,105 @@ function showScreen(id){document.querySelectorAll('.auth-screen').forEach(s=>s.c
 function closeOverlay(){document.getElementById('authOverlay').classList.remove('show');}
 function openOverlay(){document.getElementById('authOverlay').classList.add('show');}
 
-// JEE Year modal — avoids browser prompt() which can be blocked
+// Profile setup modal — JEE year + prep type
 function showJeeYearModal(onConfirm){
+    const curYear=new Date().getFullYear();
+    const years=[curYear+1,curYear+2,curYear+3].filter(y=>y<=2030);
+    // default = next year
+    const defYear=curYear+1;
     const overlay=document.createElement('div');
     overlay.id='jeeYearModal';
-    overlay.style.cssText='position:fixed;inset:0;z-index:20000;display:flex;align-items:center;justify-content:center;background:rgba(4,6,14,0.92);backdrop-filter:blur(20px);';
+    overlay.style.cssText='position:fixed;inset:0;z-index:20000;display:flex;align-items:center;justify-content:center;padding:1rem;background:rgba(4,6,14,0.92);backdrop-filter:blur(20px);';
     overlay.innerHTML=`
-      <div style="background:var(--ink2);border:1px solid rgba(91,110,245,0.25);border-radius:24px;padding:2rem 2.2rem;width:340px;max-width:90vw;box-shadow:0 40px 80px rgba(0,0,0,0.7),0 0 0 1px rgba(91,110,245,0.08);">
-        <div style="height:3px;background:linear-gradient(90deg,var(--acc),var(--vio),var(--amber));border-radius:3px;margin-bottom:1.5rem;margin-top:-2rem;margin-left:-2.2rem;margin-right:-2.2rem;border-radius:24px 24px 0 0;"></div>
-        <div style="font-family:var(--fd);font-size:1.8rem;letter-spacing:0.06em;color:var(--fg1);margin-bottom:6px;">YOUR TARGET YEAR</div>
-        <div style="font-family:var(--fm);font-size:0.72rem;color:var(--fg3);letter-spacing:0.06em;margin-bottom:1.4rem;line-height:1.6;">Which year are you targeting for JEE? This powers your countdown timer.</div>
-        <div style="display:flex;gap:8px;margin-bottom:1.2rem;flex-wrap:wrap;">
-          ${[2025,2026,2027,2028].map(y=>`<button onclick="document.getElementById('jeeYearInput').value='${y}';document.querySelectorAll('.jee-yr-pill').forEach(b=>b.classList.remove('active'));this.classList.add('active');" class="jee-yr-pill" style="flex:1;min-width:70px;padding:8px 0;background:var(--ink3);border:1px solid var(--bd);border-radius:var(--r2);font-family:var(--fd);font-size:1.1rem;letter-spacing:0.06em;color:var(--fg2);cursor:pointer;transition:all 0.15s;">${y}</button>`).join('')}
+      <div style="background:var(--ink2);border:1px solid rgba(91,110,245,0.25);border-radius:24px;padding:2rem 2.2rem;width:400px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 40px 80px rgba(0,0,0,0.7),0 0 0 1px rgba(91,110,245,0.08);scrollbar-width:none;" class="jym-panel">
+        <div style="height:3px;background:linear-gradient(90deg,var(--acc),var(--vio),var(--amber));margin:-2rem -2.2rem 1.6rem;border-radius:24px 24px 0 0;"></div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+          <div style="width:32px;height:32px;border-radius:9px;background:rgba(91,110,245,0.15);border:1px solid rgba(91,110,245,0.25);display:flex;align-items:center;justify-content:center;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 2L15 8L22 9L17 14L18 21L12 17L6 21L7 14L2 9L9 8L12 2Z" stroke="#5b6ef5" stroke-width="1.8" stroke-linejoin="round"/></svg>
+          </div>
+          <div style="font-family:var(--fd);font-size:1.7rem;letter-spacing:0.06em;color:var(--fg1);">QUICK SETUP</div>
         </div>
-        <input id="jeeYearInput" type="number" value="2027" min="2025" max="2030" style="width:100%;padding:10px 13px;background:var(--ink3);border:1px solid var(--bd);border-radius:var(--r2);color:var(--fg1);font-family:var(--fm);font-size:1rem;outline:none;margin-bottom:1rem;transition:border-color 0.18s;" onfocus="this.style.borderColor='var(--acc)'" onblur="this.style.borderColor='var(--bd)'">
-        <button onclick="(function(){const v=parseInt(document.getElementById('jeeYearInput').value)||2027;document.getElementById('jeeYearModal').remove();(window._jeeYearCb||function(){})(v);})()" style="width:100%;padding:11px;background:linear-gradient(90deg,var(--acc),var(--acc2,var(--vio)));color:#fff;border:none;border-radius:var(--r2);font-family:var(--fd);font-size:1.1rem;letter-spacing:0.1em;cursor:pointer;transition:all 0.18s;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform=''">LOCK IT IN →</button>
+        <div style="font-family:var(--fm);font-size:0.68rem;color:var(--fg3);letter-spacing:0.06em;margin-bottom:1.6rem;line-height:1.7;">2 things to personalise your dashboard. Takes 10 seconds.</div>
+
+        <!-- TARGET YEAR -->
+        <div style="font-family:var(--fm);font-size:0.58rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--fg3);margin-bottom:8px;">🎯 JEE Target Year</div>
+        <div id="jymYearPills" style="display:flex;gap:8px;margin-bottom:1.4rem;">
+          ${years.map(y=>`<button data-year="${y}" class="jym-yr" style="flex:1;padding:10px 0;background:var(--ink3);border:1px solid var(--bd);border-radius:var(--r2);font-family:var(--fd);font-size:1.2rem;letter-spacing:0.06em;color:var(--fg2);cursor:pointer;transition:all 0.15s;">${y}</button>`).join('')}
+        </div>
+
+        <!-- PREP TYPE -->
+        <div style="font-family:var(--fm);font-size:0.58rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--fg3);margin-bottom:8px;">📚 How Are You Preparing?</div>
+        <div id="jymPrepPills" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1.4rem;">
+          <button data-prep="self" class="jym-prep" style="padding:10px 8px;background:var(--ink3);border:1px solid var(--bd);border-radius:var(--r2);font-family:var(--fm);font-size:0.7rem;letter-spacing:0.05em;color:var(--fg2);cursor:pointer;transition:all 0.15s;text-align:left;display:flex;align-items:center;gap:8px;">
+            <span style="font-size:1.1rem;">🏠</span><div><div style="font-weight:600;color:var(--fg1);">Self Study</div><div style="font-size:0.56rem;color:var(--fg3);margin-top:1px;">Going solo</div></div>
+          </button>
+          <button data-prep="coaching" class="jym-prep" style="padding:10px 8px;background:var(--ink3);border:1px solid var(--bd);border-radius:var(--r2);font-family:var(--fm);font-size:0.7rem;letter-spacing:0.05em;color:var(--fg2);cursor:pointer;transition:all 0.15s;text-align:left;display:flex;align-items:center;gap:8px;">
+            <span style="font-size:1.1rem;">🏛️</span><div><div style="font-weight:600;color:var(--fg1);">Coaching</div><div style="font-size:0.56rem;color:var(--fg3);margin-top:1px;">Allen/Resonance/etc</div></div>
+          </button>
+          <button data-prep="online" class="jym-prep" style="padding:10px 8px;background:var(--ink3);border:1px solid var(--bd);border-radius:var(--r2);font-family:var(--fm);font-size:0.7rem;letter-spacing:0.05em;color:var(--fg2);cursor:pointer;transition:all 0.15s;text-align:left;display:flex;align-items:center;gap:8px;">
+            <span style="font-size:1.1rem;">💻</span><div><div style="font-weight:600;color:var(--fg1);">Online Batch</div><div style="font-size:0.56rem;color:var(--fg3);margin-top:1px;">PW/Unacademy/etc</div></div>
+          </button>
+          <button data-prep="hybrid" class="jym-prep" style="padding:10px 8px;background:var(--ink3);border:1px solid var(--bd);border-radius:var(--r2);font-family:var(--fm);font-size:0.7rem;letter-spacing:0.05em;color:var(--fg2);cursor:pointer;transition:all 0.15s;text-align:left;display:flex;align-items:center;gap:8px;">
+            <span style="font-size:1.1rem;">⚡</span><div><div style="font-weight:600;color:var(--fg1);">Hybrid</div><div style="font-size:0.56rem;color:var(--fg3);margin-top:1px;">Coaching + self study</div></div>
+          </button>
+        </div>
+
+        <!-- BATCH NAME (shown when coaching/online/hybrid selected) -->
+        <div id="jymBatchWrap" style="display:none;margin-bottom:1.2rem;">
+          <div style="font-family:var(--fm);font-size:0.58rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--fg3);margin-bottom:6px;">🏷️ Batch / Institute Name</div>
+          <input id="jymBatchInput" type="text" placeholder="e.g. Shikhar OMEGA, Allen SRG, PW Arjuna..." style="width:100%;padding:10px 13px;background:var(--ink3);border:1px solid var(--bd);border-radius:var(--r2);color:var(--fg1);font-family:var(--fm);font-size:0.85rem;outline:none;transition:border-color 0.18s;" onfocus="this.style.borderColor='var(--acc)'" onblur="this.style.borderColor='var(--bd)'">
+        </div>
+
+        <button id="jymConfirmBtn" style="width:100%;padding:12px;background:linear-gradient(90deg,var(--acc),var(--vio));color:#fff;border:none;border-radius:var(--r2);font-family:var(--fd);font-size:1.1rem;letter-spacing:0.12em;cursor:pointer;transition:all 0.18s;opacity:0.45;pointer-events:none;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform=''">LET'S GO →</button>
       </div>`;
     document.body.appendChild(overlay);
     window._jeeYearCb=onConfirm;
-    // Highlight default 2027 pill
-    setTimeout(()=>{const pills=overlay.querySelectorAll('.jee-yr-pill');pills.forEach(b=>{if(b.textContent.trim()==='2027'){b.style.borderColor='var(--acc)';b.style.color='var(--fg1)';b.style.background='rgba(91,110,245,0.14)';}});},10);
-    // Add hover styles for pills via JS
-    overlay.querySelectorAll && setTimeout(()=>{overlay.querySelectorAll('.jee-yr-pill').forEach(b=>{b.addEventListener('click',function(){overlay.querySelectorAll('.jee-yr-pill').forEach(x=>{x.style.borderColor='var(--bd)';x.style.color='var(--fg2)';x.style.background='var(--ink3)';});this.style.borderColor='var(--acc)';this.style.color='var(--fg1)';this.style.background='rgba(91,110,245,0.14)';});});},20);
+
+    let selYear=null,selPrep=null;
+
+    function updateConfirmBtn(){
+        const btn=overlay.querySelector('#jymConfirmBtn');
+        if(selYear&&selPrep){btn.style.opacity='1';btn.style.pointerEvents='auto';}
+        else{btn.style.opacity='0.45';btn.style.pointerEvents='none';}
+    }
+    function styleActive(el,color='var(--acc)'){
+        el.style.borderColor=color;el.style.background=`rgba(91,110,245,0.14)`;el.style.color='var(--fg1)';
+    }
+    function styleInactive(el){
+        el.style.borderColor='var(--bd)';el.style.background='var(--ink3)';el.style.color='var(--fg2)';
+    }
+
+    // Year pills
+    overlay.querySelectorAll('.jym-yr').forEach(b=>{
+        b.addEventListener('click',function(){
+            overlay.querySelectorAll('.jym-yr').forEach(x=>styleInactive(x));
+            styleActive(this,'var(--amber)');this.style.background='rgba(245,166,35,0.14)';
+            selYear=parseInt(this.dataset.year);updateConfirmBtn();
+        });
+    });
+    // Default highlight next year
+    setTimeout(()=>{
+        const def=overlay.querySelector(`.jym-yr[data-year="${defYear}"]`);
+        if(def){def.click();}
+    },20);
+
+    // Prep pills
+    overlay.querySelectorAll('.jym-prep').forEach(b=>{
+        b.addEventListener('click',function(){
+            overlay.querySelectorAll('.jym-prep').forEach(x=>styleInactive(x));
+            styleActive(this);selPrep=this.dataset.prep;
+            const bw=overlay.querySelector('#jymBatchWrap');
+            bw.style.display=(selPrep==='coaching'||selPrep==='online'||selPrep==='hybrid')?'block':'none';
+            updateConfirmBtn();
+        });
+    });
+
+    // Confirm
+    overlay.querySelector('#jymConfirmBtn').addEventListener('click',function(){
+        const batch=(overlay.querySelector('#jymBatchInput')?.value||'').trim();
+        document.getElementById('jeeYearModal').remove();
+        (window._jeeYearCb||function(){})(selYear,selPrep,batch);
+    });
 }
 
 function ensureAuthListener(){
@@ -595,7 +674,7 @@ function ensureAuthListener(){
             // Check if profile has targetYear; if not, prompt before loading
             let p={};try{p=JSON.parse(localStorage.getItem('buddy_profile')||'{}');}catch(e){}
             if(!p.targetYear){
-                showJeeYearModal(yr=>{p.targetYear=yr;localStorage.setItem('buddy_profile',JSON.stringify(p));loadPageData();updateCountdown();});
+                showJeeYearModal((yr,prepType,batch)=>{p.targetYear=yr;if(prepType)p.prepType=prepType;if(batch)p.batch=batch;localStorage.setItem('buddy_profile',JSON.stringify(p));loadPageData();updateCountdown();});
             } else {
                 loadPageData();
             }
@@ -621,7 +700,7 @@ function selectStorage(mode){
     if(mode==='local'){
         let p={};try{p=JSON.parse(localStorage.getItem('buddy_profile')||'{}');}catch(e){}
         if(!p.targetYear){
-            showJeeYearModal(yr=>{p.targetYear=yr;localStorage.setItem('buddy_profile',JSON.stringify(p));closeOverlay();loadLocalData();updateCountdown();});
+            showJeeYearModal((yr,prepType,batch)=>{p.targetYear=yr;if(prepType)p.prepType=prepType;if(batch)p.batch=batch;localStorage.setItem('buddy_profile',JSON.stringify(p));closeOverlay();loadLocalData();updateCountdown();});
         } else {closeOverlay();loadLocalData();}
     }
     else{ensureAuthListener();if(!firebase.auth().currentUser)showScreen('screenLogin');}
@@ -814,15 +893,16 @@ function applyProfile(override={}){
     try{profile=JSON.parse(localStorage.getItem('buddy_profile')||'{}');}catch(e){}
     profile={...profile,...override};
     const cls=(profile.classLevel||'11').toString().toUpperCase();
-    const target=profile.targetYear||2027;
-    const batch=profile.batch||'Self-study';
+    const target=profile.targetYear||(new Date().getFullYear()+1);
     const name=profile.name||'';
+    const prepLabels={self:'SELF STUDY',coaching:'COACHING',online:'ONLINE BATCH',hybrid:'HYBRID'};
+    const prepLabel=prepLabels[profile.prepType]||(profile.batch?profile.batch.toUpperCase():'SELF STUDY');
     const eb=document.getElementById('heroEyebrow');
-    if(eb) eb.textContent=`JEE ${target} · CLASS ${cls} · ${batch.toUpperCase()}`;
+    if(eb) eb.textContent=`JEE ${target} · CLASS ${cls} · ${prepLabel}`;
     const hn=document.getElementById('heroName');
     if(name&&hn){hn.textContent=name.split(' ')[0].toUpperCase()+',';hn.style.display='block';}
 }
-function loadPageData(){applyProfile();loadDPPStats();loadSyllabusProgress();loadMomentumWidget();loadTasks();loadScheduleLocal();loadStreak();loadTestWidget();updateCountdown();}
+function loadPageData(){applyProfile();loadDPPStats();loadSyllabusProgress();loadBattlePlan();loadTasks();loadScheduleLocal();loadStreak();loadTestWidget();updateCountdown();}
 
 // Clock
 function updateClock(){
@@ -843,23 +923,16 @@ else{updateClock();setInterval(updateClock,1000);}
 function getOrPromptTargetYear(){
     let p={};try{p=JSON.parse(localStorage.getItem('buddy_profile')||'{}');}catch(e){}
     if(p.targetYear)return p.targetYear;
-    // Check active_test_plan as fallback
     const plan=JSON.parse(localStorage.getItem('active_test_plan')||'{}');
-    if(plan.examDate){const yr=new Date(plan.examDate).getFullYear();if(yr>=2025){p.targetYear=yr;localStorage.setItem('buddy_profile',JSON.stringify(p));return yr;}}
-    // Prompt only once
-    if(localStorage.getItem('buddy_storage_mode')){
-        const y=prompt('Which year are you targeting for JEE? (e.g. 2027)','2027');
-        const yr=Number(y)||2027;
-        p.targetYear=yr;localStorage.setItem('buddy_profile',JSON.stringify(p));
-        return yr;
-    }
-    return 2027;
+    if(plan.examDate){const yr=new Date(plan.examDate).getFullYear();if(yr>new Date().getFullYear()){p.targetYear=yr;localStorage.setItem('buddy_profile',JSON.stringify(p));return yr;}}
+    // No prompt — use next year as safe default, modal will set it properly
+    return new Date().getFullYear()+1;
 }
 function updateCountdown(){
     const cdDays=document.getElementById('cdDays');if(!cdDays)return;
     const plan=JSON.parse(localStorage.getItem('active_test_plan')||'{}');
     let p={};try{p=JSON.parse(localStorage.getItem('buddy_profile')||'{}');}catch(e){}
-    const targetYear=p.targetYear||2027;
+    const targetYear=p.targetYear||(new Date().getFullYear()+1);
     // Use active_test_plan examDate if set, otherwise default to Jan 20 of target year
     const examDateStr=plan.examDate||(targetYear+'-01-20');
     const examName=(plan.examName||('JEE MAINS '+targetYear)).toUpperCase();
@@ -920,27 +993,84 @@ function loadStreak(){
     }catch(e){}
 }
 // Momentum widget
-function loadMomentumWidget(){
-    const box=document.getElementById('momentumWidget');
-    const list=document.getElementById('momentumChecklist');
-    if(!box||!list)return;
-    let q=[];try{const p=JSON.parse(localStorage.getItem('dpp_q2')||localStorage.getItem('dpp_questions')||'{}');q=[...(p['11']||[]),...(p['12']||[])];}catch(e){}
+// Battle Plan
+function loadBattlePlan(){
+    const body=document.getElementById('battlePlanBody');
+    const badge=document.getElementById('battleBadge');
+    if(!body)return;
+    let allQ=[];try{const p=JSON.parse(localStorage.getItem('dpp_q2')||localStorage.getItem('dpp_questions')||'{}');allQ=[...(p['11']||[]),...(p['12']||[])];}catch(e){}
     let tests=[];try{tests=JSON.parse(localStorage.getItem('test_analysis_data')||'[]');}catch(e){}
     const today=new Date().toISOString().slice(0,10);
-    const todayQs=q.filter(x=>(x.createdAt||'').slice(0,10)===today).length;
+    const todayQs=allQ.filter(x=>(x.createdAt||'').slice(0,10)===today).length;
+    const todayTough=allQ.filter(x=>(x.createdAt||'').slice(0,10)===today&&(x.status==='tough'||x.status==='tricky')).length;
+    const streak=parseInt(localStorage.getItem('buddy_streak')||'0');
     const lastTest=[...tests].sort((a,b)=>new Date(b.date||0)-new Date(a.date||0))[0];
-    const testScore=lastTest?((lastTest.total ?? lastTest.totalMarks ?? ((lastTest.physics||0)+(lastTest.chemistry||0)+(lastTest.maths||0)))):0;
-    box.innerHTML=`<div class="mini-card"><div class="mini-card-n" style="color:var(--amber)">${todayQs}</div><div class="mini-card-l">Questions Today</div></div><div class="mini-card"><div class="mini-card-n" style="color:var(--vio)">${tests.length}</div><div class="mini-card-l">Mocks Logged</div></div><div class="mini-card"><div class="mini-card-n" style="color:var(--grn)">${testScore}</div><div class="mini-card-l">Latest Test Score</div></div>`;
-    const plan=JSON.parse(localStorage.getItem('active_test_plan')||'{}');
-    const todo=[
-      {ok:todayQs>=30,t:'Solve 30+ questions today'},
-      {ok:tests.length>0,t:'Review latest mock mistakes'},
-      {ok:(plan.revisionTarget||0)>=70,t:'Revision target set to 70%+'},
-      {ok:!!(plan.examDate),t:'Exam countdown configured'}
+    const lastScore=lastTest?Math.round(((lastTest.total??lastTest.totalMarks??lastTest.score??0)/(lastTest.maxMarks||300))*100):null;
+    const hour=new Date().getHours();
+
+    // Fire score 0–5
+    let fire=0;
+    if(todayQs>=10)fire++;if(todayQs>=30)fire++;if(todayQs>=50)fire++;
+    if(streak>=3)fire++;if(tests.length>=1)fire++;
+    const fireEmojis=['🌑','🔥','🔥🔥','🔥🔥🔥','⚡🔥','⚡🔥🔥'];
+    const fireLabels=['COLD','WARMING UP','ON TRACK','HOT','BLAZING','UNSTOPPABLE'];
+    const fireCols=['var(--fg3)','var(--amber)','var(--amber)','var(--red)','var(--red)','#ff6b35'];
+
+    if(badge){
+        badge.textContent=fireLabels[fire];
+        badge.style.background=`rgba(${fire>=3?'240,68,68':'245,166,35'},0.12)`;
+        badge.style.color=fireCols[fire];
+        badge.style.borderColor=`rgba(${fire>=3?'240,68,68':'245,166,35'},0.25)`;
+    }
+
+    // Time-based focus block
+    let focusLabel='',focusSub='',focusIcon='';
+    if(hour<6){focusIcon='🌙';focusLabel='LATE NIGHT GRIND';focusSub='Revision mode — go over weak chapters';}
+    else if(hour<10){focusIcon='🌅';focusLabel='MORNING POWER HOUR';focusSub='Best time for new concepts — full focus';}
+    else if(hour<13){focusIcon='⚡';focusLabel='PEAK FLOW WINDOW';focusSub='Tackle the hardest problems now';}
+    else if(hour<16){focusIcon='☀️';focusLabel='POST-LUNCH GRIND';focusSub='DPP time — quantity + accuracy';}
+    else if(hour<19){focusIcon='🎯';focusLabel='GOLDEN HOUR';focusSub='Mock tests & timed practice sets';}
+    else if(hour<22){focusIcon='🌆';focusLabel='EVENING REVISION';focusSub='Consolidate the day — notes & formulae';}
+    else{focusIcon='🌙';focusLabel='NIGHT OWL SESSION';focusSub='Theory reading & light revision';}
+
+    // Mission targets
+    const missions=[
+        {done:todayQs>=5,icon:'📝',label:'Solve 5+ DPP questions',val:`${todayQs} done`},
+        {done:todayQs>=20,icon:'🎯',label:'Hit 20 questions today',val:`${Math.min(todayQs,20)}/20`},
+        {done:streak>0,icon:'🔥',label:'Maintain your streak',val:`${streak} days`},
+        {done:!!lastTest&&new Date(lastTest.date||0)>Date.now()-7*86400000,icon:'📊',label:'Review last test errors',val:lastScore!==null?`${lastScore}% scored`:'—'},
     ];
-    list.innerHTML=todo.map(i=>`<div class="task-row"><div class="task-cb" style="border-color:${i.ok?'var(--grn)':'var(--fg3)'};background:${i.ok?'var(--grn)':'transparent'}"></div><div class="task-text">${i.t}</div></div>`).join('');
-    const done=todo.filter(i=>i.ok).length;
-    document.getElementById('momentumBadge').textContent=`${done}/${todo.length} READY`;
+    const doneMissions=missions.filter(m=>m.done).length;
+
+    body.innerHTML=`
+    <div style="display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:center;padding:10px 12px;background:linear-gradient(135deg,rgba(91,110,245,0.08),rgba(167,139,250,0.05));border:1px solid rgba(91,110,245,0.14);border-radius:var(--r3);margin-bottom:12px;">
+      <div style="font-size:2rem;line-height:1;">${focusIcon}</div>
+      <div>
+        <div style="font-family:var(--fd);font-size:0.95rem;letter-spacing:0.1em;color:var(--fg1);">${focusLabel}</div>
+        <div style="font-family:var(--fm);font-size:0.6rem;color:var(--fg3);margin-top:2px;">${focusSub}</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-bottom:12px;">
+      <div style="background:rgba(255,255,255,0.025);border:1px solid var(--bd);border-radius:var(--r2);padding:10px 11px;text-align:center;">
+        <div style="font-family:var(--fd);font-size:1.8rem;color:var(--amber);line-height:1;">${todayQs}</div>
+        <div style="font-family:var(--fm);font-size:0.54rem;color:var(--fg3);letter-spacing:0.08em;text-transform:uppercase;margin-top:2px;">Qs Today</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.025);border:1px solid var(--bd);border-radius:var(--r2);padding:10px 11px;text-align:center;">
+        <div style="font-family:var(--fd);font-size:1.8rem;color:${fireCols[fire]};line-height:1;">${fireEmojis[fire]}</div>
+        <div style="font-family:var(--fm);font-size:0.54rem;color:var(--fg3);letter-spacing:0.08em;text-transform:uppercase;margin-top:2px;">${fireLabels[fire]}</div>
+      </div>
+    </div>
+    <div style="font-family:var(--fm);font-size:0.54rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--fg3);margin-bottom:7px;">DAILY MISSIONS · ${doneMissions}/${missions.length} COMPLETE</div>
+    <div style="display:flex;flex-direction:column;gap:5px;">
+      ${missions.map(m=>`
+        <div style="display:flex;align-items:center;gap:9px;padding:7px 9px;background:rgba(255,255,255,0.025);border-radius:var(--r2);border:1px solid ${m.done?'rgba(45,207,158,0.2)':'var(--bd)'};">
+          <div style="width:16px;height:16px;border-radius:4px;border:1.5px solid ${m.done?'var(--grn)':'var(--fg3)'};background:${m.done?'var(--grn)':'transparent'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            ${m.done?'<svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L19 7" stroke="#080a10" stroke-width="3" stroke-linecap="round"/></svg>':''}
+          </div>
+          <div style="font-size:0.78rem;flex:1;color:${m.done?'var(--fg2)':'var(--fg1)'};">${m.icon} ${m.label}</div>
+          <div style="font-family:var(--fm);font-size:0.6rem;color:${m.done?'var(--grn)':'var(--fg3)'};">${m.val}</div>
+        </div>`).join('')}
+    </div>`;
 }
 
 // DPP
