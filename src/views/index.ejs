@@ -517,22 +517,17 @@
         </div>
       </a>
 
-      <!-- WEAK CHAPTERS col-8 -->
-      <div class="dc col-8" id="weakChapCard">
-        <div class="card-glow" style="background:var(--red);top:auto;bottom:-30px;right:20px;opacity:0.18;"></div>
+      <!-- UPCOMING TESTS col-8 -->
+      <div class="dc col-8" id="upcomingTestsCard">
+        <div class="card-glow" style="background:var(--vio);top:auto;bottom:-30px;right:20px;opacity:0.2;"></div>
         <div class="ch">
-          <div class="ch-title">WEAK CHAPTERS</div>
+          <div class="ch-title">UPCOMING TESTS</div>
           <div style="display:flex;align-items:center;gap:6px;">
-            <div class="ch-badge" id="weakChapBadge" style="background:rgba(240,68,68,0.12);color:var(--red);border-color:rgba(240,68,68,0.25);">0 FLAGGED</div>
-            <div style="display:flex;gap:4px;">
-              <button id="wcFilterAll" onclick="setWCFilter('all')" style="font-family:var(--fm);font-size:0.55rem;letter-spacing:0.05em;padding:3px 8px;border-radius:50px;border:1px solid var(--acc);background:rgba(91,110,245,0.18);color:var(--acc);cursor:pointer;">ALL</button>
-              <button id="wcFilterP" onclick="setWCFilter('Physics')" style="font-family:var(--fm);font-size:0.55rem;letter-spacing:0.05em;padding:3px 8px;border-radius:50px;border:1px solid var(--bd);background:transparent;color:var(--fg3);cursor:pointer;">PHY</button>
-              <button id="wcFilterC" onclick="setWCFilter('Chemistry')" style="font-family:var(--fm);font-size:0.55rem;letter-spacing:0.05em;padding:3px 8px;border-radius:50px;border:1px solid var(--bd);background:transparent;color:var(--fg3);cursor:pointer;">CHEM</button>
-              <button id="wcFilterM" onclick="setWCFilter('Mathematics')" style="font-family:var(--fm);font-size:0.55rem;letter-spacing:0.05em;padding:3px 8px;border-radius:50px;border:1px solid var(--bd);background:transparent;color:var(--fg3);cursor:pointer;">MATH</button>
-            </div>
+            <div class="ch-badge" id="upTestsBadge" style="background:rgba(167,139,250,0.12);color:var(--vio);border-color:rgba(167,139,250,0.25);">0 SCHEDULED</div>
+            <a href="/timetable" style="font-family:var(--fm);font-size:0.55rem;letter-spacing:0.05em;padding:3px 9px;border-radius:50px;border:1px solid var(--bd);background:transparent;color:var(--fg3);cursor:pointer;text-decoration:none;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--vio)';this.style.color='var(--vio)'" onmouseout="this.style.borderColor='var(--bd)';this.style.color='var(--fg3)'">+ ADD</a>
           </div>
         </div>
-        <div class="cb" id="weakChapBody"></div>
+        <div class="cb" id="upTestsBody"></div>
       </div>
 
       <!-- SUBJECT LOAD col-4 -->
@@ -943,7 +938,7 @@ function applyProfile(override={}){
     const hn=document.getElementById('heroName');
     if(name&&hn){hn.textContent=name.split(' ')[0].toUpperCase()+',';hn.style.display='block';}
 }
-function loadPageData(){applyProfile();loadDPPStats();loadSyllabusProgress();loadWeakChapters();loadTasks();loadScheduleLocal();loadStreak();loadTestWidget();updateCountdown();}
+function loadPageData(){applyProfile();loadDPPStats();loadSyllabusProgress();loadUpcomingTests();loadTasks();loadScheduleLocal();loadStreak();loadTestWidget();updateCountdown();}
 
 // Clock
 function updateClock(){
@@ -1041,94 +1036,130 @@ function loadStreak(){
 }
 // Momentum widget
 // Weak Chapters
-const WC_SMAP={
-    'Basic Maths (Mod & Log)':'Mathematics','Quadratic Equations':'Mathematics','Trigonometry':'Mathematics',
-    'Progression & Series':'Mathematics','Binomial Theorem':'Mathematics','Straight Lines':'Mathematics',
-    'Permutation & Combination':'Mathematics','Set Theory':'Mathematics','Statistics':'Mathematics',
-    'Centre of Mass':'Physics','Work Power Energy':'Physics','Kinematics':'Physics',
-    'Units & Dimensions':'Physics','Rotational Motion':'Physics','Fluid & Elasticity':'Physics','SHM':'Physics',
-    'Concentration Terms & Eudiometry':'Chemistry','Atomic Structure':'Chemistry','Periodic Table':'Chemistry',
-    'IUPAC Nomenclature':'Chemistry','Chemical Equilibrium':'Chemistry','Ionic Equilibrium':'Chemistry',
-    'Ideal Gas':'Chemistry','Chemical Bonding':'Chemistry','Redox Reactions':'Chemistry','Stereoisomers':'Chemistry'
-};
-const WC_COLS={Physics:'var(--phys)',Chemistry:'var(--chem)',Mathematics:'var(--math)'};
-let _wcFilter='all';
-window.setWCFilter=function(f){
-    _wcFilter=f;
-    // Update filter button styles
-    const map={all:'wcFilterAll',Physics:'wcFilterP',Chemistry:'wcFilterC',Mathematics:'wcFilterM'};
-    Object.entries(map).forEach(([k,id])=>{
-        const b=document.getElementById(id);if(!b)return;
-        const active=(f===k)||(f==='all'&&k==='all');
-        b.style.background=active?'rgba(91,110,245,0.18)':'transparent';
-        b.style.borderColor=active?'var(--acc)':'var(--bd)';
-        b.style.color=active?'var(--acc)':'var(--fg3)';
-    });
-    renderWeakChapters();
-};
-function loadWeakChapters(){
-    let allQ=[];try{const p=JSON.parse(localStorage.getItem('dpp_q2')||localStorage.getItem('dpp_questions')||'{}');allQ=[...(p['11']||[]),...(p['12']||[])];}catch(e){}
-    // Build per-chapter stats
-    const stats={};
-    allQ.forEach(q=>{
-        const ch=q.chapter||'Unknown';
-        if(!stats[ch])stats[ch]={total:0,tough:0,tricky:0,good:0,subject:WC_SMAP[ch]||'Unknown'};
-        stats[ch].total++;
-        if(q.status==='tough')stats[ch].tough++;
-        else if(q.status==='tricky')stats[ch].tricky++;
-        else if(q.status==='good')stats[ch].good++;
-    });
-    // Score = weighted weakness: tough*3 + tricky*2, only chapters with at least 3 attempts
-    window._wcStats=Object.entries(stats)
-        .filter(([,s])=>s.total>=1)
-        .map(([ch,s])=>({ch,subject:s.subject,total:s.total,tough:s.tough,tricky:s.tricky,good:s.good,score:s.tough*3+s.tricky*2,errorRate:Math.round((s.tough+s.tricky)/s.total*100)}))
-        .sort((a,b)=>b.score-a.score);
-    const flagged=window._wcStats.filter(c=>c.errorRate>=40||c.tough>=2).length;
-    const badge=document.getElementById('weakChapBadge');
-    if(badge)badge.textContent=flagged+' FLAGGED';
-    renderWeakChapters();
-}
-function renderWeakChapters(){
-    const body=document.getElementById('weakChapBody');if(!body)return;
-    const allStats=window._wcStats||[];
-    const filtered=_wcFilter==='all'?allStats:allStats.filter(c=>c.subject===_wcFilter);
-    if(!allStats.length){
-        body.innerHTML=`<div class="empty-card"><div class="empty-ico">✅</div><div class="empty-t">Log DPPs to see your weak chapters here</div></div>`;return;
+// Upcoming Tests Widget
+function loadUpcomingTests(){
+    let tests=[];
+    try{tests=JSON.parse(localStorage.getItem('tests')||localStorage.getItem('buddy_tests_scheduled')||'[]');}catch(e){}
+    // Also check timetable tests format
+    if(!tests.length){try{const r=localStorage.getItem('tests_data');if(r)tests=JSON.parse(r);}catch(e){}}
+
+    const today=new Date();today.setHours(0,0,0,0);
+    // Filter to upcoming (today or future) and sort by date ascending
+    const upcoming=tests
+        .filter(t=>{if(!t.date)return false;const d=new Date(t.date);d.setHours(0,0,0,0);return d>=today;})
+        .sort((a,b)=>new Date(a.date)-new Date(b.date));
+    const past=tests
+        .filter(t=>{if(!t.date)return false;const d=new Date(t.date);d.setHours(0,0,0,0);return d<today;})
+        .sort((a,b)=>new Date(b.date)-new Date(a.date));
+
+    const badge=document.getElementById('upTestsBadge');
+    if(badge){badge.textContent=upcoming.length+' SCHEDULED';}
+    const body=document.getElementById('upTestsBody');if(!body)return;
+
+    if(!tests.length){
+        body.innerHTML=`<div class="empty-card"><div class="empty-ico">📅</div><div class="empty-t">No tests scheduled · Go to Timetable to add one</div></div>`;
+        return;
     }
-    if(!filtered.length){
-        body.innerHTML=`<div class="empty-card"><div class="empty-ico">🎯</div><div class="empty-t">No ${_wcFilter} data yet</div></div>`;return;
+
+    const SUBJ_COLS={Physics:'var(--phys)',Chemistry:'var(--chem)',Mathematics:'var(--math)',Maths:'var(--math)',Math:'var(--math)'};
+
+    function urgencyStyle(daysLeft){
+        if(daysLeft<=0)return{col:'var(--red)',label:'TODAY',bg:'rgba(240,68,68,0.12)',border:'rgba(240,68,68,0.3)'};
+        if(daysLeft===1)return{col:'var(--red)',label:'TOMORROW',bg:'rgba(240,68,68,0.08)',border:'rgba(240,68,68,0.2)'};
+        if(daysLeft<=3)return{col:'var(--amber)',label:daysLeft+'d LEFT',bg:'rgba(245,166,35,0.08)',border:'rgba(245,166,35,0.2)'};
+        if(daysLeft<=7)return{col:'var(--vio)',label:daysLeft+'d LEFT',bg:'rgba(167,139,250,0.07)',border:'rgba(167,139,250,0.18)'};
+        return{col:'var(--fg3)',label:daysLeft+'d LEFT',bg:'rgba(255,255,255,0.025)',border:'var(--bd)'};
     }
-    const top=filtered.slice(0,6);
-    const maxScore=top[0]?.score||1;
-    body.innerHTML=`
-    <div style="display:flex;flex-direction:column;gap:6px;">
-      ${top.map((c,i)=>{
-        const col=WC_COLS[c.subject]||'var(--fg3)';
-        const barW=Math.max(4,Math.round(c.score/maxScore*100));
-        const rank=i===0?'🔴':i===1?'🟠':i===2?'🟡':'⚪';
-        const label=c.errorRate>=60?'CRITICAL':c.errorRate>=40?'WEAK':c.tough>=2?'TOUGH Qs':'NEEDS WORK';
-        const labelCol=c.errorRate>=60?'var(--red)':c.errorRate>=40?'var(--amber)':'var(--fg3)';
-        return`<div style="padding:9px 11px;background:rgba(255,255,255,0.025);border:1px solid var(--bd);border-radius:var(--r2);transition:background 0.14s;" onmouseover="this.style.background='rgba(255,255,255,0.048)'" onmouseout="this.style.background='rgba(255,255,255,0.025)'">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-            <span style="font-size:0.85rem;line-height:1;">${rank}</span>
-            <div style="flex:1;font-size:0.8rem;font-weight:500;color:var(--fg1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(c.ch)}</div>
-            <div style="font-family:var(--fm);font-size:0.54rem;color:${labelCol};letter-spacing:0.06em;">${label}</div>
+
+    let html='';
+
+    if(upcoming.length){
+        // Next test — big featured card
+        const next=upcoming[0];
+        const nextDate=new Date(next.date);nextDate.setHours(0,0,0,0);
+        const daysLeft=Math.round((nextDate-today)/86400000);
+        const u=urgencyStyle(daysLeft);
+        const chapters=(next.chapters||[]);
+        const completed=(next.completedChapters||[]).length;
+        const total=chapters.length;
+        const prepPct=total?Math.round(completed/total*100):0;
+
+        // Build subject pills from chapters or syllabus string
+        const syllabusStr=next.syllabus||chapters.join(', ')||'';
+        const subjectMentions=[];
+        if(syllabusStr.toLowerCase().includes('physics')||chapters.some(c=>c.match(/kinematics|motion|force|energy|work|wave|optics|thermo|electro|magnet|fluid|SHM|rotat/i)))subjectMentions.push('Physics');
+        if(syllabusStr.toLowerCase().includes('chemistry')||chapters.some(c=>c.match(/organic|inorganic|atomic|bonding|equilib|mole|acid|redox|stereo|periodic|IUPAC/i)))subjectMentions.push('Chemistry');
+        if(syllabusStr.toLowerCase().includes('math')||chapters.some(c=>c.match(/quadratic|trigo|log|matrix|vector|calcul|limit|integr|differenti|permut|probab|complex|straight|circle/i)))subjectMentions.push('Maths');
+
+        html+=`<div style="padding:12px 13px;background:${u.bg};border:1px solid ${u.border};border-radius:var(--r3);margin-bottom:10px;position:relative;overflow:hidden;">
+          <div style="position:absolute;top:0;left:0;bottom:0;width:3px;background:${u.col};border-radius:3px 0 0 3px;"></div>
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px;padding-left:8px;">
+            <div style="flex:1;min-width:0;">
+              <div style="font-family:var(--fd);font-size:1.05rem;letter-spacing:0.06em;color:var(--fg1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(next.name||'Unnamed Test')}</div>
+              <div style="font-family:var(--fm);font-size:0.58rem;color:var(--fg3);margin-top:2px;">${nextDate.toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'})}</div>
+            </div>
+            <div style="text-align:right;flex-shrink:0;">
+              <div style="font-family:var(--fd);font-size:1.6rem;line-height:1;color:${u.col};">${daysLeft<=0?'0':daysLeft}</div>
+              <div style="font-family:var(--fm);font-size:0.5rem;color:${u.col};letter-spacing:0.08em;">${u.label}</div>
+            </div>
           </div>
-          <div style="display:flex;align-items:center;gap:8px;">
-            <div style="flex:1;height:3px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden;">
-              <div style="width:${barW}%;height:100%;background:${col};border-radius:2px;transition:width 0.6s ease;"></div>
+          ${total?`<div style="padding-left:8px;margin-bottom:6px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+              <div style="font-family:var(--fm);font-size:0.56rem;color:var(--fg3);letter-spacing:0.06em;">SYLLABUS PREP</div>
+              <div style="font-family:var(--fm);font-size:0.58rem;color:${prepPct>=80?'var(--grn)':prepPct>=50?'var(--amber)':'var(--red)'};">${completed}/${total} · ${prepPct}%</div>
             </div>
-            <div style="display:flex;gap:8px;flex-shrink:0;">
-              <span style="font-family:var(--fm);font-size:0.56rem;color:var(--red);">💀 ${c.tough}</span>
-              <span style="font-family:var(--fm);font-size:0.56rem;color:var(--amber);">🎯 ${c.tricky}</span>
-              <span style="font-family:var(--fm);font-size:0.56rem;color:var(--fg3);">${c.total} total</span>
-              <span style="font-family:var(--fm);font-size:0.56rem;color:${col};">${c.subject.slice(0,4).toUpperCase()}</span>
+            <div style="height:4px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden;">
+              <div style="width:${prepPct}%;height:100%;background:${prepPct>=80?'var(--grn)':prepPct>=50?'var(--amber)':'var(--red)'};border-radius:2px;transition:width 0.6s ease;"></div>
             </div>
+          </div>`:''}
+          ${subjectMentions.length?`<div style="display:flex;gap:5px;padding-left:8px;flex-wrap:wrap;">
+            ${subjectMentions.map(s=>`<span style="font-family:var(--fm);font-size:0.54rem;padding:2px 7px;border-radius:50px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:${SUBJ_COLS[s]||'var(--fg3)'};">${s}</span>`).join('')}
+          </div>`:''}
+        </div>`;
+
+        // Remaining upcoming (compact rows)
+        upcoming.slice(1,4).forEach(t=>{
+            const td=new Date(t.date);td.setHours(0,0,0,0);
+            const dl=Math.round((td-today)/86400000);
+            const u2=urgencyStyle(dl);
+            const ch2=(t.chapters||[]);const cp2=(t.completedChapters||[]).length;
+            html+=`<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:rgba(255,255,255,0.025);border:1px solid var(--bd);border-radius:var(--r2);margin-bottom:5px;transition:background 0.13s;" onmouseover="this.style.background='rgba(255,255,255,0.045)'" onmouseout="this.style.background='rgba(255,255,255,0.025)'">
+              <div style="width:3px;height:36px;border-radius:2px;background:${u2.col};flex-shrink:0;"></div>
+              <div style="flex:1;min-width:0;">
+                <div style="font-size:0.78rem;font-weight:500;color:var(--fg1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(t.name||'Test')}</div>
+                <div style="font-family:var(--fm);font-size:0.55rem;color:var(--fg3);margin-top:2px;">${td.toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'})}${ch2.length?' · '+cp2+'/'+ch2.length+' chapters':''}</div>
+              </div>
+              <div style="text-align:right;flex-shrink:0;">
+                <div style="font-family:var(--fd);font-size:1.1rem;color:${u2.col};line-height:1;">${dl}</div>
+                <div style="font-family:var(--fm);font-size:0.5rem;color:${u2.col};letter-spacing:0.06em;">DAYS</div>
+              </div>
+            </div>`;
+        });
+        if(upcoming.length>4){
+            html+=`<div style="font-family:var(--fm);font-size:0.6rem;color:var(--fg3);text-align:center;padding:6px 0;">+ ${upcoming.length-4} more upcoming tests</div>`;
+        }
+    } else {
+        html+=`<div class="empty-card" style="padding:1rem 0 0.4rem;"><div class="empty-ico">✅</div><div class="empty-t">No upcoming tests · All clear!</div></div>`;
+    }
+
+    // Last completed test (1 row, greyed out)
+    if(past.length){
+        const p=past[0];
+        const pd=new Date(p.date);
+        const daysAgo=Math.round((today-pd)/86400000);
+        html+=`<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--bd);">
+          <div style="font-family:var(--fm);font-size:0.54rem;letter-spacing:0.08em;color:var(--fg3);text-transform:uppercase;margin-bottom:6px;">LAST COMPLETED</div>
+          <div style="display:flex;align-items:center;gap:10px;padding:7px 10px;background:rgba(255,255,255,0.015);border:1px solid rgba(255,255,255,0.04);border-radius:var(--r2);opacity:0.7;">
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:0.76rem;color:var(--fg2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(p.name||'Test')}</div>
+              <div style="font-family:var(--fm);font-size:0.54rem;color:var(--fg3);margin-top:1px;">${pd.toLocaleDateString('en-IN',{day:'numeric',month:'short'})} · ${daysAgo}d ago</div>
+            </div>
+            <a href="/test-analysis" style="font-family:var(--fm);font-size:0.56rem;color:var(--acc);text-decoration:none;letter-spacing:0.04em;flex-shrink:0;">ANALYSE →</a>
           </div>
         </div>`;
-      }).join('')}
-    </div>
-    <div style="font-family:var(--fm);font-size:0.56rem;color:var(--fg3);margin-top:8px;letter-spacing:0.06em;">Ranked by error rate (tough × 3 + tricky × 2). Log more DPPs for better data.</div>`;
+    }
+
+    body.innerHTML=html;
 }
 
 // DPP
