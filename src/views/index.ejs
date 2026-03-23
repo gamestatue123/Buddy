@@ -611,9 +611,9 @@ window.addEventListener('DOMContentLoaded',()=>{
     const mode=localStorage.getItem('buddy_storage_mode');
     // Always load whatever data exists in localStorage so widgets aren't blank
     loadPageData();
-    if(!mode){setTimeout(()=>openOverlay(),140);}
+    if(!mode){showScreen('screenStorage');openOverlay();}
     else if(mode==='local'){_sm='local';loadLocalData();}
-    else{_sm='cloud';setTimeout(()=>{if(!_cu){openOverlay();showScreen('screenLogin');}},1600);}
+    else{_sm='cloud';setTimeout(()=>{if(!_cu){showScreen('screenLogin');openOverlay();}},1600);}
 });
 
 function selectStorage(mode){
@@ -698,7 +698,6 @@ function showLocalSignInButton(){
     const localBtn=document.getElementById('localSignInBtn');
     if(pill) pill.style.display='none';
     if(localBtn) localBtn.style.display='flex';
-}
 }
 function toggleUserDropdown(){document.getElementById('userDropdown').classList.toggle('show');}
 document.addEventListener('click',e=>{if(!e.target.closest('#userMenuPill'))document.getElementById('userDropdown')?.classList.remove('show');});
