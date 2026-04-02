@@ -648,8 +648,9 @@
 let _cu=null,_sm=null,_si=false,_al=false;
 // Optional API keys (recommended for reliable AI responses):
 // You can paste keys directly below OR keep them empty and use localStorage.
-const HARDCODED_OPENROUTER_KEY = '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'; // e.g. 'sk-or-v1-...'
+const HARDCODED_OPENROUTER_KEY = ''; // e.g. 'sk-or-v1-...'
 const HARDCODED_HF_KEY = ''; // e.g. 'hf_...'
+const OPENROUTER_MODEL = 'deepseek/deepseek-chat-v3-0324:free'; // change to any OpenRouter model id you have access to
 // localStorage fallback:
 // 1) localStorage.setItem('buddy_openrouter_key','YOUR_KEY')
 // 2) localStorage.setItem('buddy_hf_key','YOUR_HF_KEY')
@@ -1520,7 +1521,7 @@ async function callAIProviders(prompt){
             const r=await fetch('https://openrouter.ai/api/v1/chat/completions',{
                 method:'POST',
                 headers:{'Content-Type':'application/json','Authorization':`Bearer ${BUDDY_AI_CONFIG.openRouterKey}`},
-                body:JSON.stringify({model:'deepseek/deepseek-chat:free',messages:[{role:'user',content:prompt}],max_tokens:220,temperature:0.6})
+                body:JSON.stringify({model:OPENROUTER_MODEL,messages:[{role:'user',content:prompt}],max_tokens:220,temperature:0.6})
             });
             if(r.ok){
                 const d=await r.json();
