@@ -483,6 +483,9 @@
             <div class="ai-panel">
               <div class="ai-title">PERSONALIZED INSIGHTS</div>
               <div class="ai-insights" id="aiInsightsList"></div>
+              <div class="ai-title" style="margin-top:10px;">REAL AI COACH (HUGGING FACE)</div>
+              <div class="ai-point info" id="aiCoachText">Preparing your AI coach...</div>
+              <button class="qa-btn" style="margin-top:8px;" onclick="refreshAICoach(true)">RUN REAL AI ANALYSIS</button>
             </div>
             <div class="ai-panel">
               <div class="ai-title">PRIORITY BACKLOG</div>
@@ -1388,12 +1391,13 @@ function loadAICommandCentre(){
         insightsEl.innerHTML=insights.map(i=>`<div class="ai-point ${i.type}">${esc(i.text)}</div>`).join('');
     }
     renderBacklog(backlog);
+    refreshAICoach(false,{score,avgTestPct,pendingTasks,backlogOpen,syllabusPct,dppTotal,scheduleCount});
 }
 
 function renderBacklog(backlogItems){
     const host=document.getElementById('backlogList');
     if(!host)return;
-    const active=backlogItems.filter(b=>!b.done).sort((a,b)=>({high:0,medium:1,low:2}[a.priority||'medium']-({high:0,medium:1,low:2}[b.priority||'medium']));
+    const active=backlogItems.filter(b=>!b.done).sort((a,b)=>({high:0,medium:1,low:2}[a.priority||'medium'])-({high:0,medium:1,low:2}[b.priority||'medium']));
     if(!active.length){
         host.innerHTML='<div class="empty-card" style="padding:1rem 0.4rem;"><div class="empty-ico">🧠</div><div class="empty-t">No backlog items · Add your next bottleneck</div></div>';
         return;
@@ -1422,6 +1426,53 @@ function markBacklogDone(id){
     const backlog=readJsonArray('buddy_backlog').map(item=>item.id===id?{...item,done:true,doneAt:new Date().toISOString()}:item);
     localStorage.setItem('buddy_backlog',JSON.stringify(backlog));
     loadAICommandCentre();
+}
+
+async function refreshAICoach(force=false,metricsOverride=null){
+    const coachEl=document.getElementById('aiCoachText');
+    if(!coachEl)return;
+    if(window.__aiCoachBusy)return;
+    const now=Date.now();
+    const cachedText=localStorage.getItem('buddy_ai_coach_text');
+    const cachedTs=Number(localStorage.getItem('buddy_ai_coach_ts')||0);
+    if(!force&&cachedText&&(now-cachedTs)<15*60*1000){coachEl.textContent=cachedText;return;}
+
+    const metrics=metricsOverride||{
+        score:document.getElementById('aiHealthScore')?.textContent||'0%',
+        avgTestPct:0,pendingTasks:0,backlogOpen:0,syllabusPct:0,dppTotal:0,scheduleCount:0
+    };
+    const prompt=`You are a strict but supportive JEE study coach. Use this student snapshot and give exactly 3 short personalized action bullets for next 24 hours. Data: focus_score=${metrics.score}, avg_test_pct=${metrics.avgTestPct}, pending_tasks=${metrics.pendingTasks}, backlog_open=${metrics.backlogOpen}, syllabus_pct=${metrics.syllabusPct}, dpp_total=${metrics.dppTotal}, schedule_slots=${metrics.scheduleCount}. Keep concise and practical.`;
+    coachEl.textContent='Running real AI analysis...';
+    window.__aiCoachBusy=true;
+
+    const models=['deepseek-ai/DeepSeek-R1-Distill-Qwen-7B','Qwen/Qwen2.5-7B-Instruct','mistralai/Mistral-7B-Instruct-v0.3'];
+    let aiText='';
+    for(const model of models){
+        try{
+            const ctrl=new AbortController();
+            const timeout=setTimeout(()=>ctrl.abort(),9000);
+            const res=await fetch(`https://api-inference.huggingface.co/models/${model}`,{
+                method:'POST',
+                headers:{'Content-Type':'application/json'},
+                body:JSON.stringify({inputs:prompt,parameters:{max_new_tokens:130,temperature:0.5,return_full_text:false}}),
+                signal:ctrl.signal
+            });
+            clearTimeout(timeout);
+            if(!res.ok)continue;
+            const data=await res.json();
+            aiText=(Array.isArray(data)?data?.[0]?.generated_text:data?.generated_text||'').trim();
+            if(aiText&&aiText.length>20)break;
+        }catch(e){}
+    }
+
+    if(!aiText){
+        aiText=`No public model response right now. Fallback plan: 1) Clear 2 highest-priority pending items, 2) Run one timed mixed-subject test block, 3) Review today's top 10 mistakes before sleep.`;
+    }
+    const cleaned=aiText.replace(/\s+/g,' ').slice(0,420);
+    coachEl.textContent=cleaned;
+    localStorage.setItem('buddy_ai_coach_text',cleaned);
+    localStorage.setItem('buddy_ai_coach_ts',String(now));
+    window.__aiCoachBusy=false;
 }
 
 setInterval(()=>{if(_cu&&_sm==='cloud')syncToCloud();},30000);
