@@ -166,6 +166,26 @@
     .empty-card{text-align:center;padding:1.6rem 1rem;}
     .empty-ico{font-size:1.7rem;opacity:0.3;margin-bottom:6px;}
     .empty-t{font-family:var(--fm);font-size:0.68rem;color:var(--fg3);letter-spacing:0.04em;}
+    .ai-core{background:linear-gradient(135deg,#0d1124 0%,#101a30 45%,#12112a 100%);border-color:rgba(124,143,248,0.28);}
+    .ai-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px;}
+    .ai-chip{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:50px;font-family:var(--fm);font-size:0.56rem;letter-spacing:0.08em;border:1px solid rgba(124,143,248,0.35);color:var(--acc2);background:rgba(124,143,248,0.08);}
+    .ai-grid{display:grid;grid-template-columns:1.15fr 1fr;gap:10px;}
+    .ai-panel{background:rgba(255,255,255,0.03);border:1px solid var(--bd);border-radius:var(--r3);padding:11px;}
+    .ai-title{font-family:var(--fm);font-size:0.56rem;letter-spacing:0.1em;color:var(--fg3);text-transform:uppercase;margin-bottom:8px;}
+    .ai-score{font-family:var(--fd);font-size:2.4rem;line-height:1;color:var(--acc2);letter-spacing:0.04em;}
+    .ai-muted{font-family:var(--fm);font-size:0.58rem;color:var(--fg3);margin-top:2px;}
+    .ai-insights{display:flex;flex-direction:column;gap:6px;}
+    .ai-point{padding:7px 9px;border-radius:10px;font-size:0.75rem;border:1px solid transparent;}
+    .ai-point.good{background:rgba(45,207,158,0.08);border-color:rgba(45,207,158,0.24);color:var(--grn);}
+    .ai-point.warn{background:rgba(245,166,35,0.08);border-color:rgba(245,166,35,0.24);color:var(--amber);}
+    .ai-point.alert{background:rgba(240,68,68,0.08);border-color:rgba(240,68,68,0.24);color:var(--red);}
+    .ai-point.info{background:rgba(167,139,250,0.08);border-color:rgba(167,139,250,0.24);color:var(--vio);}
+    .backlog-row{display:flex;align-items:center;gap:8px;padding:7px 8px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);border-radius:10px;}
+    .backlog-pri{font-family:var(--fm);font-size:0.52rem;padding:2px 6px;border-radius:50px;letter-spacing:0.06em;}
+    .backlog-pri.high{background:rgba(240,68,68,0.14);color:var(--red);}
+    .backlog-pri.medium{background:rgba(245,166,35,0.14);color:var(--amber);}
+    .backlog-pri.low{background:rgba(45,207,158,0.14);color:var(--grn);}
+    .backlog-done{border:none;background:rgba(45,207,158,0.15);color:var(--grn);font-family:var(--fm);font-size:0.55rem;padding:4px 7px;border-radius:8px;cursor:pointer;}
     .toast-el{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(18px);background:var(--ink3);border:1px solid var(--bdh);color:var(--fg1);padding:8px 18px;border-radius:50px;font-family:var(--fm);font-size:0.72rem;opacity:0;pointer-events:none;transition:all 0.22s;z-index:99999;box-shadow:0 8px 28px rgba(0,0,0,0.5);}
     .toast-el.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
@@ -249,7 +269,7 @@
     @keyframes spin{to{transform:rotate(360deg);}}
 
     /* RESPONSIVE */
-    @media(max-width:1100px){.col-4{grid-column:span 6;}.col-5{grid-column:span 6;}.col-7{grid-column:span 12;}.col-8{grid-column:span 12;}}
+    @media(max-width:1100px){.col-4{grid-column:span 6;}.col-5{grid-column:span 6;}.col-7{grid-column:span 12;}.col-8{grid-column:span 12;}.ai-grid{grid-template-columns:1fr;}}
     @media(max-width:700px){.dash-grid{grid-template-columns:1fr;}.col-3,.col-4,.col-5,.col-6,.col-7,.col-8,.col-12{grid-column:span 1;}.hero{grid-template-columns:1fr;}.clock-widget{display:none;}.storage-grid{grid-template-columns:1fr;}.auth-panel{border-radius:20px;}.stat-banner{grid-template-columns:1fr 1fr;}}
     </style>
 </head>
@@ -444,6 +464,36 @@
 
     <!-- GRID -->
     <div class="dash-grid">
+      <!-- AI COMMAND CENTRE col-12 -->
+      <div class="dc col-12 ai-core">
+        <div class="card-glow" style="background:var(--acc2);opacity:0.22;"></div>
+        <div class="ch">
+          <div class="ch-title">AI COMMAND CENTRE</div>
+          <div class="ai-chip">FREE LOCAL AI · NO API KEY</div>
+        </div>
+        <div class="cb">
+          <div class="ai-head">
+            <div>
+              <div class="ai-score" id="aiHealthScore">—</div>
+              <div class="ai-muted">Focus Health Score (combined from tests, tasks, schedule, DPP, syllabus & backlog)</div>
+            </div>
+            <button class="qa-btn" onclick="addBacklogItem(event)">+ ADD TO BACKLOG</button>
+          </div>
+          <div class="ai-grid">
+            <div class="ai-panel">
+              <div class="ai-title">PERSONALIZED INSIGHTS</div>
+              <div class="ai-insights" id="aiInsightsList"></div>
+              <div class="ai-title" style="margin-top:10px;">REAL AI COACH (HUGGING FACE)</div>
+              <div class="ai-point info" id="aiCoachText">Preparing your AI coach...</div>
+              <button class="qa-btn" style="margin-top:8px;" onclick="refreshAICoach(true)">RUN REAL AI ANALYSIS</button>
+            </div>
+            <div class="ai-panel">
+              <div class="ai-title">PRIORITY BACKLOG</div>
+              <div id="backlogList"></div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <!-- COUNTDOWN col-5 -->
       <div class="dc col-5 countdown-card">
@@ -940,6 +990,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Also load streak and test count for stat banner
     loadStreak();
     loadTestWidget();
+    loadAICommandCentre();
 });
 // ══ SYNC ══
 async function syncFromCloud(){
@@ -985,7 +1036,7 @@ function applyProfile(override={}){
     const hn=document.getElementById('heroName');
     if(name&&hn){hn.textContent=name.split(' ')[0].toUpperCase()+',';hn.style.display='block';}
 }
-function loadPageData(){applyProfile();loadDPPStats();loadSyllabusProgress();loadUpcomingTests();loadTasks();loadScheduleLocal();loadStreak();loadTestWidget();updateCountdown();}
+function loadPageData(){applyProfile();loadDPPStats();loadSyllabusProgress();loadUpcomingTests();loadTasks();loadScheduleLocal();loadStreak();loadTestWidget();loadAICommandCentre();updateCountdown();}
 
 // Clock
 function updateClock(){
@@ -1293,6 +1344,135 @@ function loadTasks(){
         }
         document.getElementById('taskList').innerHTML=pending.slice(0,4).map(t=>`<div class="task-row"><div class="task-cb"></div><div class="task-text">${esc(t.text||t.title||'Task')}</div></div>`).join('')+(pending.length>4?`<div style="font-family:var(--fm);font-size:0.6rem;color:var(--fg3);padding:6px 0;">+ ${pending.length-4} more</div>`:'');
     }catch(e){}
+}
+
+function readJsonArray(key){
+    try{
+        const raw=localStorage.getItem(key);
+        if(!raw)return [];
+        const parsed=JSON.parse(raw);
+        return Array.isArray(parsed)?parsed:[];
+    }catch(e){return [];}
+}
+
+function loadAICommandCentre(){
+    const tests=readJsonArray('test_analysis_data');
+    const tasks=readJsonArray('buddy_tasks');
+    const backlog=readJsonArray('buddy_backlog');
+    const timetable=readJsonArray('buddy_timetable');
+    let schedule={};try{schedule=JSON.parse(localStorage.getItem('buddy_schedule')||'{}');}catch(e){}
+    let syllabus={};try{syllabus=JSON.parse(localStorage.getItem('syllabus_progress')||'{}');}catch(e){}
+    let dpp={};try{dpp=JSON.parse(localStorage.getItem('dpp_q2')||localStorage.getItem('dpp_questions')||'{}');}catch(e){}
+    const dppTotal=[...(dpp['11']||[]),...(dpp['12']||[])].length;
+
+    const doneTasks=tasks.filter(t=>t.completed).length;
+    const pendingTasks=tasks.length-doneTasks;
+    const backlogOpen=backlog.filter(b=>!b.done).length;
+    const avgTestPct=tests.length?Math.round(tests.reduce((acc,t)=>{const score=t.total||t.totalMarks||t.score||0;const max=t.maxMarks||300;return acc+(max?score/max*100:0);},0)/tests.length):0;
+    const syllabusItems=Object.values(syllabus);
+    const syllabusDone=syllabusItems.filter(s=>s&&['completed','revised'].includes(s.status)).length;
+    const syllabusPct=syllabusItems.length?Math.round((syllabusDone/syllabusItems.length)*100):0;
+    const scheduleCount=Object.values(schedule).reduce((sum,d)=>sum+(Array.isArray(d)?d.length:0),0) || timetable.length;
+    const score=Math.max(0,Math.min(100,
+        Math.round(avgTestPct*0.3 + (tasks.length?doneTasks/tasks.length*100:55)*0.2 + syllabusPct*0.2 + Math.min(dppTotal,120)/1.2*0.1 + Math.min(scheduleCount*4,100)*0.1 + Math.max(0,100-backlogOpen*12)*0.1)
+    ));
+    const scoreEl=document.getElementById('aiHealthScore');
+    if(scoreEl)scoreEl.textContent=score+'%';
+
+    const insights=[];
+    insights.push({type:score>=75?'good':score>=50?'warn':'alert',text:`Focus health is ${score}%. ${score>=75?'Great momentum—protect your routine.':score>=50?'Decent base—tighten weak zones this week.':'High risk zone—reset with a simple daily plan.'}`});
+    insights.push({type:pendingTasks<=3?'good':'warn',text:`Tasks: ${doneTasks}/${tasks.length||0} done${pendingTasks?` · ${pendingTasks} pending`:''}. ${pendingTasks>5?'Clear 2 pending tasks today to reduce mental load.':'Keep execution streak alive.'}`});
+    insights.push({type:avgTestPct>=65?'good':'alert',text:`Tests avg: ${avgTestPct}% from ${tests.length} test(s). ${avgTestPct<65?'Do error-log revision + timed PYQ block daily.':'Now focus on reducing silly mistakes.'}`});
+    insights.push({type:backlogOpen===0?'good':'warn',text:`Backlog: ${backlogOpen} open item(s). ${backlogOpen?'Prioritize highest-impact backlog item first block tomorrow morning.':'No backlog debt—excellent.'}`});
+    insights.push({type:'info',text:`Coverage snapshot → Syllabus ${syllabusPct}% · DPP ${dppTotal} Q · Schedule slots ${scheduleCount}.`});
+
+    const insightsEl=document.getElementById('aiInsightsList');
+    if(insightsEl){
+        insightsEl.innerHTML=insights.map(i=>`<div class="ai-point ${i.type}">${esc(i.text)}</div>`).join('');
+    }
+    renderBacklog(backlog);
+    refreshAICoach(false,{score,avgTestPct,pendingTasks,backlogOpen,syllabusPct,dppTotal,scheduleCount});
+}
+
+function renderBacklog(backlogItems){
+    const host=document.getElementById('backlogList');
+    if(!host)return;
+    const active=backlogItems.filter(b=>!b.done).sort((a,b)=>({high:0,medium:1,low:2}[a.priority||'medium'])-({high:0,medium:1,low:2}[b.priority||'medium']));
+    if(!active.length){
+        host.innerHTML='<div class="empty-card" style="padding:1rem 0.4rem;"><div class="empty-ico">🧠</div><div class="empty-t">No backlog items · Add your next bottleneck</div></div>';
+        return;
+    }
+    host.innerHTML=active.slice(0,4).map((item,idx)=>`<div class="backlog-row" style="margin-bottom:6px;">
+        <span class="backlog-pri ${esc(item.priority||'medium')}">${esc((item.priority||'medium').toUpperCase())}</span>
+        <div style="flex:1;font-size:0.76rem;">${esc(item.text||'Untitled backlog')}</div>
+        <button class="backlog-done" onclick="markBacklogDone('${esc(item.id||String(idx))}')">DONE</button>
+    </div>`).join('')+(active.length>4?`<div class="ai-muted">+ ${active.length-4} more backlog item(s)</div>`:'');
+}
+
+function addBacklogItem(e){
+    if(e)e.preventDefault();
+    const text=prompt('Backlog item (what is blocking your progress?)');
+    if(!text||!text.trim())return;
+    const priorityPrompt=(prompt('Priority: high / medium / low','medium')||'medium').toLowerCase();
+    const priority=['high','medium','low'].includes(priorityPrompt)?priorityPrompt:'medium';
+    const backlog=readJsonArray('buddy_backlog');
+    backlog.unshift({id:`b_${Date.now()}`,text:text.trim(),priority,done:false,createdAt:new Date().toISOString()});
+    localStorage.setItem('buddy_backlog',JSON.stringify(backlog));
+    loadAICommandCentre();
+    showToastMsg('🧠 Added to backlog.');
+}
+
+function markBacklogDone(id){
+    const backlog=readJsonArray('buddy_backlog').map(item=>item.id===id?{...item,done:true,doneAt:new Date().toISOString()}:item);
+    localStorage.setItem('buddy_backlog',JSON.stringify(backlog));
+    loadAICommandCentre();
+}
+
+async function refreshAICoach(force=false,metricsOverride=null){
+    const coachEl=document.getElementById('aiCoachText');
+    if(!coachEl)return;
+    if(window.__aiCoachBusy)return;
+    const now=Date.now();
+    const cachedText=localStorage.getItem('buddy_ai_coach_text');
+    const cachedTs=Number(localStorage.getItem('buddy_ai_coach_ts')||0);
+    if(!force&&cachedText&&(now-cachedTs)<15*60*1000){coachEl.textContent=cachedText;return;}
+
+    const metrics=metricsOverride||{
+        score:document.getElementById('aiHealthScore')?.textContent||'0%',
+        avgTestPct:0,pendingTasks:0,backlogOpen:0,syllabusPct:0,dppTotal:0,scheduleCount:0
+    };
+    const prompt=`You are a strict but supportive JEE study coach. Use this student snapshot and give exactly 3 short personalized action bullets for next 24 hours. Data: focus_score=${metrics.score}, avg_test_pct=${metrics.avgTestPct}, pending_tasks=${metrics.pendingTasks}, backlog_open=${metrics.backlogOpen}, syllabus_pct=${metrics.syllabusPct}, dpp_total=${metrics.dppTotal}, schedule_slots=${metrics.scheduleCount}. Keep concise and practical.`;
+    coachEl.textContent='Running real AI analysis...';
+    window.__aiCoachBusy=true;
+
+    const models=['deepseek-ai/DeepSeek-R1-Distill-Qwen-7B','Qwen/Qwen2.5-7B-Instruct','mistralai/Mistral-7B-Instruct-v0.3'];
+    let aiText='';
+    for(const model of models){
+        try{
+            const ctrl=new AbortController();
+            const timeout=setTimeout(()=>ctrl.abort(),9000);
+            const res=await fetch(`https://api-inference.huggingface.co/models/${model}`,{
+                method:'POST',
+                headers:{'Content-Type':'application/json'},
+                body:JSON.stringify({inputs:prompt,parameters:{max_new_tokens:130,temperature:0.5,return_full_text:false}}),
+                signal:ctrl.signal
+            });
+            clearTimeout(timeout);
+            if(!res.ok)continue;
+            const data=await res.json();
+            aiText=(Array.isArray(data)?data?.[0]?.generated_text:data?.generated_text||'').trim();
+            if(aiText&&aiText.length>20)break;
+        }catch(e){}
+    }
+
+    if(!aiText){
+        aiText=`No public model response right now. Fallback plan: 1) Clear 2 highest-priority pending items, 2) Run one timed mixed-subject test block, 3) Review today's top 10 mistakes before sleep.`;
+    }
+    const cleaned=aiText.replace(/\s+/g,' ').slice(0,420);
+    coachEl.textContent=cleaned;
+    localStorage.setItem('buddy_ai_coach_text',cleaned);
+    localStorage.setItem('buddy_ai_coach_ts',String(now));
+    window.__aiCoachBusy=false;
 }
 
 setInterval(()=>{if(_cu&&_sm==='cloud')syncToCloud();},30000);
@@ -1774,4 +1954,3 @@ window.addEventListener('resize',()=>{W=cv.width=innerWidth;H=cv.height=innerHei
 
 </body>
 </html>
-
