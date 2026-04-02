@@ -647,11 +647,15 @@
 // ══ AUTH STATE ══
 let _cu=null,_sm=null,_si=false,_al=false;
 // Optional API keys (recommended for reliable AI responses):
+// You can paste keys directly below OR keep them empty and use localStorage.
+const HARDCODED_OPENROUTER_KEY = ''; // e.g. 'sk-or-v1-...'
+const HARDCODED_HF_KEY = ''; // e.g. 'hf_...'
+// localStorage fallback:
 // 1) localStorage.setItem('buddy_openrouter_key','YOUR_KEY')
 // 2) localStorage.setItem('buddy_hf_key','YOUR_HF_KEY')
 const BUDDY_AI_CONFIG={
-    openRouterKey: localStorage.getItem('buddy_openrouter_key') || '',
-    huggingFaceKey: localStorage.getItem('buddy_hf_key') || ''
+    openRouterKey: HARDCODED_OPENROUTER_KEY || localStorage.getItem('buddy_openrouter_key') || '',
+    huggingFaceKey: HARDCODED_HF_KEY || localStorage.getItem('buddy_hf_key') || ''
 };
 
 function showScreen(id){document.querySelectorAll('.auth-screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
