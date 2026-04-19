@@ -718,9 +718,13 @@ const CHAT_UNLOCK_NAME='filter test infinity';
 const CHAT_AUTO_INFTY_KEY='buddy_auto_enter_infinity';
 let chatMode='public',chatUnsubs=[],chatMessages=[],chatPresence=[];
 let secretInviteCode=localStorage.getItem(CHAT_SECRET_STORAGE_KEY)||'';
+const chatGuestId=localStorage.getItem('buddy_chat_guest_id')||(`guest_${Math.random().toString(36).slice(2,10)}`);
+localStorage.setItem('buddy_chat_guest_id',chatGuestId);
 
 function _chatEsc(v){return (v==null?'':String(v)).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
 function _chatDisplayName(){return _cu?.displayName||_cu?.email?.split('@')[0]||'Anonymous';}
+function _chatActorId(){return _cu?.uid||chatGuestId;}
+function _chatActorName(){return _cu?.displayName||_cu?.email?.split('@')[0]||'Guest';}
 function _fmtHM(ts){if(!ts)return '';const d=ts?.toDate?ts.toDate():new Date(ts);return d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});}
 function _makeSecretCode(uid=''){const seed=`${uid||'local'}|${CHAT_UNLOCK_DATE}|${CHAT_UNLOCK_NAME}`;let h=2166136261;for(let i=0;i<seed.length;i++){h^=seed.charCodeAt(i);h+=((h<<1)+(h<<4)+(h<<7)+(h<<8)+(h<<24));}return `INF-${Math.abs(h>>>0).toString(36).toUpperCase().slice(0,8)}`;}
 function isSecretUnlocked(){
@@ -745,7 +749,8 @@ function _renderChatMessages(){
     host.scrollTop=host.scrollHeight;
 }
 async function _claimSecretSeat(){
-    const roomId=_chatRoomId(); if(!roomId||!_cu) return false;
+    const roomId=_chatRoomId(); if(!roomId) return false;
+    const actorId=_chatActorId();
     const db=firebase.firestore();
     const roomRef=db.collection('chatrooms').doc(roomId);
     try{
@@ -753,10 +758,10 @@ async function _claimSecretSeat(){
             const snap=await tx.get(roomRef);
             const data=snap.exists?snap.data():{};
             const participants=Array.isArray(data.participants)?data.participants:[];
-            if(!participants.includes(_cu.uid) && participants.length>=2) return false;
-            const next=participants.includes(_cu.uid)?participants:[...participants,_cu.uid];
+            if(!participants.includes(actorId) && participants.length>=2) return false;
+            const next=participants.includes(actorId)?participants:[...participants,actorId];
             tx.set(roomRef,{type:'secret',code:secretInviteCode,participants:next,updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
-            tx.set(roomRef.collection('presence').doc(_cu.uid),{uid:_cu.uid,name:_chatDisplayName(),lastSeen:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
+            tx.set(roomRef.collection('presence').doc(actorId),{uid:actorId,name:_chatActorName(),lastSeen:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
             return true;
         });
         return ok;
@@ -783,14 +788,13 @@ async function refreshBuddyChatRoom(){
     _clearChatSubs();
     chatMessages=[];_renderChatMessages();
     const system=document.getElementById('chatSystemText');
-    if(!_cu){if(system)system.textContent='Sign in first to chat in realtime.';return;}
     const unlocked=isSecretUnlocked();
     if(chatMode==='secret'){
         if(!unlocked){closeBuddyChatRoom();return;}
         const ok=await _claimSecretSeat();
         if(!ok){if(system)system.textContent='Room is full (2/2). Try later.';document.getElementById('buddyChatLog').innerHTML='<div class="chat-row">⚠️ This room is currently full.</div>';return;}
     }
-    if(system)system.textContent=chatMode==='secret'?'Private room active.':'Public room open to everyone signed in.';
+    if(system)system.textContent=chatMode==='secret'?'Private room active.':'Public room open to everyone.';
     _listenChatRoom();
 }
 function switchBuddyRoom(mode){
@@ -803,21 +807,20 @@ function switchBuddyRoom(mode){
 function openBuddyChatRoom(){document.getElementById('buddyChatModal')?.classList.add('open');switchBuddyRoom('public');}
 function openInfinityRoomSilently(){document.getElementById('buddyChatModal')?.classList.add('open');switchBuddyRoom('secret');}
 function _releaseSecretSeat(){
-    if(!_cu||chatMode!=='secret') return;
+    if(chatMode!=='secret') return;
     const rid=_chatRoomId(); if(!rid) return;
     const roomRef=firebase.firestore().collection('chatrooms').doc(rid);
-    roomRef.collection('presence').doc(_cu.uid).delete().catch(()=>{});
+    roomRef.collection('presence').doc(_chatActorId()).delete().catch(()=>{});
 }
 function closeBuddyChatRoom(){_releaseSecretSeat();_clearChatSubs();document.getElementById('buddyChatModal')?.classList.remove('open');}
 async function sendBuddyChatMessage(){
     const input=document.getElementById('buddyChatInput');
     const text=input?.value?.trim(); if(!text)return;
-    if(!_cu){showToastMsg('Sign in required');return;}
     if(chatMode==='secret' && !isSecretUnlocked()){showToastMsg('Unlock secret room first');return;}
     const rid=_chatRoomId(); if(!rid)return;
     try{
         await firebase.firestore().collection('chatrooms').doc(rid).collection('messages').add({
-            text:text.slice(0,480),uid:_cu.uid,name:_chatDisplayName(),
+            text:text.slice(0,480),uid:_chatActorId(),name:_chatActorName(),
             createdAt:firebase.firestore.FieldValue.serverTimestamp()
         });
         input.value='';
