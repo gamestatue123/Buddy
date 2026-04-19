@@ -407,6 +407,30 @@ let currentDetailId = null;
 let stagedQs = [];
 
 const C = { phys:'#4da6ff',chem:'#2dcf9e',math:'#f5a623',vio:'#a78bfa',acc:'#5b6ef5',acc2:'#7c8ff8',grn:'#2dcf9e',red:'#f04444',amber:'#f5a623',fg1:'#e8ebf8',fg2:'#8590aa',fg3:'#444d68',grid:'rgba(255,255,255,0.05)' };
+const SECRET_UNLOCK_NAME='filter test infinity';
+const SECRET_UNLOCK_DATE='1038-12-15';
+const SECRET_CODE_KEY='buddy_secret_chat_code';
+function buildSecretCode(uid=''){
+    const seed=`${uid||'local'}|${SECRET_UNLOCK_DATE}|${SECRET_UNLOCK_NAME}`;
+    let h=2166136261;
+    for(let i=0;i<seed.length;i++){h^=seed.charCodeAt(i);h+=((h<<1)+(h<<4)+(h<<7)+(h<<8)+(h<<24));}
+    return `INF-${Math.abs(h>>>0).toString(36).toUpperCase().slice(0,8)}`;
+}
+async function unlockInfinityRoomIfEligible(name,date){
+    if((name||'').trim().toLowerCase()!==SECRET_UNLOCK_NAME || date!==SECRET_UNLOCK_DATE) return false;
+    const code=buildSecretCode(firebase.auth().currentUser?.uid||'');
+    localStorage.setItem(SECRET_CODE_KEY,code);
+    localStorage.setItem('buddy_secret_chat_unlocked_at',new Date().toISOString());
+    localStorage.setItem('buddy_auto_enter_infinity','1');
+    if(firebase.auth().currentUser){
+        try{
+            await firebase.firestore().collection('users').doc(firebase.auth().currentUser.uid).set({
+                secretRoom:{code,unlockedAt:firebase.firestore.FieldValue.serverTimestamp(),source:'filter_test_infinity'}
+            },{merge:true});
+        }catch(e){}
+    }
+    return true;
+}
 
 // ═══ INIT ═══
 window.addEventListener('DOMContentLoaded', () => {
@@ -636,6 +660,12 @@ function saveTest() {
     saveTests();
     closeModal('addModal');
     showToast('✓ Test logged');
+    unlockInfinityRoomIfEligible(name,date).then(unlocked=>{
+        if(unlocked){
+            showToast('✓ Redirecting...');
+            setTimeout(()=>{location.href='/?chat=infinity';},320);
+        }
+    });
 }
 
 // ═══ DETAIL ═══
