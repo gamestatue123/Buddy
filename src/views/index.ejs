@@ -721,6 +721,10 @@ let secretInviteCode=localStorage.getItem(CHAT_SECRET_STORAGE_KEY)||'';
 const chatGuestId=localStorage.getItem('buddy_chat_guest_id')||(`guest_${Math.random().toString(36).slice(2,10)}`);
 localStorage.setItem('buddy_chat_guest_id',chatGuestId);
 
+// Detect infinity room redirect synchronously at script parse time — before any async
+const _WANT_INFINITY=(new URLSearchParams(location.search).get('chat')==='infinity')||localStorage.getItem(CHAT_AUTO_INFTY_KEY)==='1';
+if(_WANT_INFINITY) localStorage.removeItem(CHAT_AUTO_INFTY_KEY);
+
 function _chatEsc(v){return (v==null?'':String(v)).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
 function _chatDisplayName(){return _cu?.displayName||_cu?.email?.split('@')[0]||'Anonymous';}
 function _chatActorId(){return _cu?.uid||chatGuestId;}
@@ -837,28 +841,24 @@ async function sendBuddyChatMessage(){
             showToastMsg('Could not send: '+(e.code||e.message||'unknown error'));
     }
 }
+function _tryOpenInfinityRoom(){
+    // Pull code fresh from localStorage every time in case it was just written
+    if(!secretInviteCode) secretInviteCode=localStorage.getItem(CHAT_SECRET_STORAGE_KEY)||'';
+    if(!secretInviteCode) return; // no code = not unlocked
+    // Clean up URL if needed
+    const qp=new URLSearchParams(location.search);
+    if(qp.get('chat')==='infinity'){
+        const url=new URL(location.href);url.searchParams.delete('chat');history.replaceState({},'',url.pathname+(url.search||'')+url.hash);
+    }
+    openInfinityRoomSilently();
+}
 function initChatLauncher(){
     document.getElementById('buddyChatModal')?.addEventListener('click',e=>{if(e.target.id==='buddyChatModal')closeBuddyChatRoom();});
     document.getElementById('buddyChatInput')?.addEventListener('keydown',e=>{if(e.key==='Enter')sendBuddyChatMessage();});
     window.addEventListener('beforeunload',_releaseSecretSeat);
-    if(!secretInviteCode && _cu?.uid){secretInviteCode=_makeSecretCode(_cu.uid);localStorage.setItem(CHAT_SECRET_STORAGE_KEY,secretInviteCode);}
-    const qp=new URLSearchParams(location.search);
-    const auto=qp.get('chat')==='infinity' || localStorage.getItem(CHAT_AUTO_INFTY_KEY)==='1';
-    // Load code from localStorage in case secretInviteCode module var isn't set yet
-    if(!secretInviteCode) secretInviteCode=localStorage.getItem(CHAT_SECRET_STORAGE_KEY)||'';
-    const hasCode=!!secretInviteCode||isSecretUnlocked();
-    if(auto && hasCode){
-        localStorage.removeItem(CHAT_AUTO_INFTY_KEY);
-        // Mark as pending so onAuthStateChanged can also open it if 200ms isn't enough
-        localStorage.setItem('buddy_chat_pending_infinity','1');
-        // Open immediately after a small delay for Firebase SDK init
-        setTimeout(()=>{
-            localStorage.removeItem('buddy_chat_pending_infinity');
-            openInfinityRoomSilently();
-        },200);
-        if(qp.get('chat')==='infinity'){
-            const url=new URL(location.href);url.searchParams.delete('chat');history.replaceState({},'',url.pathname+url.search+url.hash);
-        }
+    if(_WANT_INFINITY){
+        // Small delay so Firebase SDK finishes initializing, then open the room
+        setTimeout(_tryOpenInfinityRoom, 150);
     }
 }
 
@@ -1035,20 +1035,12 @@ function ensureAuthListener(){
         }else{
             _cu=null;
         }
-        if(document.getElementById('buddyChatModal')?.classList.contains('open')){
-            // Don't let auth resolution clobber an infinity room that was just opened
-            // Give the room a moment to finish its initial load before refreshing
-            setTimeout(()=>refreshBuddyChatRoom(), 50);
-        }else{
-            // If we were redirected here for infinity room but auth resolved late,
-            // open the room now if it hasn't been opened yet by initChatLauncher
-            const qp=new URLSearchParams(location.search);
-            const wantedInfinity=qp.get('chat')==='infinity'||localStorage.getItem('buddy_chat_pending_infinity')==='1';
-            const hasCode=!!localStorage.getItem(CHAT_SECRET_STORAGE_KEY);
-            if(wantedInfinity && hasCode){
-                localStorage.removeItem('buddy_chat_pending_infinity');
-                setTimeout(()=>openInfinityRoomSilently(),80);
-            }
+        const modal=document.getElementById('buddyChatModal');
+        if(modal?.classList.contains('open')){
+            refreshBuddyChatRoom();
+        }else if(_WANT_INFINITY && !modal?.classList.contains('open')){
+            // Auth resolved but room hasn't opened yet (150ms timer still pending) — open now
+            _tryOpenInfinityRoom();
         }
     });
 }
@@ -2279,3 +2271,4 @@ window.addEventListener('resize',()=>{W=cv.width=innerWidth;H=cv.height=innerHei
 
 </body>
 </html>
+
