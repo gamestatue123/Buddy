@@ -791,8 +791,11 @@ async function refreshBuddyChatRoom(){
     const unlocked=isSecretUnlocked();
     if(chatMode==='secret'){
         if(!unlocked){closeBuddyChatRoom();return;}
-        const ok=await _claimSecretSeat();
-        if(!ok){if(system)system.textContent='Room is full (2/2). Try later.';document.getElementById('buddyChatLog').innerHTML='<div class="chat-row">⚠️ This room is currently full.</div>';return;}
+        // Fire-and-forget seat claim — don't block room entry on Firestore errors
+        _claimSecretSeat().then(ok=>{
+            if(!ok && system && system.textContent!=='Private room active.')
+                system.textContent='Seat claim pending — room may be full.';
+        }).catch(()=>{});
     }
     if(system)system.textContent=chatMode==='secret'?'Private room active.':'Public room open to everyone.';
     _listenChatRoom();
@@ -824,7 +827,15 @@ async function sendBuddyChatMessage(){
             createdAt:firebase.firestore.FieldValue.serverTimestamp()
         });
         input.value='';
-    }catch(e){showToastMsg('Could not send message');}
+    }catch(e){
+        console.error('[CHAT SEND ERROR]',e.code,e.message,e);
+        if(e.code==='permission-denied'||e.code==='PERMISSION_DENIED')
+            showToastMsg('⛔ Permission denied — Firestore rules need updating');
+        else if(e.code==='unavailable'||e.code==='network-request-failed')
+            showToastMsg('📡 No connection — check your network');
+        else
+            showToastMsg('Could not send: '+(e.code||e.message||'unknown error'));
+    }
 }
 function initChatLauncher(){
     document.getElementById('buddyChatModal')?.addEventListener('click',e=>{if(e.target.id==='buddyChatModal')closeBuddyChatRoom();});
@@ -833,9 +844,14 @@ function initChatLauncher(){
     if(!secretInviteCode && _cu?.uid){secretInviteCode=_makeSecretCode(_cu.uid);localStorage.setItem(CHAT_SECRET_STORAGE_KEY,secretInviteCode);}
     const qp=new URLSearchParams(location.search);
     const auto=qp.get('chat')==='infinity' || localStorage.getItem(CHAT_AUTO_INFTY_KEY)==='1';
-    if(auto && isSecretUnlocked()){
+    // Open infinity room if triggered — check localStorage directly too for timing resilience
+    const hasCode=isSecretUnlocked()||!!localStorage.getItem(CHAT_SECRET_STORAGE_KEY);
+    if(auto && hasCode){
+        // Ensure secretInviteCode is populated from localStorage if not already set
+        if(!secretInviteCode){secretInviteCode=localStorage.getItem(CHAT_SECRET_STORAGE_KEY)||'';}
         localStorage.removeItem(CHAT_AUTO_INFTY_KEY);
-        setTimeout(()=>openInfinityRoomSilently(),120);
+        // Slight delay to let Firebase finish initializing before trying Firestore ops
+        setTimeout(()=>openInfinityRoomSilently(),200);
         if(qp.get('chat')==='infinity'){
             const url=new URL(location.href);url.searchParams.delete('chat');history.replaceState({},'',url.pathname+url.search+url.hash);
         }
