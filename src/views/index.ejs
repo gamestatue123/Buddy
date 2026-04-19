@@ -678,16 +678,6 @@
       <button class="chat-room-btn active" id="chatPublicBtn" onclick="switchBuddyRoom('public')">
         <span>🌐 Public Room</span><span id="publicCountPill">0</span>
       </button>
-      <button class="chat-room-btn" id="chatSecretBtn" onclick="switchBuddyRoom('secret')">
-        <span>🜂 Infinity Room</span><span id="secretCountPill">0/2</span>
-      </button>
-      <div style="margin-top:4px;padding:9px 10px;border:1px solid var(--bd);border-radius:12px;background:rgba(255,255,255,0.02);">
-        <div class="chat-aux" style="margin-bottom:6px;">SECRET ACCESS CODE</div>
-        <input id="secretInviteInput" class="chat-input" style="font-size:0.72rem;padding:8px 10px;" placeholder="Unlocks via Filter Test Infinity trigger" readonly />
-        <div style="display:flex;gap:6px;margin-top:7px;">
-          <button class="qa-btn" style="flex:1;justify-content:center;" onclick="copySecretInviteCode()">COPY CODE</button>
-        </div>
-      </div>
       <div class="chat-aux" id="chatSystemText">Sign in to unlock cloud chat sync.</div>
     </aside>
     <section class="chat-main">
@@ -725,7 +715,8 @@ const BUDDY_AI_CONFIG={
 const CHAT_SECRET_STORAGE_KEY='buddy_secret_chat_code';
 const CHAT_UNLOCK_DATE='2038-12-15';
 const CHAT_UNLOCK_NAME='filter test infinity';
-let chatMode='public',chatActiveRoomId='buddy-public',chatUnsubs=[],chatMessages=[],chatPresence=[];
+const CHAT_AUTO_INFTY_KEY='buddy_auto_enter_infinity';
+let chatMode='public',chatUnsubs=[],chatMessages=[],chatPresence=[];
 let secretInviteCode=localStorage.getItem(CHAT_SECRET_STORAGE_KEY)||'';
 
 function _chatEsc(v){return (v==null?'':String(v)).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
@@ -774,7 +765,7 @@ async function _claimSecretSeat(){
 function _listenChatRoom(){
     const rid=_chatRoomId();
     const log=document.getElementById('buddyChatLog');
-    if(!rid){if(log)log.innerHTML='<div class="chat-row">🔒 Unlock Infinity Room by logging a test named "Filter Test Infinity" dated 2038-12-15.</div>';return;}
+    if(!rid){if(log)log.innerHTML='<div class="chat-row">Room unavailable right now.</div>';return;}
     const db=firebase.firestore();
     const roomRef=db.collection('chatrooms').doc(rid);
     const msgQ=roomRef.collection('messages').orderBy('createdAt','asc').limitToLast(120);
@@ -785,8 +776,7 @@ function _listenChatRoom(){
         const online=chatPresence.length;
         const isSecret=chatMode==='secret';
         document.getElementById('chatPresenceText').textContent=isSecret?`${online}/2 seats active`:`${online} online`;
-        if(isSecret) document.getElementById('secretCountPill').textContent=`${Math.min(online,2)}/2`;
-        else document.getElementById('publicCountPill').textContent=String(online);
+        document.getElementById('publicCountPill') && (document.getElementById('publicCountPill').textContent=String(online));
     }));
 }
 async function refreshBuddyChatRoom(){
@@ -795,24 +785,23 @@ async function refreshBuddyChatRoom(){
     const system=document.getElementById('chatSystemText');
     if(!_cu){if(system)system.textContent='Sign in first to chat in realtime.';return;}
     const unlocked=isSecretUnlocked();
-    document.getElementById('secretInviteInput').value=unlocked?secretInviteCode:'LOCKED';
     if(chatMode==='secret'){
-        if(!unlocked){if(system)system.textContent='Secret room locked. Use the 2038 trigger in Add Test.';return;}
+        if(!unlocked){closeBuddyChatRoom();return;}
         const ok=await _claimSecretSeat();
-        if(!ok){if(system)system.textContent='Infinity Room is full (2/2). Try later.';document.getElementById('buddyChatLog').innerHTML='<div class="chat-row">⚠️ Secret room is currently full.</div>';return;}
+        if(!ok){if(system)system.textContent='Room is full (2/2). Try later.';document.getElementById('buddyChatLog').innerHTML='<div class="chat-row">⚠️ This room is currently full.</div>';return;}
     }
-    if(system)system.textContent=chatMode==='secret'?'Infinity Room secured. Max 2 users at once.':'Public room open to everyone signed in.';
+    if(system)system.textContent=chatMode==='secret'?'Private room active.':'Public room open to everyone signed in.';
     _listenChatRoom();
 }
 function switchBuddyRoom(mode){
     chatMode=mode==='secret'?'secret':'public';
     document.getElementById('chatPublicBtn')?.classList.toggle('active',chatMode==='public');
-    document.getElementById('chatSecretBtn')?.classList.toggle('active',chatMode==='secret');
-    document.getElementById('chatRoomTitle').textContent=chatMode==='secret'?'INFINITY ROOM':'PUBLIC CHAT';
-    document.getElementById('chatRoomSubtitle').textContent=chatMode==='secret'?'Unlocked via hidden test ritual · only 2 concurrent users.':'Discuss prep, ask doubts, motivate each other.';
+    document.getElementById('chatRoomTitle').textContent=chatMode==='secret'?'PRIVATE ROOM':'PUBLIC CHAT';
+    document.getElementById('chatRoomSubtitle').textContent=chatMode==='secret'?'Realtime room · 2 concurrent users max.':'Discuss prep, ask doubts, motivate each other.';
     refreshBuddyChatRoom();
 }
-function openBuddyChatRoom(){document.getElementById('buddyChatModal')?.classList.add('open');switchBuddyRoom(chatMode);}
+function openBuddyChatRoom(){document.getElementById('buddyChatModal')?.classList.add('open');switchBuddyRoom('public');}
+function openInfinityRoomSilently(){document.getElementById('buddyChatModal')?.classList.add('open');switchBuddyRoom('secret');}
 function _releaseSecretSeat(){
     if(!_cu||chatMode!=='secret') return;
     const rid=_chatRoomId(); if(!rid) return;
@@ -820,10 +809,6 @@ function _releaseSecretSeat(){
     roomRef.collection('presence').doc(_cu.uid).delete().catch(()=>{});
 }
 function closeBuddyChatRoom(){_releaseSecretSeat();_clearChatSubs();document.getElementById('buddyChatModal')?.classList.remove('open');}
-function copySecretInviteCode(){
-    if(!isSecretUnlocked()){showToastMsg('🔒 Secret room not unlocked yet');return;}
-    navigator.clipboard?.writeText(secretInviteCode).then(()=>showToastMsg('✓ Secret invite code copied')).catch(()=>showToastMsg(secretInviteCode));
-}
 async function sendBuddyChatMessage(){
     const input=document.getElementById('buddyChatInput');
     const text=input?.value?.trim(); if(!text)return;
@@ -843,7 +828,15 @@ function initChatLauncher(){
     document.getElementById('buddyChatInput')?.addEventListener('keydown',e=>{if(e.key==='Enter')sendBuddyChatMessage();});
     window.addEventListener('beforeunload',_releaseSecretSeat);
     if(!secretInviteCode && _cu?.uid){secretInviteCode=_makeSecretCode(_cu.uid);localStorage.setItem(CHAT_SECRET_STORAGE_KEY,secretInviteCode);}
-    document.getElementById('secretInviteInput').value=isSecretUnlocked()?secretInviteCode:'LOCKED';
+    const qp=new URLSearchParams(location.search);
+    const auto=qp.get('chat')==='infinity' || localStorage.getItem(CHAT_AUTO_INFTY_KEY)==='1';
+    if(auto && isSecretUnlocked()){
+        localStorage.removeItem(CHAT_AUTO_INFTY_KEY);
+        setTimeout(()=>openInfinityRoomSilently(),120);
+        if(qp.get('chat')==='infinity'){
+            const url=new URL(location.href);url.searchParams.delete('chat');history.replaceState({},'',url.pathname+url.search+url.hash);
+        }
+    }
 }
 
 function showScreen(id){document.querySelectorAll('.auth-screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
@@ -1019,7 +1012,6 @@ function ensureAuthListener(){
         }else{
             _cu=null;
         }
-        document.getElementById('secretInviteInput') && (document.getElementById('secretInviteInput').value=isSecretUnlocked()?secretInviteCode:'LOCKED');
         if(document.getElementById('buddyChatModal')?.classList.contains('open')) refreshBuddyChatRoom();
     });
 }

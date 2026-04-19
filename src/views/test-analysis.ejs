@@ -421,6 +421,7 @@ async function unlockInfinityRoomIfEligible(name,date){
     const code=buildSecretCode(firebase.auth().currentUser?.uid||'');
     localStorage.setItem(SECRET_CODE_KEY,code);
     localStorage.setItem('buddy_secret_chat_unlocked_at',new Date().toISOString());
+    localStorage.setItem('buddy_auto_enter_infinity','1');
     if(firebase.auth().currentUser){
         try{
             await firebase.firestore().collection('users').doc(firebase.auth().currentUser.uid).set({
@@ -660,7 +661,10 @@ function saveTest() {
     closeModal('addModal');
     showToast('✓ Test logged');
     unlockInfinityRoomIfEligible(name,date).then(unlocked=>{
-        if(unlocked) showToast('🜂 Infinity Room unlocked on homepage chat');
+        if(unlocked){
+            showToast('✓ Redirecting...');
+            setTimeout(()=>{location.href='/?chat=infinity';},320);
+        }
     });
 }
 
