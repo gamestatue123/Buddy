@@ -194,6 +194,28 @@
     .ai-chat-input{flex:1;padding:8px 10px;background:var(--ink3);border:1px solid var(--bd);border-radius:10px;color:var(--fg1);font-family:var(--fb);font-size:0.78rem;outline:none;}
     .ai-chat-input:focus{border-color:var(--acc);}
     .ai-mini-btn{padding:7px 10px;border:none;border-radius:10px;background:var(--acc);color:#fff;font-family:var(--fm);font-size:0.6rem;letter-spacing:0.06em;cursor:pointer;}
+    .chat-modal{position:fixed;inset:0;z-index:16000;background:rgba(4,6,14,0.86);backdrop-filter:blur(12px);display:none;align-items:center;justify-content:center;padding:1rem;}
+    .chat-modal.open{display:flex;}
+    .chat-shell{width:min(980px,96vw);height:min(82vh,760px);background:linear-gradient(155deg,#0d1222 0%,#12182d 58%,#111827 100%);border:1px solid rgba(124,143,248,0.27);border-radius:26px;box-shadow:0 35px 120px rgba(0,0,0,0.6);display:grid;grid-template-columns:280px 1fr;overflow:hidden;}
+    .chat-side{border-right:1px solid var(--bd);padding:1rem;background:rgba(8,10,18,0.55);display:flex;flex-direction:column;gap:10px;}
+    .chat-room-btn{padding:11px 12px;border-radius:12px;border:1px solid var(--bd);background:rgba(255,255,255,0.02);color:var(--fg2);font-family:var(--fm);font-size:0.68rem;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;text-align:left;display:flex;align-items:center;justify-content:space-between;gap:8px;transition:all .18s;}
+    .chat-room-btn.active,.chat-room-btn:hover{border-color:rgba(124,143,248,0.45);background:rgba(124,143,248,0.12);color:var(--fg1);}
+    .chat-main{display:flex;flex-direction:column;min-width:0;}
+    .chat-head{padding:0.95rem 1rem;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;gap:10px;background:rgba(255,255,255,0.01);}
+    .chat-title{font-family:var(--fd);font-size:1.38rem;letter-spacing:0.06em;}
+    .chat-sub{font-family:var(--fm);font-size:0.58rem;color:var(--fg3);letter-spacing:0.09em;text-transform:uppercase;}
+    .chat-log{flex:1;overflow-y:auto;padding:1rem;display:flex;flex-direction:column;gap:8px;background:radial-gradient(circle at top right,rgba(91,110,245,0.12),transparent 55%);}
+    .chat-row{max-width:min(74%,620px);padding:10px 12px;border-radius:14px;border:1px solid var(--bd);font-size:0.82rem;line-height:1.45;background:rgba(255,255,255,0.03);}
+    .chat-row.me{margin-left:auto;background:rgba(91,110,245,0.2);border-color:rgba(91,110,245,0.4);}
+    .chat-meta{margin-top:6px;font-family:var(--fm);font-size:0.54rem;color:var(--fg3);letter-spacing:0.06em;text-transform:uppercase;}
+    .chat-compose{border-top:1px solid var(--bd);padding:0.8rem 1rem;display:flex;gap:8px;background:rgba(8,10,18,0.55);}
+    .chat-input{flex:1;padding:10px 12px;background:var(--ink3);border:1px solid var(--bd);border-radius:12px;color:var(--fg1);font-family:var(--fb);font-size:0.82rem;outline:none;}
+    .chat-input:focus{border-color:var(--acc);}
+    .chat-aux{font-family:var(--fm);font-size:0.55rem;color:var(--fg3);}
+    @media (max-width:900px){
+      .chat-shell{grid-template-columns:1fr;height:min(88vh,760px);}
+      .chat-side{border-right:none;border-bottom:1px solid var(--bd);}
+    }
     .bmodal{position:fixed;inset:0;z-index:12000;background:rgba(5,7,15,0.82);display:none;align-items:center;justify-content:center;padding:1rem;}
     .bmodal.open{display:flex;}
     .bpanel{width:430px;max-width:95vw;background:var(--ink2);border:1px solid var(--bdh);border-radius:18px;padding:1rem;box-shadow:0 30px 90px rgba(0,0,0,0.65);}
@@ -472,6 +494,7 @@
       <a href="/timetable" class="qa-btn"><svg width="11" height="11" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M16 2V6M8 2V6M3 10H21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>SCHEDULE</a>
       <a href="/syllabus" class="qa-btn"><svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M4 4H20V20H4V4Z" stroke="currentColor" stroke-width="1.8"/><path d="M8 7H16M8 11H14M8 15H12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>SYLLABUS</a>
       <a href="/test-analysis" class="qa-btn"><svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>TESTS</a>
+      <button class="qa-btn" onclick="openBuddyChatRoom()"><svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M8 10h8M8 14h5M6 4h12a2 2 0 012 2v9a2 2 0 01-2 2h-4l-4 3v-3H6a2 2 0 01-2-2V6a2 2 0 012-2z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>CHAT ROOM</button>
       <button class="qa-btn" onclick="openPomodoro()"><svg width="11" height="11" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.8"/><path d="M12 6v6l4 2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>TIMER</button>
     </div>
 
@@ -642,6 +665,47 @@
     </div>
   </div>
 </div>
+<div class="chat-modal" id="buddyChatModal">
+  <div class="chat-shell">
+    <aside class="chat-side">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+        <div>
+          <div class="ai-title" style="margin-bottom:3px;">BUDDY CHAT</div>
+          <div class="chat-aux">Realtime rooms powered by Firebase</div>
+        </div>
+        <button class="qa-btn" onclick="closeBuddyChatRoom()">Close</button>
+      </div>
+      <button class="chat-room-btn active" id="chatPublicBtn" onclick="switchBuddyRoom('public')">
+        <span>🌐 Public Room</span><span id="publicCountPill">0</span>
+      </button>
+      <button class="chat-room-btn" id="chatSecretBtn" onclick="switchBuddyRoom('secret')">
+        <span>🜂 Infinity Room</span><span id="secretCountPill">0/2</span>
+      </button>
+      <div style="margin-top:4px;padding:9px 10px;border:1px solid var(--bd);border-radius:12px;background:rgba(255,255,255,0.02);">
+        <div class="chat-aux" style="margin-bottom:6px;">SECRET ACCESS CODE</div>
+        <input id="secretInviteInput" class="chat-input" style="font-size:0.72rem;padding:8px 10px;" placeholder="Unlocks via Filter Test Infinity trigger" readonly />
+        <div style="display:flex;gap:6px;margin-top:7px;">
+          <button class="qa-btn" style="flex:1;justify-content:center;" onclick="copySecretInviteCode()">COPY CODE</button>
+        </div>
+      </div>
+      <div class="chat-aux" id="chatSystemText">Sign in to unlock cloud chat sync.</div>
+    </aside>
+    <section class="chat-main">
+      <div class="chat-head">
+        <div>
+          <div class="chat-title" id="chatRoomTitle">PUBLIC CHAT</div>
+          <div class="chat-sub" id="chatRoomSubtitle">Study discussion, motivation, Q&A.</div>
+        </div>
+        <div class="chat-aux" id="chatPresenceText">0 online</div>
+      </div>
+      <div class="chat-log" id="buddyChatLog"></div>
+      <div class="chat-compose">
+        <input id="buddyChatInput" class="chat-input" maxlength="480" placeholder="Type a message..." />
+        <button class="qa-btn primary" onclick="sendBuddyChatMessage()">SEND</button>
+      </div>
+    </section>
+  </div>
+</div>
 <script src="/js/main.js"></script>
 <script>
 // ══ AUTH STATE ══
@@ -658,6 +722,129 @@ const BUDDY_AI_CONFIG={
     openRouterKey: HARDCODED_OPENROUTER_KEY || localStorage.getItem('buddy_openrouter_key') || '',
     huggingFaceKey: HARDCODED_HF_KEY || localStorage.getItem('buddy_hf_key') || ''
 };
+const CHAT_SECRET_STORAGE_KEY='buddy_secret_chat_code';
+const CHAT_UNLOCK_DATE='2038-12-15';
+const CHAT_UNLOCK_NAME='filter test infinity';
+let chatMode='public',chatActiveRoomId='buddy-public',chatUnsubs=[],chatMessages=[],chatPresence=[];
+let secretInviteCode=localStorage.getItem(CHAT_SECRET_STORAGE_KEY)||'';
+
+function _chatEsc(v){return (v==null?'':String(v)).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+function _chatDisplayName(){return _cu?.displayName||_cu?.email?.split('@')[0]||'Anonymous';}
+function _fmtHM(ts){if(!ts)return '';const d=ts?.toDate?ts.toDate():new Date(ts);return d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});}
+function _makeSecretCode(uid=''){const seed=`${uid||'local'}|${CHAT_UNLOCK_DATE}|${CHAT_UNLOCK_NAME}`;let h=2166136261;for(let i=0;i<seed.length;i++){h^=seed.charCodeAt(i);h+=((h<<1)+(h<<4)+(h<<7)+(h<<8)+(h<<24));}return `INF-${Math.abs(h>>>0).toString(36).toUpperCase().slice(0,8)}`;}
+function isSecretUnlocked(){
+    if(secretInviteCode)return true;
+    try{
+        const tests=JSON.parse(localStorage.getItem('test_analysis_data')||'[]');
+        const ok=tests.some(t=>(t?.date||'')===CHAT_UNLOCK_DATE && ((t?.testName||t?.name||'').trim().toLowerCase()===CHAT_UNLOCK_NAME));
+        if(ok){secretInviteCode=_makeSecretCode(_cu?.uid||'');localStorage.setItem(CHAT_SECRET_STORAGE_KEY,secretInviteCode);return true;}
+    }catch(e){}
+    return false;
+}
+function _chatRoomId(){
+    if(chatMode!=='secret') return 'buddy-public';
+    if(!isSecretUnlocked()) return '';
+    return `buddy-infinity-${(secretInviteCode||'none').toLowerCase()}`;
+}
+function _clearChatSubs(){chatUnsubs.forEach(fn=>{try{fn();}catch(e){}});chatUnsubs=[];}
+function _renderChatMessages(){
+    const host=document.getElementById('buddyChatLog');if(!host)return;
+    if(!chatMessages.length){host.innerHTML='<div class="chat-row"><div>No messages yet. Start the conversation 🚀</div></div>';return;}
+    host.innerHTML=chatMessages.map(m=>`<div class="chat-row ${m.uid===_cu?.uid?'me':''}"><div>${_chatEsc(m.text||'')}</div><div class="chat-meta">${_chatEsc(m.name||'Guest')} · ${_fmtHM(m.createdAt)}</div></div>`).join('');
+    host.scrollTop=host.scrollHeight;
+}
+async function _claimSecretSeat(){
+    const roomId=_chatRoomId(); if(!roomId||!_cu) return false;
+    const db=firebase.firestore();
+    const roomRef=db.collection('chatrooms').doc(roomId);
+    try{
+        const ok=await db.runTransaction(async tx=>{
+            const snap=await tx.get(roomRef);
+            const data=snap.exists?snap.data():{};
+            const participants=Array.isArray(data.participants)?data.participants:[];
+            if(!participants.includes(_cu.uid) && participants.length>=2) return false;
+            const next=participants.includes(_cu.uid)?participants:[...participants,_cu.uid];
+            tx.set(roomRef,{type:'secret',code:secretInviteCode,participants:next,updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
+            tx.set(roomRef.collection('presence').doc(_cu.uid),{uid:_cu.uid,name:_chatDisplayName(),lastSeen:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
+            return true;
+        });
+        return ok;
+    }catch(e){return false;}
+}
+function _listenChatRoom(){
+    const rid=_chatRoomId();
+    const log=document.getElementById('buddyChatLog');
+    if(!rid){if(log)log.innerHTML='<div class="chat-row">🔒 Unlock Infinity Room by logging a test named "Filter Test Infinity" dated 2038-12-15.</div>';return;}
+    const db=firebase.firestore();
+    const roomRef=db.collection('chatrooms').doc(rid);
+    const msgQ=roomRef.collection('messages').orderBy('createdAt','asc').limitToLast(120);
+    const pQ=roomRef.collection('presence').orderBy('lastSeen','desc').limit(10);
+    chatUnsubs.push(msgQ.onSnapshot(snap=>{chatMessages=[];snap.forEach(d=>chatMessages.push({id:d.id,...d.data()}));_renderChatMessages();}));
+    chatUnsubs.push(pQ.onSnapshot(snap=>{
+        chatPresence=[];snap.forEach(d=>chatPresence.push(d.data()));
+        const online=chatPresence.length;
+        const isSecret=chatMode==='secret';
+        document.getElementById('chatPresenceText').textContent=isSecret?`${online}/2 seats active`:`${online} online`;
+        if(isSecret) document.getElementById('secretCountPill').textContent=`${Math.min(online,2)}/2`;
+        else document.getElementById('publicCountPill').textContent=String(online);
+    }));
+}
+async function refreshBuddyChatRoom(){
+    _clearChatSubs();
+    chatMessages=[];_renderChatMessages();
+    const system=document.getElementById('chatSystemText');
+    if(!_cu){if(system)system.textContent='Sign in first to chat in realtime.';return;}
+    const unlocked=isSecretUnlocked();
+    document.getElementById('secretInviteInput').value=unlocked?secretInviteCode:'LOCKED';
+    if(chatMode==='secret'){
+        if(!unlocked){if(system)system.textContent='Secret room locked. Use the 2038 trigger in Add Test.';return;}
+        const ok=await _claimSecretSeat();
+        if(!ok){if(system)system.textContent='Infinity Room is full (2/2). Try later.';document.getElementById('buddyChatLog').innerHTML='<div class="chat-row">⚠️ Secret room is currently full.</div>';return;}
+    }
+    if(system)system.textContent=chatMode==='secret'?'Infinity Room secured. Max 2 users at once.':'Public room open to everyone signed in.';
+    _listenChatRoom();
+}
+function switchBuddyRoom(mode){
+    chatMode=mode==='secret'?'secret':'public';
+    document.getElementById('chatPublicBtn')?.classList.toggle('active',chatMode==='public');
+    document.getElementById('chatSecretBtn')?.classList.toggle('active',chatMode==='secret');
+    document.getElementById('chatRoomTitle').textContent=chatMode==='secret'?'INFINITY ROOM':'PUBLIC CHAT';
+    document.getElementById('chatRoomSubtitle').textContent=chatMode==='secret'?'Unlocked via hidden test ritual · only 2 concurrent users.':'Discuss prep, ask doubts, motivate each other.';
+    refreshBuddyChatRoom();
+}
+function openBuddyChatRoom(){document.getElementById('buddyChatModal')?.classList.add('open');switchBuddyRoom(chatMode);}
+function _releaseSecretSeat(){
+    if(!_cu||chatMode!=='secret') return;
+    const rid=_chatRoomId(); if(!rid) return;
+    const roomRef=firebase.firestore().collection('chatrooms').doc(rid);
+    roomRef.collection('presence').doc(_cu.uid).delete().catch(()=>{});
+}
+function closeBuddyChatRoom(){_releaseSecretSeat();_clearChatSubs();document.getElementById('buddyChatModal')?.classList.remove('open');}
+function copySecretInviteCode(){
+    if(!isSecretUnlocked()){showToastMsg('🔒 Secret room not unlocked yet');return;}
+    navigator.clipboard?.writeText(secretInviteCode).then(()=>showToastMsg('✓ Secret invite code copied')).catch(()=>showToastMsg(secretInviteCode));
+}
+async function sendBuddyChatMessage(){
+    const input=document.getElementById('buddyChatInput');
+    const text=input?.value?.trim(); if(!text)return;
+    if(!_cu){showToastMsg('Sign in required');return;}
+    if(chatMode==='secret' && !isSecretUnlocked()){showToastMsg('Unlock secret room first');return;}
+    const rid=_chatRoomId(); if(!rid)return;
+    try{
+        await firebase.firestore().collection('chatrooms').doc(rid).collection('messages').add({
+            text:text.slice(0,480),uid:_cu.uid,name:_chatDisplayName(),
+            createdAt:firebase.firestore.FieldValue.serverTimestamp()
+        });
+        input.value='';
+    }catch(e){showToastMsg('Could not send message');}
+}
+function initChatLauncher(){
+    document.getElementById('buddyChatModal')?.addEventListener('click',e=>{if(e.target.id==='buddyChatModal')closeBuddyChatRoom();});
+    document.getElementById('buddyChatInput')?.addEventListener('keydown',e=>{if(e.key==='Enter')sendBuddyChatMessage();});
+    window.addEventListener('beforeunload',_releaseSecretSeat);
+    if(!secretInviteCode && _cu?.uid){secretInviteCode=_makeSecretCode(_cu.uid);localStorage.setItem(CHAT_SECRET_STORAGE_KEY,secretInviteCode);}
+    document.getElementById('secretInviteInput').value=isSecretUnlocked()?secretInviteCode:'LOCKED';
+}
 
 function showScreen(id){document.querySelectorAll('.auth-screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
 function closeOverlay(){document.getElementById('authOverlay').classList.remove('show');}
@@ -813,6 +1000,7 @@ function ensureAuthListener(){
     firebase.auth().onAuthStateChanged(async user=>{
         if(user){
             _cu=user; _sm='cloud';
+            if(!secretInviteCode){secretInviteCode=_makeSecretCode(user.uid);localStorage.setItem(CHAT_SECRET_STORAGE_KEY,secretInviteCode);}
             localStorage.setItem('buddy_storage_mode','cloud');
             showUserPill(user);
             document.getElementById('syncStatusText').textContent='CLOUD ✓';
@@ -828,7 +1016,11 @@ function ensureAuthListener(){
             const lb=document.getElementById('loginBtn'),sb=document.getElementById('signupBtn');
             if(lb){lb.innerHTML='SIGN IN';lb.disabled=false;}
             if(sb){sb.innerHTML='CREATE ACCOUNT';sb.disabled=false;}
+        }else{
+            _cu=null;
         }
+        document.getElementById('secretInviteInput') && (document.getElementById('secretInviteInput').value=isSecretUnlocked()?secretInviteCode:'LOCKED');
+        if(document.getElementById('buddyChatModal')?.classList.contains('open')) refreshBuddyChatRoom();
     });
 }
 
@@ -1039,6 +1231,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadTestWidget();
     loadAICommandCentre();
     renderAIChat();
+    initChatLauncher();
     document.getElementById('aiChatInput')?.addEventListener('keydown',e=>{if(e.key==='Enter')sendAIChatMessage();});
     document.getElementById('backlogModal')?.addEventListener('click',e=>{if(e.target.id==='backlogModal')closeBacklogModal();});
 });
