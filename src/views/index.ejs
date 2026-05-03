@@ -200,18 +200,24 @@
     .chat-side{border-right:1px solid var(--bd);padding:1rem;background:rgba(8,10,18,0.55);display:flex;flex-direction:column;gap:10px;}
     .chat-room-btn{padding:11px 12px;border-radius:12px;border:1px solid var(--bd);background:rgba(255,255,255,0.02);color:var(--fg2);font-family:var(--fm);font-size:0.68rem;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;text-align:left;display:flex;align-items:center;justify-content:space-between;gap:8px;transition:all .18s;}
     .chat-room-btn.active,.chat-room-btn:hover{border-color:rgba(124,143,248,0.45);background:rgba(124,143,248,0.12);color:var(--fg1);}
-    .chat-main{display:flex;flex-direction:column;min-width:0;}
+    .chat-main{display:flex;flex-direction:column;min-width:0;min-height:0;}
     .chat-head{padding:0.95rem 1rem;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;gap:10px;background:rgba(255,255,255,0.01);}
     .chat-title{font-family:var(--fd);font-size:1.38rem;letter-spacing:0.06em;}
     .chat-sub{font-family:var(--fm);font-size:0.58rem;color:var(--fg3);letter-spacing:0.09em;text-transform:uppercase;}
-    .chat-log{flex:1;overflow-y:auto;padding:1rem;display:flex;flex-direction:column;gap:8px;background:radial-gradient(circle at top right,rgba(91,110,245,0.12),transparent 55%);}
+    .chat-log{flex:1;min-height:0;overflow-y:auto;padding:1rem;display:flex;flex-direction:column;gap:8px;background:radial-gradient(circle at top right,rgba(91,110,245,0.12),transparent 55%);}
     .chat-row{max-width:min(74%,620px);padding:10px 12px;border-radius:14px;border:1px solid var(--bd);font-size:0.82rem;line-height:1.45;background:rgba(255,255,255,0.03);}
     .chat-row.me{margin-left:auto;background:rgba(91,110,245,0.2);border-color:rgba(91,110,245,0.4);}
     .chat-meta{margin-top:6px;font-family:var(--fm);font-size:0.54rem;color:var(--fg3);letter-spacing:0.06em;text-transform:uppercase;}
-    .chat-compose{border-top:1px solid var(--bd);padding:0.8rem 1rem;display:flex;gap:8px;background:rgba(8,10,18,0.55);}
+    .chat-compose{border-top:1px solid var(--bd);padding:0.8rem 1rem;display:flex;gap:8px;background:rgba(8,10,18,0.75);position:sticky;bottom:0;}
     .chat-input{flex:1;padding:10px 12px;background:var(--ink3);border:1px solid var(--bd);border-radius:12px;color:var(--fg1);font-family:var(--fb);font-size:0.82rem;outline:none;}
     .chat-input:focus{border-color:var(--acc);}
     .chat-aux{font-family:var(--fm);font-size:0.55rem;color:var(--fg3);}
+    .chat-ico-btn{width:40px;height:40px;border-radius:10px;border:1px solid var(--bd);background:var(--ink3);color:var(--fg2);cursor:pointer;}
+    .chat-popup{position:absolute;bottom:62px;right:8px;z-index:5;width:min(420px,92vw);max-height:300px;overflow-y:auto;background:var(--ink2);border:1px solid var(--bdh);border-radius:12px;padding:10px;display:none;}
+    .chat-popup.show{display:block;}
+    .emoji-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:6px;}
+    .emoji-btn{border:none;background:rgba(255,255,255,0.03);border-radius:8px;padding:6px;cursor:pointer;font-size:1.1rem;}
+    .gif-item{width:100%;border-radius:10px;cursor:pointer;border:1px solid var(--bd);}
     @media (max-width:900px){
       .chat-shell{grid-template-columns:1fr;height:min(88vh,760px);}
       .chat-side{border-right:none;border-bottom:1px solid var(--bd);}
@@ -689,9 +695,18 @@
         <div class="chat-aux" id="chatPresenceText">0 online</div>
       </div>
       <div class="chat-log" id="buddyChatLog"></div>
-      <div class="chat-compose">
+      <div class="chat-compose" style="position:relative;">
+        <button class="chat-ico-btn" onclick="toggleEmojiPicker()">😊</button>
+        <button class="chat-ico-btn" onclick="toggleGifPicker()">GIF</button>
         <input id="buddyChatInput" class="chat-input" maxlength="480" placeholder="Type a message..." />
         <button class="qa-btn primary" onclick="sendBuddyChatMessage()">SEND</button>
+        <div id="emojiPopup" class="chat-popup">
+          <div class="emoji-grid" id="emojiGrid"></div>
+        </div>
+        <div id="gifPopup" class="chat-popup" style="right:56px;">
+          <input id="gifSearchInput" class="chat-input" placeholder="Search GIFs..." style="margin-bottom:8px;" />
+          <div id="gifResults" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;"></div>
+        </div>
       </div>
     </section>
   </div>
@@ -713,17 +728,13 @@ const BUDDY_AI_CONFIG={
     huggingFaceKey: HARDCODED_HF_KEY || localStorage.getItem('buddy_hf_key') || ''
 };
 const CHAT_SECRET_STORAGE_KEY='buddy_secret_chat_code';
-const CHAT_UNLOCK_DATE='2038-12-15';
+const CHAT_UNLOCK_DATE='1038-12-15';
 const CHAT_UNLOCK_NAME='filter test infinity';
 const CHAT_AUTO_INFTY_KEY='buddy_auto_enter_infinity';
 let chatMode='public',chatUnsubs=[],chatMessages=[],chatPresence=[];
 let secretInviteCode=localStorage.getItem(CHAT_SECRET_STORAGE_KEY)||'';
 const chatGuestId=localStorage.getItem('buddy_chat_guest_id')||(`guest_${Math.random().toString(36).slice(2,10)}`);
 localStorage.setItem('buddy_chat_guest_id',chatGuestId);
-
-// Detect infinity room redirect synchronously at script parse time — before any async
-const _WANT_INFINITY=(new URLSearchParams(location.search).get('chat')==='infinity')||localStorage.getItem(CHAT_AUTO_INFTY_KEY)==='1';
-if(_WANT_INFINITY) localStorage.removeItem(CHAT_AUTO_INFTY_KEY);
 
 function _chatEsc(v){return (v==null?'':String(v)).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
 function _chatDisplayName(){return _cu?.displayName||_cu?.email?.split('@')[0]||'Anonymous';}
@@ -743,13 +754,16 @@ function isSecretUnlocked(){
 function _chatRoomId(){
     if(chatMode!=='secret') return 'buddy-public';
     if(!isSecretUnlocked()) return '';
-    return `buddy-infinity-${(secretInviteCode||'none').toLowerCase()}`;
+    return 'buddy-infinity-room';
 }
 function _clearChatSubs(){chatUnsubs.forEach(fn=>{try{fn();}catch(e){}});chatUnsubs=[];}
 function _renderChatMessages(){
     const host=document.getElementById('buddyChatLog');if(!host)return;
     if(!chatMessages.length){host.innerHTML='<div class="chat-row"><div>No messages yet. Start the conversation 🚀</div></div>';return;}
-    host.innerHTML=chatMessages.map(m=>`<div class="chat-row ${m.uid===_cu?.uid?'me':''}"><div>${_chatEsc(m.text||'')}</div><div class="chat-meta">${_chatEsc(m.name||'Guest')} · ${_fmtHM(m.createdAt)}</div></div>`).join('');
+    host.innerHTML=chatMessages.map(m=>{
+        const body=m.gif?`<img src="${_chatEsc(m.gif)}" style="max-width:220px;border-radius:10px;border:1px solid var(--bd);">`:`<div>${_chatEsc(m.text||'')}</div>`;
+        return `<div class="chat-row ${m.uid===_cu?.uid?'me':''}">${body}<div class="chat-meta">${_chatEsc(m.name||'Guest')} · ${_fmtHM(m.createdAt)}</div></div>`;
+    }).join('');
     host.scrollTop=host.scrollHeight;
 }
 async function _claimSecretSeat(){
@@ -795,11 +809,8 @@ async function refreshBuddyChatRoom(){
     const unlocked=isSecretUnlocked();
     if(chatMode==='secret'){
         if(!unlocked){closeBuddyChatRoom();return;}
-        // Fire-and-forget seat claim — don't block room entry on Firestore errors
-        _claimSecretSeat().then(ok=>{
-            if(!ok && system && system.textContent!=='Private room active.')
-                system.textContent='Seat claim pending — room may be full.';
-        }).catch(()=>{});
+        const ok=await _claimSecretSeat();
+        if(!ok){if(system)system.textContent='Room is full (2/2). Try later.';document.getElementById('buddyChatLog').innerHTML='<div class="chat-row">⚠️ This room is currently full.</div>';return;}
     }
     if(system)system.textContent=chatMode==='secret'?'Private room active.':'Public room open to everyone.';
     _listenChatRoom();
@@ -831,35 +842,51 @@ async function sendBuddyChatMessage(){
             createdAt:firebase.firestore.FieldValue.serverTimestamp()
         });
         input.value='';
-    }catch(e){
-        console.error('[CHAT SEND ERROR]',e.code,e.message,e);
-        if(e.code==='permission-denied'||e.code==='PERMISSION_DENIED')
-            showToastMsg('⛔ Permission denied — Firestore rules need updating');
-        else if(e.code==='unavailable'||e.code==='network-request-failed')
-            showToastMsg('📡 No connection — check your network');
-        else
-            showToastMsg('Could not send: '+(e.code||e.message||'unknown error'));
-    }
-}
-function _tryOpenInfinityRoom(){
-    // Pull code fresh from localStorage every time in case it was just written
-    if(!secretInviteCode) secretInviteCode=localStorage.getItem(CHAT_SECRET_STORAGE_KEY)||'';
-    if(!secretInviteCode) return; // no code = not unlocked
-    // Clean up URL if needed
-    const qp=new URLSearchParams(location.search);
-    if(qp.get('chat')==='infinity'){
-        const url=new URL(location.href);url.searchParams.delete('chat');history.replaceState({},'',url.pathname+(url.search||'')+url.hash);
-    }
-    openInfinityRoomSilently();
+    }catch(e){showToastMsg('Could not send message');}
 }
 function initChatLauncher(){
     document.getElementById('buddyChatModal')?.addEventListener('click',e=>{if(e.target.id==='buddyChatModal')closeBuddyChatRoom();});
     document.getElementById('buddyChatInput')?.addEventListener('keydown',e=>{if(e.key==='Enter')sendBuddyChatMessage();});
     window.addEventListener('beforeunload',_releaseSecretSeat);
-    if(_WANT_INFINITY){
-        // Small delay so Firebase SDK finishes initializing, then open the room
-        setTimeout(_tryOpenInfinityRoom, 150);
+    if(!secretInviteCode && _cu?.uid){secretInviteCode=_makeSecretCode(_cu.uid);localStorage.setItem(CHAT_SECRET_STORAGE_KEY,secretInviteCode);}
+    initEmojiPicker();
+    document.getElementById('gifSearchInput')?.addEventListener('keydown',e=>{if(e.key==='Enter')searchGifs();});
+    const qp=new URLSearchParams(location.search);
+    const auto=qp.get('chat')==='infinity' || localStorage.getItem(CHAT_AUTO_INFTY_KEY)==='1';
+    if(auto && isSecretUnlocked()){
+        localStorage.removeItem(CHAT_AUTO_INFTY_KEY);
+        setTimeout(()=>openInfinityRoomSilently(),120);
+        if(qp.get('chat')==='infinity'){
+            const url=new URL(location.href);url.searchParams.delete('chat');history.replaceState({},'',url.pathname+url.search+url.hash);
+        }
     }
+}
+function toggleEmojiPicker(){document.getElementById('emojiPopup')?.classList.toggle('show');document.getElementById('gifPopup')?.classList.remove('show');}
+function toggleGifPicker(){document.getElementById('gifPopup')?.classList.toggle('show');document.getElementById('emojiPopup')?.classList.remove('show');if(document.getElementById('gifPopup')?.classList.contains('show')) searchGifs();}
+function initEmojiPicker(){
+    const em='😀 😄 😎 🥳 🤝 📚 🧠 🚀 ✅ 🔥 💯 🎯 ⏳ 😅 🙌 👏 🤖'.split(' ');
+    const host=document.getElementById('emojiGrid'); if(!host) return;
+    host.innerHTML=em.map(x=>`<button class="emoji-btn" onclick="insertEmoji('${x}')">${x}</button>`).join('');
+}
+function insertEmoji(e){const i=document.getElementById('buddyChatInput'); if(!i) return; i.value=(i.value||'')+e; i.focus();}
+async function searchGifs(){
+    const q=(document.getElementById('gifSearchInput')?.value||'study').trim()||'study';
+    const host=document.getElementById('gifResults'); if(!host) return;
+    host.innerHTML='<div class="chat-aux">Loading GIFs…</div>';
+    try{
+        const r=await fetch(`https://tenor.googleapis.com/v2/search?q=${encodeURIComponent(q)}&key=LIVDSRZULELA&limit=8&media_filter=tinygif`);
+        const d=await r.json(); const items=Array.isArray(d.results)?d.results:[];
+        host.innerHTML=items.map(g=>{const u=g?.media_formats?.tinygif?.url||'';return u?`<img class="gif-item" src="${u}" onclick="sendGifMessage('${u}')">`:'';}).join('')||'<div class="chat-aux">No GIFs found.</div>';
+    }catch(e){host.innerHTML='<div class="chat-aux">GIF service unavailable.</div>';}
+}
+async function sendGifMessage(url){
+    const rid=_chatRoomId(); if(!rid||!url) return;
+    try{
+        await firebase.firestore().collection('chatrooms').doc(rid).collection('messages').add({
+            text:'',gif:url,uid:_chatActorId(),name:_chatActorName(),createdAt:firebase.firestore.FieldValue.serverTimestamp()
+        });
+        document.getElementById('gifPopup')?.classList.remove('show');
+    }catch(e){showToastMsg('Could not send GIF');}
 }
 
 function showScreen(id){document.querySelectorAll('.auth-screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
@@ -1035,13 +1062,7 @@ function ensureAuthListener(){
         }else{
             _cu=null;
         }
-        const modal=document.getElementById('buddyChatModal');
-        if(modal?.classList.contains('open')){
-            refreshBuddyChatRoom();
-        }else if(_WANT_INFINITY && !modal?.classList.contains('open')){
-            // Auth resolved but room hasn't opened yet (150ms timer still pending) — open now
-            _tryOpenInfinityRoom();
-        }
+        if(document.getElementById('buddyChatModal')?.classList.contains('open')) refreshBuddyChatRoom();
     });
 }
 
