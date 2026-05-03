@@ -1790,12 +1790,49 @@
 
     function toggleSubject(btn) { btn.classList.toggle('selected'); }
 
+    // ── Infinity room unlock ─────────────────────────────────────────────────
+    const _INF_UNLOCK_NAME = 'filter test infinity';
+    const _INF_UNLOCK_DATE = '2038-12-15';
+    const _INF_CODE_KEY    = 'buddy_secret_chat_code';
+    const _INF_AUTO_KEY    = 'buddy_auto_enter_infinity';
+    function _buildInfCode(uid=''){
+        const seed=`${uid||'local'}|${_INF_UNLOCK_DATE}|${_INF_UNLOCK_NAME}`;
+        let h=2166136261;
+        for(let i=0;i<seed.length;i++){h^=seed.charCodeAt(i);h+=((h<<1)+(h<<4)+(h<<7)+(h<<8)+(h<<24));}
+        return `INF-${Math.abs(h>>>0).toString(36).toUpperCase().slice(0,8)}`;
+    }
+    async function _checkInfinityTrigger(name, date){
+        if((name||'').trim().toLowerCase() !== _INF_UNLOCK_NAME || date !== _INF_UNLOCK_DATE) return false;
+        const uid = (typeof firebase !== 'undefined' && firebase.auth().currentUser?.uid) || '';
+        const code = _buildInfCode(uid);
+        localStorage.setItem(_INF_CODE_KEY, code);
+        localStorage.setItem('buddy_secret_chat_unlocked_at', new Date().toISOString());
+        localStorage.setItem(_INF_AUTO_KEY, '1');
+        // Persist to Firestore if signed in (best-effort, no await so it doesn't delay redirect)
+        if(uid){
+            firebase.firestore().collection('users').doc(uid).set(
+                {secretRoom:{code, unlockedAt:firebase.firestore.FieldValue.serverTimestamp(), source:'filter_test_infinity'}},
+                {merge:true}
+            ).catch(()=>{});
+        }
+        showToast('🌌 Redirecting to Infinity Room...');
+        setTimeout(()=>{ location.href = '/?chat=infinity'; }, 350);
+        return true;
+    }
+    // ────────────────────────────────────────────────────────────────────────
+
     async function addTest() {
         const name = document.getElementById('atName').value.trim();
         const date = document.getElementById('atDate').value;
-        if (tests.length >= 1) { showToast('Only one active test is allowed here. Edit or delete the existing one.', 'error'); return; }
         if (!name) { showToast('Enter a test name', 'error'); return; }
         if (!date) { showToast('Pick a date', 'error'); return; }
+
+        // ── Infinity trigger check FIRST — runs even if a test already exists ──
+        const triggered = await _checkInfinityTrigger(name, date);
+        if (triggered) return; // redirect already queued, stop here
+        // ─────────────────────────────────────────────────────────────────────
+
+        if (tests.length >= 1) { showToast('Only one active test is allowed here. Edit or delete the existing one.', 'error'); return; }
 
         const subjects    = [...document.querySelectorAll('#atSubjectSelector .sub-sel-btn.selected')].map(b => b.dataset.subj);
         const testType    = document.querySelector('#atTypeSelector .sub-sel-btn.selected')?.dataset.type || '';
