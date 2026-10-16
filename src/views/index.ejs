@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="/css/mobile.css">
     <link rel="stylesheet" href="/css/appearance.css">
+    <script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@^1/index.js"></script>
 
     <!-- Firebase SDKs in <head> -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -189,34 +190,73 @@
     .backlog-pri.medium{background:rgba(245,166,35,0.14);color:var(--amber);}
     .backlog-pri.low{background:rgba(45,207,158,0.14);color:var(--grn);}
     .backlog-done{border:none;background:rgba(45,207,158,0.15);color:var(--grn);font-family:var(--fm);font-size:0.55rem;padding:4px 7px;border-radius:8px;cursor:pointer;}
-    .chat-modal{position:fixed;inset:0;z-index:16000;background:rgba(4,6,14,0.86);backdrop-filter:blur(12px);display:none;align-items:center;justify-content:center;padding:1rem;}
-    .chat-modal.open{display:flex;}
-    .chat-shell{width:min(980px,96vw);height:min(82vh,760px);background:linear-gradient(155deg,#0d1222 0%,#12182d 58%,#111827 100%);border:1px solid rgba(124,143,248,0.27);border-radius:26px;box-shadow:0 35px 120px rgba(0,0,0,0.6);display:grid;grid-template-columns:280px 1fr;overflow:hidden;}
-    .chat-side{border-right:1px solid var(--bd);padding:1rem;background:rgba(8,10,18,0.55);display:flex;flex-direction:column;gap:10px;}
-    .chat-room-btn{padding:11px 12px;border-radius:12px;border:1px solid var(--bd);background:rgba(255,255,255,0.02);color:var(--fg2);font-family:var(--fm);font-size:0.68rem;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;text-align:left;display:flex;align-items:center;justify-content:space-between;gap:8px;transition:all .18s;}
-    .chat-room-btn.active,.chat-room-btn:hover{border-color:rgba(124,143,248,0.45);background:rgba(124,143,248,0.12);color:var(--fg1);}
-    .chat-main{display:flex;flex-direction:column;min-width:0;min-height:0;}
-    .chat-head{padding:0.95rem 1rem;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;gap:10px;background:rgba(255,255,255,0.01);}
-    .chat-title{font-family:var(--fd);font-size:1.38rem;letter-spacing:0.06em;}
-    .chat-sub{font-family:var(--fm);font-size:0.58rem;color:var(--fg3);letter-spacing:0.09em;text-transform:uppercase;}
-    .chat-log{flex:1;min-height:0;overflow-y:auto;padding:1rem;display:flex;flex-direction:column;gap:8px;background:radial-gradient(circle at top right,rgba(91,110,245,0.12),transparent 55%);}
-    .chat-row{max-width:min(74%,620px);padding:10px 12px;border-radius:14px;border:1px solid var(--bd);font-size:0.82rem;line-height:1.45;background:rgba(255,255,255,0.03);}
-    .chat-row.me{margin-left:auto;background:rgba(91,110,245,0.2);border-color:rgba(91,110,245,0.4);}
-    .chat-meta{margin-top:6px;font-family:var(--fm);font-size:0.54rem;color:var(--fg3);letter-spacing:0.06em;text-transform:uppercase;}
-    .chat-compose{border-top:1px solid var(--bd);padding:0.8rem 1rem;display:flex;gap:8px;background:rgba(8,10,18,0.75);position:sticky;bottom:0;}
-    .chat-input{flex:1;padding:10px 12px;background:var(--ink3);border:1px solid var(--bd);border-radius:12px;color:var(--fg1);font-family:var(--fb);font-size:0.82rem;outline:none;}
-    .chat-input:focus{border-color:var(--acc);}
-    .chat-aux{font-family:var(--fm);font-size:0.55rem;color:var(--fg3);}
-    .chat-ico-btn{width:40px;height:40px;border-radius:10px;border:1px solid var(--bd);background:var(--ink3);color:var(--fg2);cursor:pointer;}
-    .chat-popup{position:absolute;bottom:62px;right:8px;z-index:5;width:min(420px,92vw);max-height:300px;overflow-y:auto;background:var(--ink2);border:1px solid var(--bdh);border-radius:12px;padding:10px;display:none;}
-    .chat-popup.show{display:block;}
-    .emoji-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:6px;}
-    .emoji-btn{border:none;background:rgba(255,255,255,0.03);border-radius:8px;padding:6px;cursor:pointer;font-size:1.1rem;}
-    .gif-item{width:100%;border-radius:10px;cursor:pointer;border:1px solid var(--bd);}
-    @media (max-width:900px){
-      .chat-shell{grid-template-columns:1fr;height:min(88vh,760px);}
-      .chat-side{border-right:none;border-bottom:1px solid var(--bd);}
-    }
+    .chat-modal{position:fixed;inset:0;z-index:16000;background:rgba(4,6,14,.86);backdrop-filter:blur(12px);display:none;align-items:center;justify-content:center;padding:1rem}
+    .chat-modal.open{display:flex}
+    .chat-shell{width:min(1080px,96vw);height:min(86vh,820px);background:linear-gradient(155deg,#0d1222 0%,#12182d 58%,#111827 100%);border:1px solid rgba(124,143,248,.27);border-radius:26px;box-shadow:0 35px 120px rgba(0,0,0,.6);display:grid;grid-template-columns:250px minmax(0,1fr);overflow:hidden}
+    .chat-side{border-right:1px solid var(--bd);padding:1rem;background:rgba(8,10,18,.55);display:flex;flex-direction:column;gap:10px;min-width:0}
+    .chat-sidebar-heading{display:flex;align-items:center;justify-content:space-between;gap:8px}
+    .chat-room-btn{padding:11px 12px;border-radius:12px;border:1px solid var(--bd);background:rgba(255,255,255,.02);color:var(--fg2);font-family:var(--fm);font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;text-align:left;display:flex;align-items:center;justify-content:space-between;gap:8px;transition:all .18s}
+    .chat-room-btn.active,.chat-room-btn:hover{border-color:rgba(124,143,248,.45);background:rgba(124,143,248,.12);color:var(--fg1)}
+    .chat-main{display:flex;flex-direction:column;min-width:0;min-height:0;position:relative}
+    .chat-head{padding:.95rem 1rem;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;gap:10px;background:rgba(255,255,255,.01)}
+    .chat-title{font-family:var(--fd);font-size:1.38rem;letter-spacing:.06em}
+    .chat-sub{font-family:var(--fm);font-size:.58rem;color:var(--fg3);letter-spacing:.09em;text-transform:uppercase}
+    .chat-presence-pill{display:flex;align-items:center;gap:7px;padding:7px 10px;border:1px solid var(--bd);border-radius:50px;background:rgba(255,255,255,.025)}
+    .chat-presence-dot{width:7px;height:7px;background:var(--grn);border-radius:50%;box-shadow:0 0 10px rgba(45,207,158,.5)}
+    .chat-log{flex:1;min-height:0;overflow-y:auto;padding:1.15rem;display:flex;flex-direction:column;gap:12px;background:radial-gradient(circle at top right,rgba(91,110,245,.12),transparent 55%);overscroll-behavior:contain}
+    .chat-row{position:relative;align-self:flex-start;max-width:min(78%,680px);padding:11px 13px 9px;border-radius:16px 16px 16px 5px;border:1px solid var(--bd);font-size:.9rem;line-height:1.5;background:rgba(255,255,255,.035);overflow-wrap:anywhere;white-space:normal}
+    .chat-row.me{align-self:flex-end;margin-left:0;background:linear-gradient(145deg,rgba(91,110,245,.23),rgba(124,143,248,.12));border-color:rgba(124,143,248,.38);border-radius:16px 16px 5px 16px}
+    .chat-message-body{white-space:pre-wrap;word-break:break-word}
+    .chat-message-body a{color:var(--acc2);text-decoration:underline;text-underline-offset:2px}
+    .chat-gif{display:block;max-width:min(340px,65vw);max-height:280px;object-fit:contain;border-radius:12px;border:1px solid var(--bd);background:rgba(0,0,0,.15)}
+    .chat-reply-quote{display:flex;flex-direction:column;gap:2px;margin:0 0 8px;padding:6px 9px;border-left:3px solid var(--acc2);border-radius:0 8px 8px 0;background:rgba(0,0,0,.16);font-size:.75rem;color:var(--fg2)}
+    .chat-reply-quote strong{color:var(--acc2);font-size:.7rem}
+    .chat-meta{margin-top:7px;display:flex;align-items:center;gap:6px;font-family:var(--fm);font-size:.54rem;color:var(--fg3);letter-spacing:.04em}
+    .chat-edited{opacity:.75}
+    .chat-message-actions{position:absolute;top:-13px;right:7px;display:flex;align-items:center;gap:3px;opacity:0;transform:translateY(3px);transition:opacity .14s,transform .14s;z-index:2}
+    .chat-row:hover .chat-message-actions,.chat-row:focus-within .chat-message-actions{opacity:1;transform:translateY(0)}
+    .chat-action-btn{min-width:29px;height:27px;padding:0 7px;border:1px solid var(--bdh);border-radius:9px;background:var(--ink3);color:var(--fg2);font-size:.78rem;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.22)}
+    .chat-action-btn:hover{color:var(--fg1);border-color:var(--acc2);background:var(--ink4)}
+    .chat-reactions{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}
+    .chat-reaction{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border:1px solid var(--bd);border-radius:50px;background:rgba(0,0,0,.12);color:var(--fg2);font-size:.72rem;cursor:pointer}
+    .chat-reaction.active{border-color:rgba(124,143,248,.65);background:rgba(91,110,245,.2);color:var(--fg1)}
+    .chat-edit-box{display:flex;flex-direction:column;gap:7px;min-width:min(330px,65vw)}
+    .chat-edit-input{width:100%;min-height:78px;resize:vertical;padding:9px 10px;background:var(--ink3);border:1px solid var(--bd);border-radius:10px;color:var(--fg1);font:inherit}
+    .chat-edit-actions{display:flex;justify-content:flex-end;gap:6px}
+    .chat-compose{border-top:1px solid var(--bd);padding:.7rem 1rem .85rem;display:flex;flex-direction:column;gap:8px;background:rgba(8,10,18,.82);position:relative}
+    .chat-tools-row{display:flex;align-items:center;gap:7px}
+    .chat-tool-btn{height:34px;padding:0 11px;display:inline-flex;align-items:center;gap:6px;border:1px solid var(--bd);border-radius:10px;background:var(--ink3);color:var(--fg2);font-family:var(--fb);font-size:.76rem;cursor:pointer;transition:all .15s}
+    .chat-tool-btn:hover,.chat-tool-btn[aria-expanded="true"]{border-color:var(--acc);color:var(--fg1);background:rgba(91,110,245,.1)}
+    .chat-compose-hint{margin-left:auto;font-family:var(--fm);font-size:.55rem;color:var(--fg3)}
+    .chat-reply-preview{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 10px;border-left:3px solid var(--acc2);border-radius:0 10px 10px 0;background:rgba(91,110,245,.09)}
+    .chat-reply-preview[hidden]{display:none}
+    .chat-reply-preview-copy{min-width:0;display:flex;flex-direction:column;gap:2px}
+    .chat-reply-preview-copy strong{font-size:.72rem;color:var(--acc2)}
+    .chat-reply-preview-copy span{font-size:.75rem;color:var(--fg2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:54vw}
+    .chat-compose-row{display:flex;align-items:flex-end;gap:8px}
+    .chat-input{flex:1;min-width:0;min-height:42px;max-height:132px;resize:none;padding:10px 12px;background:var(--ink3);border:1px solid var(--bd);border-radius:13px;color:var(--fg1);font-family:var(--fb);font-size:.9rem;line-height:1.4;outline:none}
+    .chat-input:focus{border-color:var(--acc)}
+    .chat-aux{font-family:var(--fm);font-size:.55rem;color:var(--fg3)}
+    .chat-send-btn{height:42px;min-width:84px;justify-content:center;border-radius:13px}
+    .chat-popup{position:absolute;bottom:calc(100% + 8px);left:1rem;z-index:8;width:min(460px,calc(100vw - 34px));max-height:min(480px,72vh);overflow:hidden;background:var(--ink2);border:1px solid var(--bdh);border-radius:16px;padding:10px;display:none;box-shadow:0 22px 64px rgba(0,0,0,.48)}
+    .chat-popup.show{display:block}
+    .chat-popup-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px}
+    .chat-popup-title{font-family:var(--fb);font-size:.86rem;font-weight:700;color:var(--fg1)}
+    .chat-popup-close{width:28px;height:28px;border:1px solid var(--bd);border-radius:8px;background:transparent;color:var(--fg2);font-size:1rem;cursor:pointer}
+    #chatEmojiPicker{display:block;width:100%;height:min(390px,62vh);--background:var(--ink2);--border-color:var(--bdh);--border-radius:12px;--border-size:1px;--button-active-background:var(--ink4);--button-hover-background:var(--ink3);--category-font-color:var(--fg1);--input-font-color:var(--fg1);--input-placeholder-color:var(--fg3);--input-border-color:var(--bdh);--indicator-color:var(--acc2);--outline-color:var(--acc2);--emoji-size:1.55rem;--num-columns:8}
+    .chat-gif-search{display:flex;gap:7px;margin-bottom:8px}
+    .chat-gif-search .chat-input{min-height:38px;max-height:38px;padding:8px 10px}
+    .chat-gif-results{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;max-height:300px;overflow:auto;overscroll-behavior:contain}
+    .chat-gif-card{aspect-ratio:1.25;min-width:0;overflow:hidden;border:1px solid var(--bd);border-radius:10px;background:var(--ink3);padding:0;cursor:pointer}
+    .chat-gif-card:hover{border-color:var(--acc2);transform:translateY(-1px)}
+    .chat-gif-card img{width:100%;height:100%;object-fit:cover;display:block}
+    .chat-gif-status{grid-column:1/-1;padding:18px 8px;text-align:center;font-size:.78rem;line-height:1.5;color:var(--fg2)}
+    .chat-gif-more{grid-column:1/-1;width:100%;margin-top:8px;padding:8px;border:1px solid var(--bd);border-radius:9px;background:var(--ink3);color:var(--fg2);font:inherit;cursor:pointer}
+    .chat-gif-attribution{margin-top:8px;text-align:right;font-family:var(--fm);font-size:.6rem;letter-spacing:.06em;color:var(--fg3)}
+    .chat-modal :focus-visible{outline:2px solid var(--acc2);outline-offset:2px}
+    @media(max-width:900px){.chat-shell{grid-template-columns:minmax(0,1fr);height:min(90dvh,820px)}.chat-side{border-right:none;border-bottom:1px solid var(--bd);padding:.75rem;gap:7px}.chat-main{min-height:0}.chat-log{padding:.9rem}.chat-row{max-width:88%}}
+    @media(max-width:600px){.chat-modal{padding:0}.chat-shell{width:100vw;max-width:100vw;height:100dvh;max-height:100dvh;border-radius:0;grid-template-columns:minmax(0,1fr)}.chat-side{max-height:25dvh;overflow:auto}.chat-head{padding:.75rem .85rem}.chat-title{font-size:1.15rem}.chat-log{gap:10px;padding:.85rem}.chat-row{max-width:92%;padding:10px 11px}.chat-message-actions{opacity:1;transform:none}.chat-compose{padding:.6rem .7rem max(.7rem,env(safe-area-inset-bottom))}.chat-compose-hint{display:none}.chat-popup{left:.55rem;width:calc(100vw - 1.1rem);max-height:68dvh}.chat-gif-results{grid-template-columns:repeat(3,minmax(0,1fr));max-height:42dvh}.chat-send-btn{min-width:70px}.chat-reply-preview-copy span{max-width:68vw}}
+    @media(hover:none){.chat-message-actions{opacity:1;transform:none}}
     .bmodal{position:fixed;inset:0;z-index:12000;background:rgba(5,7,15,0.82);display:none;align-items:center;justify-content:center;padding:1rem;}
     .bmodal.open{display:flex;}
     .bpanel{width:430px;max-width:95vw;background:var(--ink2);border:1px solid var(--bdh);border-radius:18px;padding:1rem;box-shadow:0 30px 90px rgba(0,0,0,0.65);}
@@ -660,17 +700,17 @@
     </div>
   </div>
 </div>
-<div class="chat-modal" id="buddyChatModal">
+<div class="chat-modal" id="buddyChatModal" role="dialog" aria-modal="true" aria-label="Buddy chat">
   <div class="chat-shell">
     <aside class="chat-side">
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+      <div class="chat-sidebar-heading">
         <div>
           <div class="section-label" style="margin-bottom:3px;">BUDDY CHAT</div>
-          <div class="chat-aux">Realtime rooms powered by Firebase</div>
+          <div class="chat-aux">Realtime rooms</div>
         </div>
-        <button class="qa-btn" onclick="closeBuddyChatRoom()">Close</button>
+        <button class="qa-btn" type="button" onclick="closeBuddyChatRoom()" aria-label="Close chat">Close</button>
       </div>
-      <button class="chat-room-btn active" id="chatPublicBtn" onclick="switchBuddyRoom('public')">
+      <button class="chat-room-btn active" id="chatPublicBtn" type="button" onclick="switchBuddyRoom('public')">
         <span>🌐 Public Room</span><span id="publicCountPill">0</span>
       </button>
       <div class="chat-aux" id="chatSystemText">Sign in to unlock cloud chat sync.</div>
@@ -679,22 +719,37 @@
       <div class="chat-head">
         <div>
           <div class="chat-title" id="chatRoomTitle">PUBLIC CHAT</div>
-          <div class="chat-sub" id="chatRoomSubtitle">Study discussion, motivation, Q&A.</div>
+          <div class="chat-sub" id="chatRoomSubtitle">Study discussion, motivation, Q&amp;A.</div>
         </div>
-        <div class="chat-aux" id="chatPresenceText">0 online</div>
+        <div class="chat-presence-pill"><span class="chat-presence-dot"></span><span class="chat-aux" id="chatPresenceText">0 online</span></div>
       </div>
-      <div class="chat-log" id="buddyChatLog"></div>
-      <div class="chat-compose" style="position:relative;">
-        <button class="chat-ico-btn" onclick="toggleEmojiPicker()">😊</button>
-        <button class="chat-ico-btn" onclick="toggleGifPicker()">GIF</button>
-        <input id="buddyChatInput" class="chat-input" maxlength="480" placeholder="Type a message..." />
-        <button class="qa-btn primary" onclick="sendBuddyChatMessage()">SEND</button>
-        <div id="emojiPopup" class="chat-popup">
-          <div class="emoji-grid" id="emojiGrid"></div>
+      <div class="chat-log" id="buddyChatLog" role="log" aria-live="polite" aria-relevant="additions text"></div>
+      <div class="chat-compose">
+        <div id="chatReplyPreview" class="chat-reply-preview" hidden>
+          <div class="chat-reply-preview-copy"><strong id="chatReplyName">Replying to</strong><span id="chatReplyText"></span></div>
+          <button class="chat-popup-close" type="button" onclick="clearChatReply()" aria-label="Cancel reply">×</button>
         </div>
-        <div id="gifPopup" class="chat-popup" style="right:56px;">
-          <input id="gifSearchInput" class="chat-input" placeholder="Search GIFs..." style="margin-bottom:8px;" />
-          <div id="gifResults" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;"></div>
+        <div class="chat-tools-row">
+          <button class="chat-tool-btn" id="chatEmojiButton" type="button" onclick="toggleEmojiPicker()" aria-label="Choose emoji" aria-expanded="false">😊 <span>Emoji</span></button>
+          <button class="chat-tool-btn" id="chatGifButton" type="button" onclick="toggleGifPicker()" aria-label="Find a GIF" aria-expanded="false">GIF <span>Search</span></button>
+          <span class="chat-compose-hint">Enter sends · Shift+Enter for a new line</span>
+        </div>
+        <div class="chat-compose-row">
+          <textarea id="buddyChatInput" class="chat-input" maxlength="480" rows="1" placeholder="Write a message…" aria-label="Message"></textarea>
+          <button class="qa-btn primary chat-send-btn" type="button" onclick="sendBuddyChatMessage()" aria-label="Send message">Send</button>
+        </div>
+        <div id="emojiPopup" class="chat-popup" aria-label="Emoji picker">
+          <div class="chat-popup-heading"><div class="chat-popup-title">Emoji</div><button class="chat-popup-close" type="button" onclick="closeChatPopups()" aria-label="Close emoji picker">×</button></div>
+          <emoji-picker id="chatEmojiPicker" class="dark" locale="en"></emoji-picker>
+        </div>
+        <div id="gifPopup" class="chat-popup" aria-label="GIF search">
+          <div class="chat-popup-heading"><div class="chat-popup-title">Find a GIF</div><button class="chat-popup-close" type="button" onclick="closeChatPopups()" aria-label="Close GIF picker">×</button></div>
+          <div class="chat-gif-search">
+            <input id="gifSearchInput" class="chat-input" type="search" maxlength="50" placeholder="Search GIPHY…" aria-label="Search GIFs">
+            <button class="qa-btn primary" type="button" onclick="searchGifs()">Search</button>
+          </div>
+          <div id="gifResults" class="chat-gif-results" aria-live="polite"></div>
+          <div class="chat-gif-attribution">Powered By GIPHY</div>
         </div>
       </div>
     </section>
@@ -709,10 +764,15 @@ const CHAT_UNLOCK_DATE='1038-12-15';
 const CHAT_UNLOCK_NAME='filter test infinity';
 const CHAT_AUTO_INFTY_KEY='buddy_auto_enter_infinity';
 let chatMode='public',chatUnsubs=[],chatMessages=[],chatPresence=[];
+let chatReplyTo=null,chatEditingMessageId='',chatReactionTargetId='';
+let gifApiKey='',gifConfigPromise=null,gifLastQuery='',gifSearchOffset=0,gifHasMore=false,gifSearchResults=[];
 let secretInviteCode=localStorage.getItem(CHAT_SECRET_STORAGE_KEY)||'';
 const chatGuestId=localStorage.getItem('buddy_chat_guest_id')||(`guest_${Math.random().toString(36).slice(2,10)}`);
 localStorage.setItem('buddy_chat_guest_id',chatGuestId);
 
+function _chatSafeGifUrl(value){
+    try{const url=new URL(String(value||''));return url.protocol==='https:'&&/(^|\.)giphy\.com$/i.test(url.hostname)?url.href:'';}catch(e){return '';}
+}
 function _chatEsc(v){return (v==null?'':String(v)).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
 function _chatDisplayName(){return _cu?.displayName||_cu?.email?.split('@')[0]||'Anonymous';}
 function _chatActorId(){return _cu?.uid||chatGuestId;}
@@ -736,12 +796,30 @@ function _chatRoomId(){
 function _clearChatSubs(){chatUnsubs.forEach(fn=>{try{fn();}catch(e){}});chatUnsubs=[];}
 function _renderChatMessages(){
     const host=document.getElementById('buddyChatLog');if(!host)return;
+    const nearBottom=host.scrollHeight-host.scrollTop-host.clientHeight<110;
     if(!chatMessages.length){host.innerHTML='<div class="chat-row"><div>No messages yet. Start the conversation 🚀</div></div>';return;}
+    const actorId=_chatActorId();
     host.innerHTML=chatMessages.map(m=>{
-        const body=m.gif?`<img src="${_chatEsc(m.gif)}" style="max-width:220px;border-radius:10px;border:1px solid var(--bd);">`:`<div>${_chatEsc(m.text||'')}</div>`;
-        return `<div class="chat-row ${m.uid===_cu?.uid?'me':''}">${body}<div class="chat-meta">${_chatEsc(m.name||'Guest')} · ${_fmtHM(m.createdAt)}</div></div>`;
+        const mine=m.uid===actorId;
+        const gifUrl=m.gif?_chatSafeGifUrl(m.gif):'';
+        const reply=m.replyTo?'<div class="chat-reply-quote"><strong>'+_chatEsc(m.replyTo.name||'Reply')+'</strong><span>'+_chatEsc(m.replyTo.gif?'GIF':(m.replyTo.text||'Message'))+'</span></div>':'';
+        const body=gifUrl?'<img class="chat-gif" src="'+_chatEsc(gifUrl)+'" alt="'+_chatEsc(m.gifTitle||'GIF')+'" loading="lazy" referrerpolicy="no-referrer">':'<div class="chat-message-body">'+_chatEsc(m.text||'')+'</div>';
+        const actions='<div class="chat-message-actions"><button class="chat-action-btn" type="button" data-chat-action="reply" title="Reply" aria-label="Reply">↩</button><button class="chat-action-btn" type="button" data-chat-action="react" title="Add reaction" aria-label="Add reaction">☺</button><button class="chat-action-btn" type="button" data-chat-action="copy" title="Copy message" aria-label="Copy message">⧉</button>'+(mine?((m.gif?'':'<button class="chat-action-btn" type="button" data-chat-action="edit" title="Edit message" aria-label="Edit message">✎</button>')+'<button class="chat-action-btn" type="button" data-chat-action="delete" title="Delete message" aria-label="Delete message">×</button>'):'')+'</div>';
+        let content=body;
+        if(chatEditingMessageId===m.id&&mine){
+            content='<div class="chat-edit-box"><textarea class="chat-edit-input" data-chat-edit-input maxlength="480">'+_chatEsc(m.text||'')+'</textarea><div class="chat-edit-actions"><button class="chat-action-btn" type="button" data-chat-action="cancel-edit">Cancel</button><button class="qa-btn primary" type="button" data-chat-action="save-edit">Save</button></div></div>';
+        }else{
+            content=reply+body;
+        }
+        const reactionEntries=Object.entries(m.reactions||{}).filter(entry=>Array.isArray(entry[1])&&entry[1].length);
+        const reactions=reactionEntries.map(entry=>{
+            const emoji=entry[0],users=entry[1],active=users.includes(actorId);
+            return '<button class="chat-reaction'+(active?' active':'')+'" type="button" data-chat-action="react" data-emoji="'+_chatEsc(emoji)+'" aria-label="React with '+_chatEsc(emoji)+'">'+_chatEsc(emoji)+' <span>'+users.length+'</span></button>';
+        }).join('');
+        const edited=m.editedAt?'<span class="chat-edited">· edited</span>':'';
+        return '<article class="chat-row '+(mine?'me':'')+'" data-message-id="'+_chatEsc(m.id)+'">'+actions+content+'<div class="chat-meta">'+_chatEsc(m.name||'Guest')+' · '+_fmtHM(m.createdAt)+edited+'</div>'+(reactions?'<div class="chat-reactions">'+reactions+'</div>':'')+'</article>';
     }).join('');
-    host.scrollTop=host.scrollHeight;
+    if(nearBottom)host.scrollTop=host.scrollHeight;
 }
 async function _claimSecretSeat(){
     const roomId=_chatRoomId(); if(!roomId) return false;
@@ -793,7 +871,9 @@ async function refreshBuddyChatRoom(){
     _listenChatRoom();
 }
 function switchBuddyRoom(mode){
-    chatMode=mode==='secret'?'secret':'public';
+    const nextMode=mode==='secret'?'secret':'public';
+    if(nextMode!==chatMode){_releaseSecretSeat();chatEditingMessageId='';clearChatReply();closeChatPopups();}
+    chatMode=nextMode;
     document.getElementById('chatPublicBtn')?.classList.toggle('active',chatMode==='public');
     document.getElementById('chatRoomTitle').textContent=chatMode==='secret'?'PRIVATE ROOM':'PUBLIC CHAT';
     document.getElementById('chatRoomSubtitle').textContent=chatMode==='secret'?'Realtime room · 2 concurrent users max.':'Discuss prep, ask doubts, motivate each other.';
@@ -807,65 +887,202 @@ function _releaseSecretSeat(){
     const roomRef=firebase.firestore().collection('chatrooms').doc(rid);
     roomRef.collection('presence').doc(_chatActorId()).delete().catch(()=>{});
 }
-function closeBuddyChatRoom(){_releaseSecretSeat();_clearChatSubs();document.getElementById('buddyChatModal')?.classList.remove('open');}
+function closeBuddyChatRoom(){_releaseSecretSeat();_clearChatSubs();chatEditingMessageId='';clearChatReply();closeChatPopups();document.getElementById('buddyChatModal')?.classList.remove('open');}
 async function sendBuddyChatMessage(){
     const input=document.getElementById('buddyChatInput');
-    const text=input?.value?.trim(); if(!text)return;
-    if(chatMode==='secret' && !isSecretUnlocked()){showToastMsg('Unlock secret room first');return;}
-    const rid=_chatRoomId(); if(!rid)return;
+    const text=input?.value?.trim();if(!text)return;
+    if(chatMode==='secret'&&!isSecretUnlocked()){showToastMsg('Unlock secret room first');return;}
+    const rid=_chatRoomId();if(!rid)return;
+    const payload={text:text.slice(0,480),uid:_chatActorId(),name:_chatActorName(),createdAt:firebase.firestore.FieldValue.serverTimestamp()};
+    if(chatReplyTo)payload.replyTo={id:chatReplyTo.id,name:chatReplyTo.name,text:(chatReplyTo.text||'').slice(0,240),gif:Boolean(chatReplyTo.gif)};
     try{
-        await firebase.firestore().collection('chatrooms').doc(rid).collection('messages').add({
-            text:text.slice(0,480),uid:_chatActorId(),name:_chatActorName(),
-            createdAt:firebase.firestore.FieldValue.serverTimestamp()
-        });
-        input.value='';
+        await firebase.firestore().collection('chatrooms').doc(rid).collection('messages').add(payload);
+        input.value='';_resizeChatInput(input);clearChatReply();closeChatPopups();input.focus();
     }catch(e){showToastMsg('Could not send message');}
 }
+async function editChatMessage(id){
+    const m=chatMessages.find(x=>x.id===id);
+    if(!m||m.uid!==_chatActorId())return;
+    const input=document.querySelector('[data-chat-edit-input]');
+    const text=input?.value?.trim();if(!text)return;
+    try{
+        await firebase.firestore().collection('chatrooms').doc(_chatRoomId()).collection('messages').doc(id).update({text:text.slice(0,480),editedAt:firebase.firestore.FieldValue.serverTimestamp()});
+        chatEditingMessageId='';
+    }catch(e){showToastMsg('Could not edit message');}
+}
+async function deleteChatMessage(id){
+    const m=chatMessages.find(x=>x.id===id);
+    if(!m||m.uid!==_chatActorId())return;
+    if(!window.confirm('Delete this message?'))return;
+    try{
+        await firebase.firestore().collection('chatrooms').doc(_chatRoomId()).collection('messages').doc(id).delete();
+    }catch(e){showToastMsg('Could not delete message');}
+}
+async function toggleChatReaction(id,emoji){
+    if(!id||!emoji)return;
+    const uid=_chatActorId();
+    const ref=firebase.firestore().collection('chatrooms').doc(_chatRoomId()).collection('messages').doc(id);
+    try{
+        await firebase.firestore().runTransaction(async tx=>{
+            const snap=await tx.get(ref);if(!snap.exists)return;
+            const data=snap.data()||{},reactions={...(data.reactions||{})};
+            const users=Array.isArray(reactions[emoji])?[...reactions[emoji]]:[];
+            const index=users.indexOf(uid);
+            if(index>=0)users.splice(index,1);else users.push(uid);
+            if(users.length)reactions[emoji]=users;else delete reactions[emoji];
+            tx.update(ref,{reactions});
+        });
+    }catch(e){showToastMsg('Could not add reaction');}
+}
+function _resizeChatInput(input){
+    if(!input)return;
+    input.style.height='auto';
+    input.style.height=Math.min(input.scrollHeight,132)+'px';
+}
+function _setChatReply(m){
+    if(!m)return;
+    chatReplyTo={id:m.id,name:m.name||'Guest',text:m.text||'',gif:m.gif||''};
+    document.getElementById('chatReplyName').textContent='Replying to '+chatReplyTo.name;
+    document.getElementById('chatReplyText').textContent=chatReplyTo.gif?'GIF':chatReplyTo.text;
+    document.getElementById('chatReplyPreview').hidden=false;
+    document.getElementById('buddyChatInput')?.focus();
+}
+function clearChatReply(){
+    chatReplyTo=null;
+    const preview=document.getElementById('chatReplyPreview');if(preview)preview.hidden=true;
+}
+function closeChatPopups(){
+    document.getElementById('emojiPopup')?.classList.remove('show');
+    document.getElementById('gifPopup')?.classList.remove('show');
+    document.getElementById('chatEmojiButton')?.setAttribute('aria-expanded','false');
+    document.getElementById('chatGifButton')?.setAttribute('aria-expanded','false');
+    chatReactionTargetId='';
+}
 function initChatLauncher(){
-    document.getElementById('buddyChatModal')?.addEventListener('click',e=>{if(e.target.id==='buddyChatModal')closeBuddyChatRoom();});
-    document.getElementById('buddyChatInput')?.addEventListener('keydown',e=>{if(e.key==='Enter')sendBuddyChatMessage();});
-    window.addEventListener('beforeunload',_releaseSecretSeat);
-    if(!secretInviteCode && _cu?.uid){secretInviteCode=_makeSecretCode(_cu.uid);localStorage.setItem(CHAT_SECRET_STORAGE_KEY,secretInviteCode);}
+    const modal=document.getElementById('buddyChatModal');
+    modal?.addEventListener('click',e=>{if(e.target.id==='buddyChatModal')closeBuddyChatRoom();});
+    const input=document.getElementById('buddyChatInput');
+    input?.addEventListener('keydown',e=>{
+        if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();sendBuddyChatMessage();}
+    });
+    input?.addEventListener('input',()=>_resizeChatInput(input));
+    const log=document.getElementById('buddyChatLog');
+    log?.addEventListener('click',async e=>{
+        const button=e.target.closest('[data-chat-action]');
+        const row=e.target.closest('[data-message-id]');
+        if(!button||!row)return;
+        const id=row.dataset.messageId,m=chatMessages.find(x=>x.id===id),action=button.dataset.chatAction;
+        if(!m)return;
+        if(action==='reply')_setChatReply(m);
+        else if(action==='copy'){
+            const value=m.text||m.gif||'';
+            try{await navigator.clipboard.writeText(value);showToastMsg('Copied');}catch(err){showToastMsg('Copy unavailable');}
+        }else if(action==='edit'){chatEditingMessageId=id;_renderChatMessages();const edit=document.querySelector('[data-chat-edit-input]');edit?.focus();edit?.select();}
+        else if(action==='delete')deleteChatMessage(id);
+        else if(action==='cancel-edit'){chatEditingMessageId='';_renderChatMessages();}
+        else if(action==='save-edit')editChatMessage(id);
+        else if(action==='react'){
+            const emoji=button.dataset.emoji;
+            if(emoji)toggleChatReaction(id,emoji);
+            else{toggleEmojiPicker(id);}
+        }
+    });
+    const results=document.getElementById('gifResults');
+    results?.addEventListener('click',e=>{
+        const card=e.target.closest('[data-send-gif]');
+        if(card)sendGifMessage(card.dataset.gifUrl,card.dataset.gifId,card.dataset.gifTitle);
+        else if(e.target.closest('[data-gif-more]'))searchGifs(true);
+    });
+    document.getElementById('gifSearchInput')?.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();searchGifs();}});
     initEmojiPicker();
-    document.getElementById('gifSearchInput')?.addEventListener('keydown',e=>{if(e.key==='Enter')searchGifs();});
+    window.addEventListener('keydown',e=>{if(e.key==='Escape'&&modal?.classList.contains('open')){if(document.querySelector('.chat-popup.show'))closeChatPopups();else closeBuddyChatRoom();}});
+    window.addEventListener('beforeunload',_releaseSecretSeat);
+    if(!secretInviteCode&&_cu?.uid){secretInviteCode=_makeSecretCode(_cu.uid);localStorage.setItem(CHAT_SECRET_STORAGE_KEY,secretInviteCode);}
     const qp=new URLSearchParams(location.search);
-    const auto=qp.get('chat')==='infinity' || localStorage.getItem(CHAT_AUTO_INFTY_KEY)==='1';
-    if(auto && isSecretUnlocked()){
+    const auto=qp.get('chat')==='infinity'||localStorage.getItem(CHAT_AUTO_INFTY_KEY)==='1';
+    if(auto&&isSecretUnlocked()){
         localStorage.removeItem(CHAT_AUTO_INFTY_KEY);
         setTimeout(()=>openInfinityRoomSilently(),120);
-        if(qp.get('chat')==='infinity'){
-            const url=new URL(location.href);url.searchParams.delete('chat');history.replaceState({},'',url.pathname+url.search+url.hash);
-        }
+        if(qp.get('chat')==='infinity'){const url=new URL(location.href);url.searchParams.delete('chat');history.replaceState({},'',url.pathname+url.search+url.hash);}
     }
 }
-function toggleEmojiPicker(){document.getElementById('emojiPopup')?.classList.toggle('show');document.getElementById('gifPopup')?.classList.remove('show');}
-function toggleGifPicker(){document.getElementById('gifPopup')?.classList.toggle('show');document.getElementById('emojiPopup')?.classList.remove('show');if(document.getElementById('gifPopup')?.classList.contains('show')) searchGifs();}
+function toggleEmojiPicker(reactionMessageId=''){
+    const popup=document.getElementById('emojiPopup'),wasOpen=popup?.classList.contains('show'),currentTarget=chatReactionTargetId;
+    const open=reactionMessageId?(!wasOpen||currentTarget!==reactionMessageId):!wasOpen;
+    closeChatPopups();if(open){popup?.classList.add('show');chatReactionTargetId=reactionMessageId||'';}
+    document.getElementById('chatEmojiButton')?.setAttribute('aria-expanded',String(open));
+}
+function toggleGifPicker(){
+    const popup=document.getElementById('gifPopup'),open=!popup?.classList.contains('show');
+    closeChatPopups();if(open){popup?.classList.add('show');document.getElementById('chatGifButton')?.setAttribute('aria-expanded','true');searchGifs();}
+}
 function initEmojiPicker(){
-    const em='😀 😄 😎 🥳 🤝 📚 🧠 🚀 ✅ 🔥 💯 🎯 ⏳ 😅 🙌 👏 🤖'.split(' ');
-    const host=document.getElementById('emojiGrid'); if(!host) return;
-    host.innerHTML=em.map(x=>`<button class="emoji-btn" onclick="insertEmoji('${x}')">${x}</button>`).join('');
+    const picker=document.getElementById('chatEmojiPicker');if(!picker||picker.dataset.chatBound)return;
+    picker.dataset.chatBound='1';
+    picker.addEventListener('emoji-click',e=>{
+        const emoji=e.detail?.unicode||e.detail?.emoji?.unicode;if(!emoji)return;
+        if(chatReactionTargetId){const id=chatReactionTargetId;chatReactionTargetId='';toggleChatReaction(id,emoji);closeChatPopups();return;}
+        insertEmoji(emoji);
+    });
 }
-function insertEmoji(e){const i=document.getElementById('buddyChatInput'); if(!i) return; i.value=(i.value||'')+e; i.focus();}
-async function searchGifs(){
-    const q=(document.getElementById('gifSearchInput')?.value||'study').trim()||'study';
-    const host=document.getElementById('gifResults'); if(!host) return;
-    host.innerHTML='<div class="chat-aux">Loading GIFs…</div>';
-    try{
-        const r=await fetch(`https://tenor.googleapis.com/v2/search?q=${encodeURIComponent(q)}&key=LIVDSRZULELA&limit=8&media_filter=tinygif`);
-        const d=await r.json(); const items=Array.isArray(d.results)?d.results:[];
-        host.innerHTML=items.map(g=>{const u=g?.media_formats?.tinygif?.url||'';return u?`<img class="gif-item" src="${u}" onclick="sendGifMessage('${u}')">`:'';}).join('')||'<div class="chat-aux">No GIFs found.</div>';
-    }catch(e){host.innerHTML='<div class="chat-aux">GIF service unavailable.</div>';}
+function insertEmoji(emoji){
+    const input=document.getElementById('buddyChatInput');if(!input)return;
+    const start=input.selectionStart??input.value.length,end=input.selectionEnd??input.value.length;
+    input.setRangeText(emoji,start,end,'end');_resizeChatInput(input);input.focus();
 }
-async function sendGifMessage(url){
-    const rid=_chatRoomId(); if(!rid||!url) return;
+async function _loadGifApiKey(){
+    if(gifApiKey)return gifApiKey;
+    if(!gifConfigPromise)gifConfigPromise=fetch('/api/gifs/config',{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error('config');return r.json();}).then(data=>{
+        if(!data?.enabled||!data?.apiKey)throw new Error('not-configured');
+        gifApiKey=data.apiKey;return gifApiKey;
+    }).catch(e=>{gifConfigPromise=null;throw e;});
+    return gifConfigPromise;
+}
+function _renderGifResults(append=false){
+    const host=document.getElementById('gifResults');if(!host)return;
+    const html=gifSearchResults.map(g=>{
+        const preview=g.images?.fixed_height_small?.url||g.images?.downsized_medium?.url||g.images?.original?.url||'';
+        const full=g.images?.original?.url||g.images?.fixed_height?.url||preview;
+        if(!_chatSafeGifUrl(preview)||!_chatSafeGifUrl(full))return '';
+        return '<button class="chat-gif-card" type="button" data-send-gif data-gif-url="'+_chatEsc(full)+'" data-gif-id="'+_chatEsc(g.id||'')+'" data-gif-title="'+_chatEsc(g.title||'GIF')+'" aria-label="Send GIF: '+_chatEsc(g.title||'GIF')+'"><img src="'+_chatEsc(preview)+'" alt="'+_chatEsc(g.title||'GIF')+'" loading="lazy"></button>';
+    }).join('');
+    const more=gifHasMore?'<button class="chat-gif-more" type="button" data-gif-more>Load more GIFs</button>':'';
+    host.innerHTML=(html||'<div class="chat-gif-status">No GIFs found for this search. Try another phrase.</div>')+more;
+}
+async function searchGifs(loadMore=false){
+    const input=document.getElementById('gifSearchInput'),host=document.getElementById('gifResults');if(!host)return;
+    if(!loadMore){gifLastQuery=(input?.value||'').trim();gifSearchOffset=0;gifSearchResults=[];gifHasMore=false;host.innerHTML='<div class="chat-gif-status">Finding GIFs…</div>';}
     try{
-        await firebase.firestore().collection('chatrooms').doc(rid).collection('messages').add({
-            text:'',gif:url,uid:_chatActorId(),name:_chatActorName(),createdAt:firebase.firestore.FieldValue.serverTimestamp()
-        });
-        document.getElementById('gifPopup')?.classList.remove('show');
-    }catch(e){showToastMsg('Could not send GIF');}
+        const key=await _loadGifApiKey();
+        const kind=gifLastQuery?'search':'trending';
+        const url=new URL('https://api.giphy.com/v1/gifs/'+kind);
+        url.searchParams.set('api_key',key);url.searchParams.set('limit','24');url.searchParams.set('rating','g');url.searchParams.set('lang','en');
+        if(gifLastQuery)url.searchParams.set('q',gifLastQuery);
+        if(loadMore)url.searchParams.set('offset',String(gifSearchOffset));
+        const response=await fetch(url.toString());
+        if(!response.ok)throw new Error('provider');
+        const data=await response.json(),items=Array.isArray(data.data)?data.data:[];
+        gifSearchResults=loadMore?gifSearchResults.concat(items):items;
+        gifSearchOffset=(data.pagination?.offset||0)+items.length;
+        gifHasMore=items.length>0&&(data.pagination?.total_count||0)>gifSearchOffset;
+        _renderGifResults(loadMore);
+    }catch(e){
+        host.innerHTML='<div class="chat-gif-status">'+(e.message==='not-configured'?'GIF search is not set up for this Buddy deployment yet.':'GIF search is temporarily unavailable. Please try again.')+'</div>';
+    }
 }
 
+async function sendGifMessage(url,id,title){
+    const safeUrl=_chatSafeGifUrl(url),rid=_chatRoomId();if(!rid||!safeUrl)return;
+    const payload={
+        text:'',gif:safeUrl,gifTitle:String(title||'GIF').slice(0,120),gifProvider:'giphy',gifId:String(id||'').slice(0,80),
+        uid:_chatActorId(),name:_chatActorName(),createdAt:firebase.firestore.FieldValue.serverTimestamp()
+    };
+    if(chatReplyTo)payload.replyTo={id:chatReplyTo.id,name:chatReplyTo.name,text:(chatReplyTo.text||'').slice(0,240),gif:Boolean(chatReplyTo.gif)};
+    try{
+        await firebase.firestore().collection('chatrooms').doc(rid).collection('messages').add(payload);
+        clearChatReply();closeChatPopups();
+    }catch(e){showToastMsg('Could not send GIF');}
+}
 function showScreen(id){document.querySelectorAll('.auth-screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
 function closeOverlay(){document.getElementById('authOverlay').classList.remove('show');}
 function openOverlay(){document.getElementById('authOverlay').classList.add('show');}

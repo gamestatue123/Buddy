@@ -18,6 +18,12 @@ app.set('views', path.join(__dirname, 'views'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../public')));
+app.get('/api/gifs/config', (req, res) => {
+    // GIPHY's search API is designed for client-side requests, so use a dedicated web key.
+    const apiKey = process.env.GIPHY_API_KEY || '';
+    res.set('Cache-Control', 'no-store');
+    res.json({ provider: 'giphy', enabled: Boolean(apiKey), apiKey });
+});
 // Add this middleware to serve mobile-optimized content
 app.use((req, res, next) => {
     // Check if request is from Android app
