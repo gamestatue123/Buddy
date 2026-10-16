@@ -771,7 +771,7 @@ const chatGuestId=localStorage.getItem('buddy_chat_guest_id')||(`guest_${Math.ra
 localStorage.setItem('buddy_chat_guest_id',chatGuestId);
 
 function _chatSafeGifUrl(value){
-    try{const url=new URL(String(value||''));return url.protocol==='https:'&&/(^|\\.)giphy\\.com$/i.test(url.hostname)?url.href:'';}catch(e){return '';}
+    try{const url=new URL(String(value||''));return url.protocol==='https:'&&/(^|\.)giphy\.com$/i.test(url.hostname)?url.href:'';}catch(e){return '';}
 }
 function _chatEsc(v){return (v==null?'':String(v)).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
 function _chatDisplayName(){return _cu?.displayName||_cu?.email?.split('@')[0]||'Anonymous';}
