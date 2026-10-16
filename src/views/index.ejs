@@ -1246,7 +1246,10 @@ document.addEventListener('DOMContentLoaded', () => {
     loadStreak();
     loadTestWidget();
     loadStudySnapshot();
-        initChatLauncher();
+    localStorage.removeItem('buddy_ai_chat');
+    localStorage.removeItem('buddy_ai_coach_text');
+    localStorage.removeItem('buddy_ai_coach_ts');
+    initChatLauncher();
     document.getElementById('backlogModal')?.addEventListener('click',e=>{if(e.target.id==='backlogModal')closeBacklogModal();});
 });
 // ══ SYNC ══
