@@ -25,7 +25,7 @@
     const sidebar=document.querySelector('.sidebar-footer');
     if(sidebar)sidebar.insertBefore(button,sidebar.firstChild);
     const topbar=document.querySelector('.mob-topbar');
-    if(topbar){const mobile=button.cloneNode(true);mobile.id='buddyAppearanceMobileButton';mobile.classList.add('buddy-appearance-mobile');topbar.appendChild(mobile);}
+    if(topbar){const mobile=button.cloneNode(true);mobile.id='buddyAppearanceMobileButton';mobile.classList.add('buddy-appearance-mobile');mobile.innerHTML='<span aria-hidden="true">✦</span>';mobile.setAttribute('aria-label','Appearance settings');(document.getElementById('_mRight')||topbar).appendChild(mobile);}
     const footer=document.createElement('footer');footer.className='brand-footer';
     footer.innerHTML='<div class="brand-footer-mark"><span class="brand-footer-dot" aria-hidden="true">B</span><span><strong>Buddy</strong><small>Your JEE study companion</small></span></div><div class="brand-footer-copy"><span>Made by <strong>Gamestatue</strong></span><a href="mailto:gamestatue1@gmail.com">Contact · gamestatue1@gmail.com</a></div><p class="brand-footer-about">Built to make your JEE preparation easier to plan, track and keep moving.</p>';
     const content=document.querySelector('.main-content')||document.querySelector('.app main')||document.querySelector('main');
