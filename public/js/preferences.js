@@ -53,10 +53,11 @@
     const meta=document.querySelector('meta[name="theme-color"]');if(meta)meta.content=t.ink;
   }
   function moveAccount(){
-    const header=document.querySelector('.sidebar-header'),slot=document.getElementById('sidebarUserSlot'),pill=document.getElementById('userMenuPill');
+    const header=document.querySelector('.sidebar-header'),slot=document.getElementById('sidebarUserSlot'),pill=document.getElementById('userMenuPill'),signIn=document.getElementById('localSignInBtn');
     if(!header)return;
     if(slot&&!header.contains(slot))header.appendChild(slot);
     else if(pill&&!header.contains(pill))header.appendChild(pill);
+    if(signIn&&!header.contains(signIn))header.appendChild(signIn);
   }
   function inject(){
     if(document.getElementById('buddyAppearanceButton'))return;
@@ -84,7 +85,7 @@
     dialog.querySelector('.buddy-settings-close').addEventListener('click',close);dialog.querySelector('.buddy-settings-done').addEventListener('click',close);
     dialog.querySelector('.buddy-settings-surprise').addEventListener('click',()=>{const p=read();p.mode=['midnight','soft','light','warm','oled'][Math.floor(Math.random()*5)];p.accent=swatches[Math.floor(Math.random()*swatches.length)];p.bodyFont=['system','rounded','serif'][Math.floor(Math.random()*3)];p.headingFont=['brand','clean','editorial'][Math.floor(Math.random()*3)];p.shape=['soft','rounded','crisp'][Math.floor(Math.random()*3)];save(p);apply(p);sync()});
     dialog.addEventListener('click',e=>{if(e.target===dialog)close()});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!dialog.hidden)close()});
-    dialog.addEventListener('change',e=>{const el=e.target;if(!el.name)return;const p=read();p[el.name]=el.type==='checkbox'?el.checked:el.value;p=normalize(p);save(p);apply(p);sync()});
+    dialog.addEventListener('change',e=>{const el=e.target;if(!el.name)return;const p=read();p[el.name]=el.type==='checkbox'?el.checked:el.value;const next=normalize(p);save(next);apply(next);sync()});
     dialog.querySelectorAll('[data-accent]').forEach(btn=>btn.addEventListener('click',()=>{const p=read();p.accent=btn.dataset.accent;save(p);apply(p);sync()}));
     dialog.addEventListener('keydown',e=>{if(e.key!=='Tab')return;const items=[...dialog.querySelectorAll('button:not([disabled]),select,input:not([type=file]),a[href],label.buddy-import[tabindex]')].filter(el=>el.offsetParent!==null);if(!items.length)return;const first=items[0],last=items[items.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}});
     const backupKeys=['buddy_profile','buddy_syllabus','buddy_tests','buddy_timetable','buddy_schedule','buddy_streak','buddy_tasks','buddy_backlog','test_analysis_data','buddy_test_data','syllabus_progress','syllabus_custom','dpp_q2','dpp_questions','active_test_plan'];
