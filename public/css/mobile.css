@@ -258,3 +258,29 @@
   .ringo, .ring-outer { width: 100px !important; height: 100px !important; }
   .irow, .insight-tags, .insight-row { flex-direction: column !important; }
 }
+
+/* Small-screen comfort and device-safe polish */
+@media(max-width:480px){
+  :root{--tabbar-h:64px;--topbar-h:54px}
+  .main-content,.app>main,.app-container>.main-content{padding-left:max(12px,var(--sal))!important;padding-right:max(12px,var(--sar))!important}
+  .stat-banner{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .stat-row{gap:8px!important}
+  .sc{min-width:0!important;overflow-wrap:anywhere}
+  .mob-tab{font-size:.46rem!important;letter-spacing:.03em!important;min-width:0!important}
+  .page-title{font-size:clamp(1.65rem,8vw,2rem)!important;line-height:1.05!important}
+  .page-actions>*{min-height:42px}
+  .card,.sc,.stat-cell{min-width:0}
+  .mob-topbar{padding-left:max(12px,var(--sal))!important;padding-right:max(12px,var(--sar))!important}
+  .modal-content,.mbox,.auth-panel{overflow-y:auto!important;overscroll-behavior:contain}
+  .modal-overlay,.moverlay,#authOverlay{padding-top:var(--sat)!important}
+}
+@media(max-width:360px){
+  .hero-greeting{font-size:1.8rem!important}
+  .stat-cell{padding:10px 6px!important}
+  .stat-cell-n{font-size:1.55rem!important}
+  .mob-tab svg{width:19px!important;height:19px!important}
+  .mob-brand-sub{display:none!important}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
