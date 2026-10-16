@@ -253,7 +253,7 @@
   /* ── MISC ── */
   #canvas-bg { opacity: 0.3 !important; }
   .ambient-glow { display: none !important; }
-  .chart-wrap, .cw { height: 200px !important; }
+  .chart-wrap { height: 200px !important; }
   .ringwrap, .score-ring-wrap { flex-direction: column !important; align-items: center !important; }
   .ringo, .ring-outer { width: 100px !important; height: 100px !important; }
   .irow, .insight-tags, .insight-row { flex-direction: column !important; }
