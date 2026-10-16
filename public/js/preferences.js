@@ -11,7 +11,7 @@
     const font=fonts[p.font]||fonts.system;
     root.style.setProperty('--fb',font);root.style.setProperty('--font-b',font);root.style.setProperty('--font-body',font);root.style.setProperty('--font-family',font);
     body.style.setProperty('font-family',font,'important');
-    root.style.setProperty('--buddy-scale',['100','112','125'].includes(String(p.scale))?String(p.scale):'100');
+    const scale=String(p.scale);root.style.fontSize=({'100':'16px','112':'18px','125':'20px'}[scale]||'16px');
     root.style.setProperty('--buddy-accent',p.accent||defaults.accent);
     root.style.setProperty('--acc',p.accent||defaults.accent);root.style.setProperty('--accent-primary',p.accent||defaults.accent);root.style.setProperty('--accent',p.accent||defaults.accent);root.style.setProperty('--primary',p.accent||defaults.accent);
     body.classList.toggle('buddy-reduce-motion',!!p.reduceMotion);
