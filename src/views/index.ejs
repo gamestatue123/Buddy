@@ -1007,7 +1007,8 @@ function initChatLauncher(){
     }
 }
 function toggleEmojiPicker(reactionMessageId=''){
-    const popup=document.getElementById('emojiPopup'),open=!popup?.classList.contains('show');
+    const popup=document.getElementById('emojiPopup'),wasOpen=popup?.classList.contains('show'),currentTarget=chatReactionTargetId;
+    const open=reactionMessageId?(!wasOpen||currentTarget!==reactionMessageId):!wasOpen;
     closeChatPopups();if(open){popup?.classList.add('show');chatReactionTargetId=reactionMessageId||'';}
     document.getElementById('chatEmojiButton')?.setAttribute('aria-expanded',String(open));
 }
