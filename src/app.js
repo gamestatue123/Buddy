@@ -19,8 +19,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../public')));
 app.get('/api/gifs/config', (req, res) => {
-    // GIPHY's search API is designed for client-side requests. API keys are public;
-    // restrict the key to Buddy's domain in the GIPHY developer dashboard.
+    // GIPHY's search API is designed for client-side requests, so use a dedicated web key.
     const apiKey = process.env.GIPHY_API_KEY || '';
     res.set('Cache-Control', 'no-store');
     res.json({ provider: 'giphy', enabled: Boolean(apiKey), apiKey });
