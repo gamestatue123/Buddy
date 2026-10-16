@@ -166,34 +166,26 @@
     .empty-card{text-align:center;padding:1.6rem 1rem;}
     .empty-ico{font-size:1.7rem;opacity:0.3;margin-bottom:6px;}
     .empty-t{font-family:var(--fm);font-size:0.68rem;color:var(--fg3);letter-spacing:0.04em;}
-    .ai-core{background:linear-gradient(135deg,#0d1124 0%,#101a30 45%,#12112a 100%);border-color:rgba(124,143,248,0.28);}
-    .ai-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px;}
-    .ai-chip{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:50px;font-family:var(--fm);font-size:0.56rem;letter-spacing:0.08em;border:1px solid rgba(124,143,248,0.35);color:var(--acc2);background:rgba(124,143,248,0.08);}
-    .ai-grid{display:grid;grid-template-columns:1.15fr 1fr;gap:10px;}
-    .ai-panel{background:rgba(255,255,255,0.03);border:1px solid var(--bd);border-radius:var(--r3);padding:11px;}
-    .ai-title{font-family:var(--fm);font-size:0.56rem;letter-spacing:0.1em;color:var(--fg3);text-transform:uppercase;margin-bottom:8px;}
-    .ai-score{font-family:var(--fd);font-size:2.4rem;line-height:1;color:var(--acc2);letter-spacing:0.04em;}
-    .ai-muted{font-family:var(--fm);font-size:0.58rem;color:var(--fg3);margin-top:2px;}
-    .ai-insights{display:flex;flex-direction:column;gap:6px;}
-    .ai-point{padding:7px 9px;border-radius:10px;font-size:0.75rem;border:1px solid transparent;}
-    .ai-point.good{background:rgba(45,207,158,0.08);border-color:rgba(45,207,158,0.24);color:var(--grn);}
-    .ai-point.warn{background:rgba(245,166,35,0.08);border-color:rgba(245,166,35,0.24);color:var(--amber);}
-    .ai-point.alert{background:rgba(240,68,68,0.08);border-color:rgba(240,68,68,0.24);color:var(--red);}
-    .ai-point.info{background:rgba(167,139,250,0.08);border-color:rgba(167,139,250,0.24);color:var(--vio);}
+    .focus-core{background:linear-gradient(135deg,#0d1124 0%,#101a30 45%,#12112a 100%);border-color:rgba(124,143,248,0.28);}
+    .focus-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px;}
+    .focus-chip{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:50px;font-family:var(--fm);font-size:0.56rem;letter-spacing:0.08em;border:1px solid rgba(124,143,248,0.35);color:var(--acc2);background:rgba(124,143,248,0.08);}
+    .focus-grid{display:grid;grid-template-columns:1.15fr 1fr;gap:10px;}
+    .focus-panel{background:rgba(255,255,255,0.03);border:1px solid var(--bd);border-radius:var(--r3);padding:11px;}
+    .section-label{font-family:var(--fm);font-size:0.56rem;letter-spacing:0.1em;color:var(--fg3);text-transform:uppercase;margin-bottom:8px;}
+    .focus-score{font-family:var(--fd);font-size:2.4rem;line-height:1;color:var(--acc2);letter-spacing:0.04em;}
+    .focus-muted{font-family:var(--fm);font-size:0.58rem;color:var(--fg3);margin-top:2px;}
+    .study-insights{display:flex;flex-direction:column;gap:6px;}
+    .insight-point{padding:7px 9px;border-radius:10px;font-size:0.75rem;border:1px solid transparent;}
+    .insight-point.good{background:rgba(45,207,158,0.08);border-color:rgba(45,207,158,0.24);color:var(--grn);}
+    .insight-point.warn{background:rgba(245,166,35,0.08);border-color:rgba(245,166,35,0.24);color:var(--amber);}
+    .insight-point.alert{background:rgba(240,68,68,0.08);border-color:rgba(240,68,68,0.24);color:var(--red);}
+    .insight-point.info{background:rgba(167,139,250,0.08);border-color:rgba(167,139,250,0.24);color:var(--vio);}
     .backlog-row{display:flex;align-items:center;gap:8px;padding:7px 8px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);border-radius:10px;}
     .backlog-pri{font-family:var(--fm);font-size:0.52rem;padding:2px 6px;border-radius:50px;letter-spacing:0.06em;}
     .backlog-pri.high{background:rgba(240,68,68,0.14);color:var(--red);}
     .backlog-pri.medium{background:rgba(245,166,35,0.14);color:var(--amber);}
     .backlog-pri.low{background:rgba(45,207,158,0.14);color:var(--grn);}
     .backlog-done{border:none;background:rgba(45,207,158,0.15);color:var(--grn);font-family:var(--fm);font-size:0.55rem;padding:4px 7px;border-radius:8px;cursor:pointer;}
-    .ai-chat-log{max-height:160px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;margin-top:8px;}
-    .ai-chat-msg{padding:7px 9px;border-radius:10px;font-size:0.72rem;line-height:1.4;}
-    .ai-chat-msg.user{background:rgba(124,143,248,0.14);border:1px solid rgba(124,143,248,0.25);}
-    .ai-chat-msg.ai{background:rgba(255,255,255,0.035);border:1px solid var(--bd);}
-    .ai-chat-input-row{display:flex;gap:6px;margin-top:8px;}
-    .ai-chat-input{flex:1;padding:8px 10px;background:var(--ink3);border:1px solid var(--bd);border-radius:10px;color:var(--fg1);font-family:var(--fb);font-size:0.78rem;outline:none;}
-    .ai-chat-input:focus{border-color:var(--acc);}
-    .ai-mini-btn{padding:7px 10px;border:none;border-radius:10px;background:var(--acc);color:#fff;font-family:var(--fm);font-size:0.6rem;letter-spacing:0.06em;cursor:pointer;}
     .chat-modal{position:fixed;inset:0;z-index:16000;background:rgba(4,6,14,0.86);backdrop-filter:blur(12px);display:none;align-items:center;justify-content:center;padding:1rem;}
     .chat-modal.open{display:flex;}
     .chat-shell{width:min(980px,96vw);height:min(82vh,760px);background:linear-gradient(155deg,#0d1222 0%,#12182d 58%,#111827 100%);border:1px solid rgba(124,143,248,0.27);border-radius:26px;box-shadow:0 35px 120px rgba(0,0,0,0.6);display:grid;grid-template-columns:280px 1fr;overflow:hidden;}
@@ -310,8 +302,10 @@
     @keyframes spin{to{transform:rotate(360deg);}}
 
     /* RESPONSIVE */
-    @media(max-width:1100px){.col-4{grid-column:span 6;}.col-5{grid-column:span 6;}.col-7{grid-column:span 12;}.col-8{grid-column:span 12;}.ai-grid{grid-template-columns:1fr;}}
+    @media(max-width:1100px){.col-4{grid-column:span 6;}.col-5{grid-column:span 6;}.col-7{grid-column:span 12;}.col-8{grid-column:span 12;}.focus-grid{grid-template-columns:1fr;}}
     @media(max-width:700px){.dash-grid{grid-template-columns:1fr;}.col-3,.col-4,.col-5,.col-6,.col-7,.col-8,.col-12{grid-column:span 1;}.hero{grid-template-columns:1fr;}.clock-widget{display:none;}.storage-grid{grid-template-columns:1fr;}.auth-panel{border-radius:20px;}.stat-banner{grid-template-columns:1fr 1fr;}}
+        .focus-tip{margin-top:10px;padding:10px 12px;border-radius:12px;background:rgba(91,110,245,.08);border:1px solid rgba(91,110,245,.16);color:var(--fg2);font-size:.76rem;line-height:1.55}.focus-tip strong{color:var(--fg1)}
+    .insight-point{padding:8px 10px;border-radius:10px;font-size:.76rem;line-height:1.45;border:1px solid transparent}.insight-point.good{background:rgba(45,207,158,.08);border-color:rgba(45,207,158,.24);color:var(--grn)}.insight-point.warn{background:rgba(245,166,35,.08);border-color:rgba(245,166,35,.24);color:var(--amber)}.insight-point.alert{background:rgba(240,68,68,.08);border-color:rgba(240,68,68,.24);color:var(--red)}.insight-point.info{background:rgba(167,139,250,.08);border-color:rgba(167,139,250,.24);color:var(--vio)}
     </style>
 </head>
 <body>
@@ -506,42 +500,34 @@
 
     <!-- GRID -->
     <div class="dash-grid">
-      <!-- AI COMMAND CENTRE col-12 -->
-      <div class="dc col-12 ai-core">
-        <div class="card-glow" style="background:var(--acc2);opacity:0.22;"></div>
+      <!-- STUDY SNAPSHOT col-12 -->
+      <section class="dc col-12 focus-core">
+        <div class="card-glow" style="background:var(--acc2);opacity:.18;"></div>
         <div class="ch">
-          <div class="ch-title">AI COMMAND CENTRE</div>
-          <div class="ai-chip">AI STUDY COPILOT</div>
+          <div class="ch-title">STUDY SNAPSHOT</div>
+          <div class="focus-chip">YOUR PROGRESS · UPDATED AUTOMATICALLY</div>
         </div>
         <div class="cb">
-          <div class="ai-head">
+          <div class="focus-head">
             <div>
-              <div class="ai-score" id="aiHealthScore">—</div>
-              <div class="ai-muted">Focus Health Score (combined from tests, tasks, schedule, DPP, syllabus & backlog)</div>
+              <div class="focus-score" id="focusHealthScore">—</div>
+              <div class="focus-muted">Study momentum score, based on your tests, tasks, schedule, DPPs, syllabus and backlog.</div>
             </div>
-            <button class="qa-btn" onclick="openBacklogModal(event)">+ ADD TO BACKLOG</button>
+            <button class="qa-btn" onclick="openBacklogModal(event)">+ ADD PRIORITY</button>
           </div>
-          <div class="ai-grid">
-            <div class="ai-panel">
-              <div class="ai-title">PERSONALIZED INSIGHTS</div>
-              <div class="ai-insights" id="aiInsightsList"></div>
-              <div class="ai-title" style="margin-top:10px;">REAL AI COACH (HUGGING FACE)</div>
-              <div class="ai-point info" id="aiCoachText">Preparing your AI coach...</div>
-              <button class="qa-btn" style="margin-top:8px;" onclick="refreshAICoach(true)">RUN REAL AI ANALYSIS</button>
-              <div class="ai-title" style="margin-top:10px;">ASK AI</div>
-              <div class="ai-chat-log" id="aiChatLog"></div>
-              <div class="ai-chat-input-row">
-                <input id="aiChatInput" class="ai-chat-input" placeholder="Ask anything (study plan, chapter strategy, test mistakes...)" />
-                <button class="ai-mini-btn" onclick="sendAIChatMessage()">SEND</button>
-              </div>
+          <div class="focus-grid">
+            <div class="focus-panel">
+              <div class="section-label">YOUR STUDY SNAPSHOT</div>
+              <div class="study-insights" id="studyInsightsList"></div>
+              <div class="focus-tip"><strong>Small steps work.</strong> Pick one priority, study in a focused block, then log what you finished.</div>
             </div>
-            <div class="ai-panel">
-              <div class="ai-title">PRIORITY BACKLOG</div>
+            <div class="focus-panel">
+              <div class="section-label">PRIORITY BACKLOG</div>
               <div id="backlogList"></div>
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
       <!-- COUNTDOWN col-5 -->
       <div class="dc col-5 countdown-card">
@@ -657,7 +643,7 @@
 <div id="toast" class="toast"></div>
 <div class="bmodal" id="backlogModal">
   <div class="bpanel">
-    <div class="ai-title" style="margin-bottom:8px;">ADD BACKLOG ITEM</div>
+    <div class="section-label" style="margin-bottom:8px;">ADD BACKLOG ITEM</div>
     <input id="backlogTextInput" class="binput" placeholder="What is blocked / pending?" />
     <div style="height:8px"></div>
     <select id="backlogPriorityInput" class="bselect">
@@ -676,7 +662,7 @@
     <aside class="chat-side">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
         <div>
-          <div class="ai-title" style="margin-bottom:3px;">BUDDY CHAT</div>
+          <div class="section-label" style="margin-bottom:3px;">BUDDY CHAT</div>
           <div class="chat-aux">Realtime rooms powered by Firebase</div>
         </div>
         <button class="qa-btn" onclick="closeBuddyChatRoom()">Close</button>
@@ -715,18 +701,6 @@
 <script>
 // ══ AUTH STATE ══
 let _cu=null,_sm=null,_si=false,_al=false;
-// Optional API keys (recommended for reliable AI responses):
-// You can paste keys directly below OR keep them empty and use localStorage.
-const HARDCODED_OPENROUTER_KEY = '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'; // e.g. 'sk-or-v1-...'
-const HARDCODED_HF_KEY = ''; // e.g. 'hf_...'
-const OPENROUTER_MODEL = 'deepseek/deepseek-chat-v3-0324:free'; // change to any OpenRouter model id you have access to
-// localStorage fallback:
-// 1) localStorage.setItem('buddy_openrouter_key','YOUR_KEY')
-// 2) localStorage.setItem('buddy_hf_key','YOUR_HF_KEY')
-const BUDDY_AI_CONFIG={
-    openRouterKey: HARDCODED_OPENROUTER_KEY || localStorage.getItem('buddy_openrouter_key') || '',
-    huggingFaceKey: HARDCODED_HF_KEY || localStorage.getItem('buddy_hf_key') || ''
-};
 const CHAT_SECRET_STORAGE_KEY='buddy_secret_chat_code';
 const CHAT_UNLOCK_DATE='1038-12-15';
 const CHAT_UNLOCK_NAME='filter test infinity';
@@ -1271,10 +1245,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Also load streak and test count for stat banner
     loadStreak();
     loadTestWidget();
-    loadAICommandCentre();
-    renderAIChat();
-    initChatLauncher();
-    document.getElementById('aiChatInput')?.addEventListener('keydown',e=>{if(e.key==='Enter')sendAIChatMessage();});
+    loadStudySnapshot();
+        initChatLauncher();
     document.getElementById('backlogModal')?.addEventListener('click',e=>{if(e.target.id==='backlogModal')closeBacklogModal();});
 });
 // ══ SYNC ══
@@ -1321,7 +1293,7 @@ function applyProfile(override={}){
     const hn=document.getElementById('heroName');
     if(name&&hn){hn.textContent=name.split(' ')[0].toUpperCase()+',';hn.style.display='block';}
 }
-function loadPageData(){applyProfile();loadDPPStats();loadSyllabusProgress();loadUpcomingTests();loadTasks();loadScheduleLocal();loadStreak();loadTestWidget();loadAICommandCentre();updateCountdown();}
+function loadPageData(){applyProfile();loadDPPStats();loadSyllabusProgress();loadUpcomingTests();loadTasks();loadScheduleLocal();loadStreak();loadTestWidget();loadStudySnapshot();updateCountdown();}
 
 // Clock
 function updateClock(){
@@ -1640,7 +1612,7 @@ function readJsonArray(key){
     }catch(e){return [];}
 }
 
-function loadAICommandCentre(){
+function loadStudySnapshot(){
     const tests=readJsonArray('test_analysis_data');
     const tasks=readJsonArray('buddy_tasks');
     const backlog=readJsonArray('buddy_backlog');
@@ -1661,7 +1633,7 @@ function loadAICommandCentre(){
     const score=Math.max(0,Math.min(100,
         Math.round(avgTestPct*0.3 + (tasks.length?doneTasks/tasks.length*100:55)*0.2 + syllabusPct*0.2 + Math.min(dppTotal,120)/1.2*0.1 + Math.min(scheduleCount*4,100)*0.1 + Math.max(0,100-backlogOpen*12)*0.1)
     ));
-    const scoreEl=document.getElementById('aiHealthScore');
+    const scoreEl=document.getElementById('focusHealthScore');
     if(scoreEl)scoreEl.textContent=score+'%';
 
     const insights=[];
@@ -1671,12 +1643,12 @@ function loadAICommandCentre(){
     insights.push({type:backlogOpen===0?'good':'warn',text:`Backlog: ${backlogOpen} open item(s). ${backlogOpen?'Prioritize highest-impact backlog item first block tomorrow morning.':'No backlog debt—excellent.'}`});
     insights.push({type:'info',text:`Coverage snapshot → Syllabus ${syllabusPct}% · DPP ${dppTotal} Q · Schedule slots ${scheduleCount}.`});
 
-    const insightsEl=document.getElementById('aiInsightsList');
+    const insightsEl=document.getElementById('studyInsightsList');
     if(insightsEl){
-        insightsEl.innerHTML=insights.map(i=>`<div class="ai-point ${i.type}">${esc(i.text)}</div>`).join('');
+        insightsEl.innerHTML=insights.map(i=>`<div class="insight-point ${i.type}">${esc(i.text)}</div>`).join('');
     }
     renderBacklog(backlog);
-    refreshAICoach(false,{score,avgTestPct,pendingTasks,backlogOpen,syllabusPct,dppTotal,scheduleCount});
+    
 }
 
 function renderBacklog(backlogItems){
@@ -1691,7 +1663,7 @@ function renderBacklog(backlogItems){
         <span class="backlog-pri ${esc(item.priority||'medium')}">${esc((item.priority||'medium').toUpperCase())}</span>
         <div style="flex:1;font-size:0.76rem;">${esc(item.text||'Untitled backlog')}</div>
         <button class="backlog-done" onclick="markBacklogDone('${esc(item.id||String(idx))}')">DONE</button>
-    </div>`).join('')+(active.length>4?`<div class="ai-muted">+ ${active.length-4} more backlog item(s)</div>`:'');
+    </div>`).join('')+(active.length>4?`<div class="focus-muted">+ ${active.length-4} more backlog item(s)</div>`:'');
 }
 
 function openBacklogModal(e){
@@ -1710,107 +1682,14 @@ function saveBacklogModal(){
     document.getElementById('backlogTextInput').value='';
     document.getElementById('backlogPriorityInput').value='medium';
     closeBacklogModal();
-    loadAICommandCentre();
+    loadStudySnapshot();
     showToastMsg('🧠 Added to backlog.');
 }
 
 function markBacklogDone(id){
     const backlog=readJsonArray('buddy_backlog').map(item=>item.id===id?{...item,done:true,doneAt:new Date().toISOString()}:item);
     localStorage.setItem('buddy_backlog',JSON.stringify(backlog));
-    loadAICommandCentre();
-}
-
-async function refreshAICoach(force=false,metricsOverride=null){
-    const coachEl=document.getElementById('aiCoachText');
-    if(!coachEl)return;
-    if(window.__aiCoachBusy)return;
-    const now=Date.now();
-    const cachedText=localStorage.getItem('buddy_ai_coach_text');
-    const cachedTs=Number(localStorage.getItem('buddy_ai_coach_ts')||0);
-    if(!force&&cachedText&&(now-cachedTs)<15*60*1000){coachEl.textContent=cachedText;return;}
-
-    const metrics=metricsOverride||{
-        score:document.getElementById('aiHealthScore')?.textContent||'0%',
-        avgTestPct:0,pendingTasks:0,backlogOpen:0,syllabusPct:0,dppTotal:0,scheduleCount:0
-    };
-    const prompt=`You are a strict but supportive JEE study coach. Use this student snapshot and give exactly 3 short personalized action bullets for next 24 hours. Data: focus_score=${metrics.score}, avg_test_pct=${metrics.avgTestPct}, pending_tasks=${metrics.pendingTasks}, backlog_open=${metrics.backlogOpen}, syllabus_pct=${metrics.syllabusPct}, dpp_total=${metrics.dppTotal}, schedule_slots=${metrics.scheduleCount}. Keep concise and practical.`;
-    coachEl.textContent='Running real AI analysis...';
-    window.__aiCoachBusy=true;
-    try{
-        let aiText=await callAIProviders(prompt);
-        if(!aiText){
-            aiText=`AI provider not reachable right now. Add an API key for reliable responses (OpenRouter/HuggingFace) and retry. Fallback plan: clear 2 top backlog items, run one timed mixed test block, and review today's top 10 mistakes.`;
-        }
-        const cleaned=aiText.replace(/\s+/g,' ').slice(0,420);
-        coachEl.textContent=cleaned;
-        localStorage.setItem('buddy_ai_coach_text',cleaned);
-        localStorage.setItem('buddy_ai_coach_ts',String(now));
-    } finally {
-        window.__aiCoachBusy=false;
-    }
-}
-
-async function callAIProviders(prompt){
-    if(BUDDY_AI_CONFIG.openRouterKey){
-        try{
-            const r=await fetch('https://openrouter.ai/api/v1/chat/completions',{
-                method:'POST',
-                headers:{'Content-Type':'application/json','Authorization':`Bearer ${BUDDY_AI_CONFIG.openRouterKey}`},
-                body:JSON.stringify({model:OPENROUTER_MODEL,messages:[{role:'user',content:prompt}],max_tokens:220,temperature:0.6})
-            });
-            if(r.ok){
-                const d=await r.json();
-                const t=d?.choices?.[0]?.message?.content?.trim();
-                if(t)return t;
-            }
-        }catch(e){}
-    }
-    const models=['deepseek-ai/DeepSeek-R1-Distill-Qwen-7B','Qwen/Qwen2.5-7B-Instruct','mistralai/Mistral-7B-Instruct-v0.3'];
-    for(const model of models){
-        try{
-            const ctrl=new AbortController();
-            const timeout=setTimeout(()=>ctrl.abort(),9000);
-            const headers={'Content-Type':'application/json'};
-            if(BUDDY_AI_CONFIG.huggingFaceKey)headers.Authorization=`Bearer ${BUDDY_AI_CONFIG.huggingFaceKey}`;
-            const res=await fetch(`https://api-inference.huggingface.co/models/${model}`,{
-                method:'POST',
-                headers,
-                body:JSON.stringify({inputs:prompt,parameters:{max_new_tokens:130,temperature:0.5,return_full_text:false}}),
-                signal:ctrl.signal
-            });
-            clearTimeout(timeout);
-            if(!res.ok)continue;
-            const data=await res.json();
-            const out=(Array.isArray(data)?data?.[0]?.generated_text:data?.generated_text||'').trim();
-            if(out&&out.length>20)return out;
-        }catch(e){}
-    }
-    return '';
-}
-
-function readAIChat(){return readJsonArray('buddy_ai_chat');}
-function writeAIChat(list){localStorage.setItem('buddy_ai_chat',JSON.stringify(list.slice(-20)));}
-function renderAIChat(){
-    const host=document.getElementById('aiChatLog');if(!host)return;
-    const msgs=readAIChat();
-    if(!msgs.length){host.innerHTML='<div class="ai-chat-msg ai">Ask me anything about your prep and I will answer based on your current dashboard data.</div>';return;}
-    host.innerHTML=msgs.map(m=>`<div class="ai-chat-msg ${m.role==='user'?'user':'ai'}">${esc(m.text)}</div>`).join('');
-    host.scrollTop=host.scrollHeight;
-}
-async function sendAIChatMessage(){
-    const input=document.getElementById('aiChatInput');if(!input)return;
-    const q=input.value.trim();if(!q)return;
-    input.value='';
-    const chat=readAIChat();
-    chat.push({role:'user',text:q,ts:new Date().toISOString()});
-    writeAIChat(chat); renderAIChat();
-    const ctx=`Student snapshot: ${document.getElementById('aiHealthScore')?.textContent||'0%'} focus score, backlog open ${readJsonArray('buddy_backlog').filter(i=>!i.done).length}, pending tasks ${readJsonArray('buddy_tasks').filter(t=>!t.completed).length}.`;
-    const prompt=`You are Buddy AI study mentor. Answer clearly in under 120 words. ${ctx}\nQuestion: ${q}`;
-    let answer=await callAIProviders(prompt);
-    if(!answer)answer='I could not reach an AI provider. Add OpenRouter/HuggingFace key and try again.';
-    const next=readAIChat();
-    next.push({role:'ai',text:answer.replace(/\s+/g,' ').slice(0,520),ts:new Date().toISOString()});
-    writeAIChat(next); renderAIChat();
+    loadStudySnapshot();
 }
 
 setInterval(()=>{if(_cu&&_sm==='cloud')syncToCloud();},30000);
