@@ -9,7 +9,7 @@
     body.dataset.buddyMode=['midnight','soft','light'].includes(p.mode)?p.mode:'midnight';
     const fonts={system:'system-ui, sans-serif',rounded:'Trebuchet MS, sans-serif',serif:'Georgia, serif'};
     const font=fonts[p.font]||fonts.system;
-    root.style.setProperty('--fb',font);root.style.setProperty('--font-b',font);root.style.setProperty('--font-body',font);root.style.setProperty('--font-family',font);
+    root.style.setProperty('--fb',font);root.style.setProperty('--font-b',font);root.style.setProperty('--font-body',font);root.style.setProperty('--font-family',font);root.style.setProperty('--fd',font);root.style.setProperty('--fm',font);root.style.setProperty('--font-d',font);root.style.setProperty('--font-m',font);root.style.setProperty('--font-display',font);root.style.setProperty('--font-mono',font);
     body.style.setProperty('font-family',font,'important');
     const scale=String(p.scale);root.style.fontSize=({'100':'16px','112':'18px','125':'20px'}[scale]||'16px');
     root.style.setProperty('--buddy-accent',p.accent||defaults.accent);
