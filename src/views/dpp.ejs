@@ -11,8 +11,17 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@300;400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="/js/prefs.js"></script>
+    <meta name="description" content="Buddy is a free JEE study planner: timetable, DPP logger, syllabus tracker and test analysis. Made by Gamestatue.">
+    <meta name="author" content="Gamestatue">
+    <meta name="application-name" content="Buddy">
+    <meta name="apple-mobile-web-app-title" content="Buddy">
+    <link rel="manifest" href="/manifest.webmanifest">
+    <link rel="icon" href="/logo.png">
+    <link rel="apple-touch-icon" href="/logo.png">
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="/css/mobile.css">
+    <link rel="stylesheet" href="/css/theme.css">
     <style>
         :root {
             --font-d: 'Bebas Neue', sans-serif;
@@ -612,8 +621,8 @@
         updateChapterDD();
         toast('Removed');
     }
-    document.getElementById('ccSubject').addEventListener('change',renderExistingCustomChapters);
-    document.getElementById('customChapModal').addEventListener('click',function(e){if(e.target===this)closeAddChapter();});
+    document.getElementById('ccSubject')?.addEventListener('change',renderExistingCustomChapters);
+    document.getElementById('customChapModal')?.addEventListener('click',function(e){if(e.target===this)closeAddChapter();});
     window.openAddChapter=openAddChapter; window.closeAddChapter=closeAddChapter; window.saveCustomChapter=saveCustomChapter; window.removeCustomChapter=removeCustomChapter;
 
     // Canvas
@@ -658,14 +667,24 @@
 <div class="mob-backdrop" id="_mbd"></div>
 
 <header class="mob-topbar">
-  <div style="display:flex;align-items:center;gap:10px;">
-    <button id="_mMenu" style="width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.07);display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,0.55);flex-shrink:0;">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+  <div class="mob-brand-wrap">
+    <button id="_mMenu" class="mob-icon-btn" type="button" aria-label="Open menu">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
     </button>
-    <img src="/logo.png" style="width:28px;height:28px;border-radius:7px;object-fit:cover;flex-shrink:0;" onerror="this.style.display='none'" alt="">
-    <span style="font-family:'Bebas Neue',sans-serif;font-size:1.05rem;letter-spacing:0.1em;color:#e8ebf8;">DPP LOGGER</span>
+    <div class="mob-brand-chip">
+      <img src="/logo.png" onerror="this.style.display='none'" alt="">
+      <div>
+        <div class="mob-brand-title">BUDDY</div>
+        <div class="mob-brand-sub">DPP Logger</div>
+      </div>
+    </div>
   </div>
-  <div id="_mRight" style="display:flex;align-items:center;gap:8px;"></div>
+  <div class="mob-actions">
+    <button type="button" class="mob-icon-btn" data-bd-open="appearance" aria-label="Settings">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 7h9M17 7h3M4 17h3M11 17h9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="15" cy="7" r="2.3" stroke="currentColor" stroke-width="1.8"/><circle cx="9" cy="17" r="2.3" stroke="currentColor" stroke-width="1.8"/></svg>
+    </button>
+    <div id="_mRight"></div>
+  </div>
 </header>
 
 <nav class="mob-tabbar">
@@ -678,65 +697,9 @@
 
 <div class="mob-drawer-bd" id="_mdbd"></div>
 <div class="mob-drawer" id="_mdrw">
-  <div style="display:flex;justify-content:center;padding:10px 0 6px;">
-    <div style="width:36px;height:4px;background:rgba(255,255,255,0.15);border-radius:2px;"></div>
-  </div>
+  <div class="mob-drawer-grab"><i></i></div>
   <div id="_mdc" style="padding:0 16px 12px;"></div>
 </div>
-
-<style>
-/* ── Mob topbar inner styles (not layout) ── */
-#_mRight button {
-  padding: 7px 13px;
-  background: rgba(91,110,245,0.14);
-  border: 1px solid rgba(91,110,245,0.28);
-  border-radius: 20px;
-  color: #7c8ff8;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.62rem;
-  letter-spacing: 0.06em;
-  cursor: pointer;
-  white-space: nowrap;
-}
-._mav {
-  width: 32px; height: 32px; border-radius: 50%;
-  background: linear-gradient(135deg,#5b6ef5,#a78bfa);
-  display: flex; align-items: center; justify-content: center;
-  font-family: 'Bebas Neue',sans-serif; font-size: 1.1rem; color: #fff;
-  cursor: pointer; flex-shrink: 0;
-}
-._mduser {
-  display: flex; align-items: center; gap: 12px;
-  padding: 14px 16px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.07);
-  border-radius: 14px;
-  margin-bottom: 12px;
-}
-._mdav2 {
-  width: 44px; height: 44px; border-radius: 50%;
-  background: linear-gradient(135deg,#5b6ef5,#a78bfa);
-  display: flex; align-items: center; justify-content: center;
-  font-family: 'Bebas Neue',sans-serif; font-size: 1.4rem; color: #fff;
-  flex-shrink: 0;
-}
-._mdbtn {
-  display: flex; align-items: center; gap: 12px;
-  padding: 14px 16px;
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.06);
-  border-radius: 12px;
-  color: rgba(255,255,255,0.6);
-  cursor: pointer; font-family: 'Outfit',sans-serif;
-  font-size: 0.88rem; font-weight: 500;
-  margin-bottom: 8px; width: 100%; text-align: left;
-  transition: background 0.12s;
-}
-._mdbtn:active { background: rgba(255,255,255,0.07); }
-._mdbtn.red { color: #f04444; border-color: rgba(240,68,68,0.15); }
-._mdbtn.red:active { background: rgba(240,68,68,0.08); }
-._mdbtn.blu { background: rgba(91,110,245,0.1); border-color: rgba(91,110,245,0.22); color: #7c8ff8; }
-</style>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -746,90 +709,8 @@ if(!firebase.apps.length){firebase.initializeApp({apiKey:"AIzaSyCtu9xTssIZD3S99e
 firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
 </script>
 <script src="/js/auth.js"></script>
-<script>
-(function() {
-  if (window.innerWidth > 768) return;
-
-  var bd   = document.getElementById('_mbd');
-  var menu = document.getElementById('_mMenu');
-  var sb   = document.getElementById('buddySidebar') || document.querySelector('.sidebar');
-  var mdr  = document.getElementById('_mdrw');
-  var mdbd = document.getElementById('_mdbd');
-  var mrt  = document.getElementById('_mRight');
-  var mdc  = document.getElementById('_mdc');
-
-  // ── Sidebar open/close ──
-  function openSb() {
-    if(sb) sb.classList.add('mob-open');
-    if(bd) bd.classList.add('on');
-  }
-  function closeSb() {
-    if(sb) sb.classList.remove('mob-open');
-    if(bd) bd.classList.remove('on');
-  }
-  menu && menu.addEventListener('click', openSb);
-  bd   && bd.addEventListener('click', closeSb);
-  document.querySelectorAll('.sidebar .nav-item, .sidebar a').forEach(function(a) {
-    a.addEventListener('click', closeSb);
-  });
-
-  // swipe left to close sidebar
-  var tx = 0;
-  document.addEventListener('touchstart', function(e){ tx = e.touches[0].clientX; }, {passive:true});
-  document.addEventListener('touchend', function(e){
-    if(e.changedTouches[0].clientX - tx < -50 && sb && sb.classList.contains('mob-open')) closeSb();
-  }, {passive:true});
-
-  // ── Drawer open/close ──
-  function openDr() { mdr.classList.add('mob-open'); mdbd.classList.add('on'); }
-  function closeDr() { mdr.classList.remove('mob-open'); mdbd.classList.remove('on'); }
-  mdbd && mdbd.addEventListener('click', closeDr);
-
-  // swipe down to close drawer
-  var dy = 0;
-  mdr && mdr.addEventListener('touchstart', function(e){ dy = e.touches[0].clientY; }, {passive:true});
-  mdr && mdr.addEventListener('touchend', function(e){
-    if(e.changedTouches[0].clientY - dy > 60) closeDr();
-  }, {passive:true});
-
-  // ── Auth state ──
-  function setUser(user) {
-    if (!mrt) return;
-    if (user) {
-      var name = user.displayName || user.email.split('@')[0];
-      var av = name.charAt(0).toUpperCase();
-      mrt.innerHTML = '<div class="_mav" id="_mavBtn">' + av + '</div>';
-      document.getElementById('_mavBtn').addEventListener('click', function() {
-        if (!mdc) return;
-        mdc.innerHTML =
-          '<div class="_mduser">' +
-            '<div class="_mdav2">' + av + '</div>' +
-            '<div><div style="font-size:0.92rem;font-weight:600;color:#e8ebf8;">' + name + '</div>' +
-            '<div style="font-family:JetBrains Mono,monospace;font-size:0.54rem;color:rgba(255,255,255,0.3);margin-top:2px;">' + user.email + '</div></div>' +
-          '</div>' +
-          '<button class="_mdbtn blu" onclick="(typeof syncToCloud===\'function\'&&syncToCloud());closeDr();">' +
-            '<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M1 4V10H7M23 20V14H17M20.49 9A9 9 0 005.64 5.64L1 10M23 14l-4.64 4.36A9 9 0 013.51 15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>' +
-            'Sync Now' +
-          '</button>' +
-          '<button class="_mdbtn red" onclick="firebase.auth().signOut().then(function(){localStorage.removeItem(\'buddy_storage_mode\');location.reload()});">' +
-            '<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>' +
-            'Sign Out' +
-          '</button>';
-        openDr();
-      });
-    } else {
-      mrt.innerHTML = '<button onclick="(typeof openOverlay===\'function\'?openOverlay():location.href=\'/\');if(typeof showScreen===\'function\')showScreen(\'screenStorage\');">SIGN IN</button>';
-    }
-  }
-
-  if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length) {
-    firebase.auth().onAuthStateChanged(setUser);
-  } else {
-    setUser(null);
-  }
-})();
-</script>
-
+<script src="/js/mobile-shell.js"></script>
+<script src="/js/settings.js"></script>
 </body>
 </html>
 

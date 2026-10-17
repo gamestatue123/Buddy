@@ -73,7 +73,6 @@ async function signInWithGoogle() {
         _showToast(_friendlyErr(e.code));
     }
 }
-}
 
 async function signInWithMicrosoft() {
     try {
