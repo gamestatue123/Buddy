@@ -1,0 +1,16 @@
+{
+  "name": "Buddy — JEE Study Companion",
+  "short_name": "Buddy",
+  "description": "Timetable, DPP logger, syllabus tracker and test analysis for JEE aspirants. Made by Gamestatue.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#080a10",
+  "theme_color": "#080a10",
+  "categories": ["education", "productivity"],
+  "icons": [
+    { "src": "/logo.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/logo.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

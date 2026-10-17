@@ -34,7 +34,11 @@ test('core pages render and include unified nav + local sign-in CTA', async () =
       assert.match(body, /href="\/dpp"/);
       assert.match(body, /href="\/syllabus"/);
       assert.match(body, /href="\/test-analysis"/);
-      assert.match(body, /SIGN IN/i);
+      assert.match(body, /\/js\/mobile-shell\.js/);
+      assert.match(body, /\/js\/settings\.js/);
+      assert.match(body, /\/css\/theme\.css/);
+      assert.match(body, /\/js\/prefs\.js/);
+      assert.doesNotMatch(body, /openrouter|sk-or-v1|huggingface/i);
       assert.match(body, /logo\.png/);
     }
   } finally {
