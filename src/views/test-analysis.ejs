@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Buddy | Test Analysis</title>
+    <link rel="icon" type="image/png" href="/logo.png">
+    <link rel="apple-touch-icon" href="/logo.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@300;400;500;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -186,7 +188,7 @@
     @media(max-width:700px){.stat-row{grid-template-columns:repeat(2,1fr);}.g3{grid-template-columns:1fr;}.main-content{padding:1.2rem 1rem 4rem;}}
     </style>
 </head>
-<body>
+<body class="test-analysis-page">
 <canvas id="canvas-bg" style="position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:-2;pointer-events:none;"></canvas>
 <div class="gradient-orb orb-1"></div><div class="gradient-orb orb-2"></div>
 
@@ -194,7 +196,7 @@
   <aside class="sidebar">
     <div class="sidebar-header">
       <div class="buddy-logo">
-        <img src="/logo.png" alt="Buddy" onerror="this.src='https://via.placeholder.com/48x48?text=B'">
+        <img src="/logo.png" alt="Buddy">
         <h1>Buddy</h1>
       </div>
       <p class="greeting">Test Analysis</p>
